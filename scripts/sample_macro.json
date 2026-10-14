@@ -1,0 +1,28 @@
+{
+  "name": "Sample Action Combo",
+  "description": "Demonstrates basic buttons, sticks, waits, and nested repeats",
+  "actions": [
+    { "log": "Step 1: Press A button" },
+    { "press": ["A"], "duration": 0.1, "wait": 0.2 },
+
+    { "log": "Step 2: Press Jump (B) and Attack (Y) simultaneously" },
+    { "press": ["B", "Y"], "duration": 0.15, "wait": 0.3 },
+
+    { "log": "Step 3: Walk Forward (Left Stick Up) for 1 second" },
+    { "stick": { "left": [128, 255] }, "duration": 1.0, "wait": 0.2 },
+
+    { "log": "Step 4: Rotate Camera (Right Stick Right) while walking" },
+    { "stick": { "left": [128, 255], "right": [255, 128] }, "duration": 0.8, "wait": 0.2 },
+
+    { "log": "Step 5: Quick 3x Button Mashes" },
+    {
+      "repeat": 3,
+      "actions": [
+        { "press": ["A"], "duration": 0.08, "wait": 0.1 }
+      ]
+    },
+
+    { "log": "Step 6: D-Pad Down selection" },
+    { "dpad": "DOWN", "duration": 0.1, "wait": 0.2 }
+  ]
+}
