@@ -48,3 +48,27 @@ export const DEFAULT_CONTROLLER_STATE: ControllerState = {
   right_stick_x: 128,
   right_stick_y: 128,
 };
+
+export interface UsbPortInfo {
+  vid: number;
+  pid: number;
+  manufacturer?: string;
+  product?: string;
+}
+
+export interface SerialPortDetail {
+  port_name: string;
+  description: string;
+  usb_info?: UsbPortInfo;
+}
+
+export interface SerialStatus {
+  is_connected: boolean;
+  port_name?: string;
+  baudrate: number;
+  packets_sent: number;
+  tx_fps: number;
+  switch_pairing_state: "disconnected" | "pairing" | "connected" | string;
+}
+
+

@@ -5,8 +5,9 @@ import { ControllerState, DEFAULT_CONTROLLER_STATE, GamepadInfo } from "./types"
 import { Sidebar } from "./components/Sidebar";
 import { GamepadVisualizer } from "./components/GamepadVisualizer";
 import { CompactWidget } from "./components/CompactWidget";
+import { HardwareSettings } from "./components/HardwareSettings";
 import { useVirtualGamepad } from "./hooks/useVirtualGamepad";
-import { FileCode2, Cpu } from "lucide-react";
+import { FileCode2 } from "lucide-react";
 
 export function App() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "macro" | "hardware">("dashboard");
@@ -14,6 +15,8 @@ export function App() {
   const [gamepads, setGamepads] = useState<GamepadInfo[]>([]);
   const [isMuted, setIsMuted] = useState(false);
   const [fps, setFps] = useState(0);
+  const [esp32Connected, setEsp32Connected] = useState(false);
+  const [switchPairingState, setSwitchPairingState] = useState("disconnected");
 
   // Hook up Virtual Gamepad for Keyboard & On-Screen click/drag inputs with optimistic state updates
   const { sendButton, sendStick } = useVirtualGamepad(isMuted, setControllerState);
@@ -150,7 +153,8 @@ export function App() {
         onRefreshGamepads={refreshGamepads}
         onSelectGamepad={handleSelectGamepad}
         onToggleMute={handleToggleMute}
-        esp32Connected={false}
+        esp32Connected={esp32Connected}
+        switchPairingState={switchPairingState}
       />
 
       {/* Right Detail Content Stage */}
@@ -181,17 +185,10 @@ export function App() {
         )}
 
         {activeTab === "hardware" && (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
-              <Cpu className="w-5 h-5" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-zinc-200">ESP32 序列通訊與韌體管理 (Phase 2)</h3>
-              <p className="text-xs text-zinc-400 max-w-sm">
-                自動掃描 USB 序列埠，一鍵燒錄 PRO-UART0.bin 韌體與 60Hz 握手心跳檢測。
-              </p>
-            </div>
-          </div>
+          <HardwareSettings
+            onConnectionChange={setEsp32Connected}
+            onPairingChange={setSwitchPairingState}
+          />
         )}
       </main>
     </div>

@@ -1,5 +1,6 @@
 pub mod gamepad;
 pub mod protocol;
+pub mod serial;
 
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
@@ -7,9 +8,11 @@ use tauri::{AppHandle, Emitter, State};
 
 use crate::gamepad::{GamepadInfo, GamepadManager};
 use crate::protocol::ControllerState;
+use crate::serial::{SerialManager, SerialPortDetail, SerialStatus};
 
 pub struct AppState {
     pub gamepad_mgr: Arc<GamepadManager>,
+    pub serial_mgr: Arc<SerialManager>,
 }
 
 #[tauri::command]
@@ -67,9 +70,43 @@ fn reset_virtual_inputs(state: State<AppState>, app: AppHandle) -> Result<(), St
     Ok(())
 }
 
+#[tauri::command]
+fn get_serial_ports() -> Vec<SerialPortDetail> {
+    SerialManager::list_ports()
+}
+
+#[tauri::command]
+fn connect_serial(
+    port_name: String,
+    baudrate: u32,
+    state: State<AppState>,
+    app: AppHandle,
+) -> Result<(), String> {
+    state
+        .serial_mgr
+        .connect(&port_name, baudrate, state.gamepad_mgr.clone(), app)
+}
+
+#[tauri::command]
+fn disconnect_serial(state: State<AppState>) -> Result<(), String> {
+    state.serial_mgr.disconnect()
+}
+
+#[tauri::command]
+fn get_serial_status(state: State<AppState>) -> SerialStatus {
+    state.serial_mgr.get_status()
+}
+
+#[tauri::command]
+fn send_serial_command(command: String, state: State<AppState>) -> Result<(), String> {
+    state.serial_mgr.send_special_command(&command)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let gamepad_mgr = Arc::new(GamepadManager::new());
+    let serial_mgr = Arc::new(SerialManager::new());
+
     let state_arc = gamepad_mgr.state.clone();
     let physical_state_arc = gamepad_mgr.physical_state.clone();
     let virtual_state_arc = gamepad_mgr.virtual_state.clone();
@@ -79,6 +116,7 @@ pub fn run() {
 
     let app_state = AppState {
         gamepad_mgr: gamepad_mgr.clone(),
+        serial_mgr: serial_mgr.clone(),
     };
 
     tauri::Builder::default()
@@ -106,7 +144,13 @@ pub fn run() {
             send_virtual_dpad,
             send_virtual_stick,
             reset_virtual_inputs,
+            get_serial_ports,
+            connect_serial,
+            disconnect_serial,
+            get_serial_status,
+            send_serial_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+

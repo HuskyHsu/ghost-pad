@@ -23,6 +23,7 @@ interface Props {
   onSelectGamepad: (id: number | null) => void;
   onToggleMute: () => void;
   esp32Connected: boolean;
+  switchPairingState?: string;
 }
 
 export const Sidebar: React.FC<Props> = ({
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<Props> = ({
   onSelectGamepad,
   onToggleMute,
   esp32Connected,
+  switchPairingState = "disconnected",
 }) => {
   const [showGuide, setShowGuide] = useState(false);
 
@@ -252,7 +254,21 @@ export const Sidebar: React.FC<Props> = ({
               <Tv className="w-3.5 h-3.5 text-zinc-400" />
               <span>ESP32 ➔ Switch</span>
             </div>
-            <span className="font-mono text-[10px] text-zinc-400">待命</span>
+            <span
+              className={`font-mono text-[10px] font-medium ${
+                switchPairingState === "connected"
+                  ? "text-cyan-400 font-bold"
+                  : switchPairingState === "pairing"
+                  ? "text-amber-400 animate-pulse"
+                  : "text-zinc-400"
+              }`}
+            >
+              {switchPairingState === "connected"
+                ? "1P 連線中"
+                : switchPairingState === "pairing"
+                ? "配對中"
+                : "待命"}
+            </span>
           </div>
         </div>
       </div>
