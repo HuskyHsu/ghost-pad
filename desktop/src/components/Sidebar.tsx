@@ -38,7 +38,7 @@ export const Sidebar: React.FC<Props> = ({
   const [showGuide, setShowGuide] = useState(false);
 
   return (
-    <aside className="w-72 bg-zinc-950 border-r border-zinc-800/80 flex flex-col h-full select-none shrink-0">
+    <aside className="w-64 xl:w-72 bg-zinc-950 border-r border-zinc-800/80 flex flex-col h-full select-none shrink-0">
       {/* Top App Header */}
       <div className="h-14 px-5 border-b border-zinc-800/80 flex items-center justify-between">
         <div className="flex items-center gap-2.5">

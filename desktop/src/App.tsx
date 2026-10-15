@@ -132,6 +132,7 @@ export function App() {
         isMuted={isMuted}
         onToggleMute={handleToggleMute}
         onTriggerButton={sendButton}
+        onTriggerStick={sendStick}
         fps={fps}
       />
     );
