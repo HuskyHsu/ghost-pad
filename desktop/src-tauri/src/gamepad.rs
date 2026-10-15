@@ -206,7 +206,7 @@ impl GamepadManager {
     }
 
     /// Recompute merged state from physical + virtual
-    fn recompute_merged_state(&self) {
+    pub fn recompute_merged_state(&self) {
         let p = self.physical_state.read().unwrap();
         let v = self.virtual_state.read().unwrap();
         let merged = if self.is_muted.load(Ordering::Relaxed) {
@@ -216,6 +216,18 @@ impl GamepadManager {
         };
         *self.state.write().unwrap() = merged;
     }
+
+    /// Get a cloned snapshot of current merged controller state
+    pub fn get_current_state(&self) -> ControllerState {
+        self.state.read().unwrap().clone()
+    }
+
+    /// Set mute status (blocks output if true)
+    pub fn set_mute(&self, muted: bool) {
+        self.is_muted.store(muted, Ordering::Relaxed);
+        self.recompute_merged_state();
+    }
+
 
     /// Convert float axis (-1.0 .. 1.0) with deadzone to 0 .. 255 (128 = center)
     pub fn axis_to_u8(val: f32, deadzone: f32) -> u8 {
@@ -493,3 +505,77 @@ impl GamepadManager {
         list
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_axis_to_u8() {
+        assert_eq!(GamepadManager::axis_to_u8(0.0, 0.1), NEUTRAL_STICK);
+        assert_eq!(GamepadManager::axis_to_u8(0.05, 0.1), NEUTRAL_STICK);
+        assert_eq!(GamepadManager::axis_to_u8(-0.05, 0.1), NEUTRAL_STICK);
+        assert_eq!(GamepadManager::axis_to_u8(1.0, 0.1), 255);
+        assert_eq!(GamepadManager::axis_to_u8(-1.0, 0.1), 0);
+        // 0.5 clamped to 127.5 * 1.5 = 191.25 -> 191
+        assert_eq!(GamepadManager::axis_to_u8(0.5, 0.1), 191);
+    }
+
+    #[test]
+    fn test_compute_dpad() {
+        assert_eq!(GamepadManager::compute_dpad(true, false, false, false), DPadDirection::Up);
+        assert_eq!(GamepadManager::compute_dpad(true, false, false, true), DPadDirection::UpRight);
+        assert_eq!(GamepadManager::compute_dpad(false, false, false, true), DPadDirection::Right);
+        assert_eq!(GamepadManager::compute_dpad(false, true, false, true), DPadDirection::DownRight);
+        assert_eq!(GamepadManager::compute_dpad(false, true, false, false), DPadDirection::Down);
+        assert_eq!(GamepadManager::compute_dpad(false, true, true, false), DPadDirection::DownLeft);
+        assert_eq!(GamepadManager::compute_dpad(false, false, true, false), DPadDirection::Left);
+        assert_eq!(GamepadManager::compute_dpad(true, false, true, false), DPadDirection::UpLeft);
+        // Opposing directions resolve to Center
+        assert_eq!(GamepadManager::compute_dpad(true, true, false, false), DPadDirection::Center);
+        assert_eq!(GamepadManager::compute_dpad(false, false, true, true), DPadDirection::Center);
+    }
+
+    #[test]
+    fn test_merge_inputs() {
+        let mut physical = ControllerState::default();
+        let mut virtual_input = ControllerState::default();
+
+        physical.a = true;
+        virtual_input.b = true;
+        virtual_input.dpad = DPadDirection::Up;
+        virtual_input.left_stick_x = 255;
+
+        let merged = GamepadManager::merge(&physical, &virtual_input);
+        assert!(merged.a);
+        assert!(merged.b);
+        assert!(!merged.x);
+        assert_eq!(merged.dpad, DPadDirection::Up);
+        assert_eq!(merged.left_stick_x, 255);
+        assert_eq!(merged.left_stick_y, NEUTRAL_STICK);
+    }
+
+    #[test]
+    fn test_virtual_controls_and_mute() {
+        let manager = GamepadManager::new();
+        manager.set_virtual_button("a", true);
+        manager.set_virtual_stick("left", 200, 100);
+
+        let s1 = manager.get_current_state();
+        assert!(s1.a);
+        assert_eq!(s1.left_stick_x, 200);
+        assert_eq!(s1.left_stick_y, 100);
+
+        // Test mute
+        manager.set_mute(true);
+        let s_muted = manager.get_current_state();
+        assert!(!s_muted.a);
+        assert_eq!(s_muted.left_stick_x, NEUTRAL_STICK);
+
+        manager.set_mute(false);
+        let s_unmuted = manager.get_current_state();
+        assert!(s_unmuted.a);
+        assert_eq!(s_unmuted.left_stick_x, 200);
+    }
+}
+

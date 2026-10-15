@@ -146,3 +146,50 @@ desktop/
 │   └── tauri.conf.json       # 視窗外觀與打包設定
 └── package.json              # 專案相依套件與指令設定
 ```
+
+---
+
+## 🧪 自動化測試與 CI/CD (Testing & CI/CD)
+
+本專案具備完整的前後端自動化測試與 GitHub Actions 持續整合流程：
+
+### 1. 本地執行測試 (Local Testing)
+
+#### 前端單元與元件測試 (Vitest + React Testing Library)
+```bash
+# 單次執行全部前端測試
+npm test
+
+# 啟用監聽模式 (TDD 模式)
+npm run test:watch
+```
+測試範圍涵蓋：
+- `types.test.ts`：預設手把狀態結構驗證（類比置中、D-Pad 置中、按鍵預設）。
+- `useVirtualGamepad.test.ts`：鍵盤映射表、D-Pad 8 方向演算法、三路輸入並行與靜音機制。
+- `InputTimelineStream.test.ts`：五線譜 5 軌定義、8 方向搖桿角度計算與死區過濾、時間長度切換與清空動作。
+- `components.test.tsx`：側邊欄導航、設備狀態、靜音切換、HUD 模式與鍵盤對照表互動。
+
+#### 後端 Rust 測試 (Cargo Test)
+```bash
+# 於 desktop/src-tauri 目錄下執行
+cargo test
+
+# 或於專案根目錄執行
+cargo test --manifest-path desktop/src-tauri/Cargo.toml
+```
+測試範圍涵蓋：
+- `protocol.rs`：CRC-8 演算法、UART 9-byte 封包、10-byte XOR 封包校驗、D-Pad 方向序列化/反序列化。
+- `gamepad.rs`：類比軸死區計算（`axis_to_u8`）、十字鍵 8 向狀態映射（`compute_dpad`）、實體與虛擬輸入合併（`merge`）、靜音暫停機制。
+
+---
+
+### 2. GitHub Actions CI/CD 串接
+
+工作流程定義於 [`.github/workflows/desktop-ci.yml`](file:///.github/workflows/desktop-ci.yml)：
+- **觸發時機**：
+  - 只要任何分支有 `desktop/**` 相關變更 `push` 推送即自動執行。
+  - 任何分支發起、更新或合併 `pull_request` 時亦自動執行。
+- **測試檢查項目**：
+  1. **Frontend Check**：Node 20 環境快取、`npm ci`、TypeScript 靜態檢查（`tsc`）與 `vite build` 生產編譯驗證、Vitest 36+ 項全數通過。
+  2. **Rust Backend Check**：Ubuntu 系統庫（WebKitGTK、libudev）、Rust toolchain、Cargo 依賴快取、`cargo test` 9+ 項全數通過。
+

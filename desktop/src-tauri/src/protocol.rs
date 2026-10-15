@@ -53,17 +53,20 @@ impl<'de> Deserialize<'de> for DPadDirection {
                     _ => Ok(DPadDirection::Center),
                 }
             }
-            serde_json::Value::String(s) => match s.to_lowercase().as_str() {
-                "up" => Ok(DPadDirection::Up),
-                "upright" => Ok(DPadDirection::UpRight),
-                "right" => Ok(DPadDirection::Right),
-                "downright" => Ok(DPadDirection::DownRight),
-                "down" => Ok(DPadDirection::Down),
-                "downleft" => Ok(DPadDirection::DownLeft),
-                "left" => Ok(DPadDirection::Left),
-                "upleft" => Ok(DPadDirection::UpLeft),
-                _ => Ok(DPadDirection::Center),
-            },
+            serde_json::Value::String(s) => {
+                let cleaned = s.to_lowercase().replace(['_', '-'], "");
+                match cleaned.as_str() {
+                    "up" => Ok(DPadDirection::Up),
+                    "upright" => Ok(DPadDirection::UpRight),
+                    "right" => Ok(DPadDirection::Right),
+                    "downright" => Ok(DPadDirection::DownRight),
+                    "down" => Ok(DPadDirection::Down),
+                    "downleft" => Ok(DPadDirection::DownLeft),
+                    "left" => Ok(DPadDirection::Left),
+                    "upleft" => Ok(DPadDirection::UpLeft),
+                    _ => Ok(DPadDirection::Center),
+                }
+            }
             _ => Ok(DPadDirection::Center),
         }
     }
@@ -238,5 +241,61 @@ mod tests {
         // Standard check: "123456789" => 0xF4
         let check = ControllerState::calculate_crc8(b"123456789");
         assert_eq!(check, 0xF4);
+    }
+
+    #[test]
+    fn test_button_masks() {
+        let mut state = ControllerState::default();
+        state.y = true;
+        assert_eq!(state.btn_lo(), 1 << 0);
+        state.b = true;
+        assert_eq!(state.btn_lo(), (1 << 0) | (1 << 1));
+        state.a = true;
+        assert_eq!(state.btn_lo(), (1 << 0) | (1 << 1) | (1 << 2));
+        state.x = true;
+        assert_eq!(state.btn_lo(), 0x0F);
+
+        state.minus = true;
+        assert_eq!(state.btn_hi(), 1 << 0);
+        state.plus = true;
+        assert_eq!(state.btn_hi(), (1 << 0) | (1 << 1));
+    }
+
+    #[test]
+    fn test_pack_10byte() {
+        let mut state = ControllerState::default();
+        state.a = true;
+        state.left_stick_x = 200;
+        state.left_stick_y = 50;
+
+        let packet = state.pack_10byte();
+        assert_eq!(packet[0], HEADER_BYTE_0);
+        assert_eq!(packet[1], HEADER_BYTE_1);
+        assert_eq!(packet[2], state.btn_lo());
+        assert_eq!(packet[3], state.btn_hi());
+        assert_eq!(packet[4], DPadDirection::Center as u8);
+        assert_eq!(packet[5], 200);
+        assert_eq!(packet[6], 50);
+
+        let expected_checksum = packet[2] ^ packet[3] ^ packet[4] ^ packet[5] ^ packet[6] ^ packet[7] ^ packet[8];
+        assert_eq!(packet[9], expected_checksum);
+    }
+
+    #[test]
+    fn test_dpad_serde() {
+        let json_up = serde_json::to_string(&DPadDirection::Up).unwrap();
+        assert_eq!(json_up, "0");
+
+        let de_str: DPadDirection = serde_json::from_str("\"down_right\"").unwrap();
+        assert_eq!(de_str, DPadDirection::DownRight);
+
+        let de_str_simple: DPadDirection = serde_json::from_str("\"up\"").unwrap();
+        assert_eq!(de_str_simple, DPadDirection::Up);
+
+        let de_num: DPadDirection = serde_json::from_str("3").unwrap();
+        assert_eq!(de_num, DPadDirection::DownRight);
+
+        let de_num_center: DPadDirection = serde_json::from_str("8").unwrap();
+        assert_eq!(de_num_center, DPadDirection::Center);
     }
 }

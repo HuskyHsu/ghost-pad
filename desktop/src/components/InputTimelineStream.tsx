@@ -18,7 +18,7 @@ interface NoteEvent {
 }
 
 // 5 distinct track lanes (五線譜五軌架構)
-const LANES = [
+export const LANES = [
   { name: "ABXY", color: "#38bdf8", desc: "動作鍵" },
   { name: "十字鍵", color: "#a855f7", desc: "D-Pad" },
   { name: "搖桿", color: "#06b6d4", desc: "類比搖桿與下壓" },
@@ -26,10 +26,10 @@ const LANES = [
   { name: "系統", color: "#94a3b8", desc: "功能鍵" },
 ];
 
-const DURATION_OPTIONS = [10, 15, 30, 60];
+export const DURATION_OPTIONS = [10, 15, 30, 60];
 
 // Helper to determine 8-directional stick state
-const getStickDirection = (x: number, y: number, prefix: "L" | "R"): string | null => {
+export const getStickDirection = (x: number, y: number, prefix: "L" | "R"): string | null => {
   const dx = x - 128;
   const dy = y - 128; // > 0 is Up, < 0 is Down
   const dist = Math.hypot(dx, dy);

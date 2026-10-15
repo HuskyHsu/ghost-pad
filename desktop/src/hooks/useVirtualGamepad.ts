@@ -66,7 +66,7 @@ export const KEYBOARD_GUIDE: KeyGuideItem[] = [
   { key: "G", button: "R3", label: "R3 鍵", desc: "右類比下壓" },
 ];
 
-function computeDpadVal(up: boolean, down: boolean, left: boolean, right: boolean): number {
+export function computeDpadVal(up: boolean, down: boolean, left: boolean, right: boolean): number {
   if (up && !down && !left && !right) return 0;
   if (up && !down && !left && right) return 1;
   if (!up && !down && !left && right) return 2;
