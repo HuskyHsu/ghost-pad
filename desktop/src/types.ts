@@ -71,4 +71,17 @@ export interface SerialStatus {
   switch_pairing_state: "disconnected" | "pairing" | "connected" | string;
 }
 
+// Helper: Identify whether a serial port belongs to an ESP32 USB controller
+export const isEsp32Chip = (port?: SerialPortDetail): boolean => {
+  if (!port) return false;
+  const vid = port.usb_info?.vid;
+  const desc = (port.description + " " + port.port_name).toLowerCase();
+  if (vid === 0x1a86 || desc.includes("ch34") || desc.includes("wch")) return true;
+  if (vid === 0x10c4 || desc.includes("cp210") || desc.includes("silicon labs")) return true;
+  if (vid === 0x0403 || desc.includes("ftdi")) return true;
+  if (vid === 0x303a || desc.includes("espressif")) return true;
+  if (desc.includes("usbserial") || desc.includes("ttyusb")) return true;
+  return false;
+};
+
 

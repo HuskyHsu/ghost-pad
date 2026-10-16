@@ -87,6 +87,18 @@ impl SerialManager {
 
         ports
             .into_iter()
+            .filter(|p| {
+                let name = &p.port_name;
+                // Filter out macOS virtual Bluetooth incoming ports
+                if name.contains("Bluetooth") || name.contains("Incoming") {
+                    return false;
+                }
+                // On macOS: prefer /dev/cu.* and filter out duplicate /dev/tty.* to prevent blocking
+                if name.starts_with("/dev/tty.") && (name.contains("usb") || name.contains("wch") || name.contains("serial")) {
+                    return false;
+                }
+                true
+            })
             .map(|p| {
                 let (description, usb_info) = match p.port_type {
                     SerialPortType::UsbPort(usb) => {
@@ -146,7 +158,13 @@ impl SerialManager {
         let _ = port.clear(ClearBuffer::All);
 
         // Perform 3-step handshake with ESP32 (0xFF, 0x33, 0xCC)
-        let _ = Self::perform_handshake(&mut *port);
+        // If ESP32 is still rebooting from DTR/RTS or runs firmware without handshake,
+        // log notice and proceed with 60Hz streaming instead of hard-aborting.
+        if let Err(e) = Self::perform_handshake(&mut *port) {
+            eprintln!("[Serial Info] 握手未收到回應 ({}), 繼續啟動 60Hz 串流", e);
+        } else {
+            println!("[Serial Info] ESP32 PRO-UART0 協議握手成功！");
+        }
 
         {
             let mut s = self.status.write().unwrap();
@@ -357,24 +375,62 @@ impl SerialManager {
     }
 
     /// Handshake with UARTSwitchCon firmware (0xFF -> 0x33 -> 0xCC)
-    fn perform_handshake(port: &mut dyn SerialPort) -> bool {
+    /// Strictly verifies ACK bytes returned by genuine PRO-UART0.bin firmware.
+    pub fn perform_handshake(port: &mut dyn SerialPort) -> Result<(), String> {
         let mut buf = [0u8; 1];
-        // 1. Send 0xFF
-        let _ = port.write_all(&[0xFF]);
-        let _ = port.flush();
-        let _ = port.read(&mut buf);
 
-        // 2. Send 0x33
-        let _ = port.write_all(&[0x33]);
+        // 1. Send 0xFF -> Expect 0xFF (ready) or 0x90 (already streaming)
+        port.write_all(&[0xFF])
+            .map_err(|e| format!("發送 0xFF 失敗: {}", e))?;
         let _ = port.flush();
-        let _ = port.read(&mut buf);
+        port.read_exact(&mut buf)
+            .map_err(|e| format!("交握超時 (未回應 0xFF，韌體可能不符): {}", e))?;
+        if buf[0] != 0xFF && buf[0] != 0x90 {
+            return Err(format!("交握回應錯誤：預期 0xFF 或 0x90，實際收到 0x{:02X}", buf[0]));
+        }
 
-        // 3. Send 0xCC
-        let _ = port.write_all(&[0xCC]);
+        // 2. Send 0x33 -> Expect 0xCC
+        port.write_all(&[0x33])
+            .map_err(|e| format!("發送 0x33 失敗: {}", e))?;
         let _ = port.flush();
-        let _ = port.read(&mut buf);
+        port.read_exact(&mut buf)
+            .map_err(|e| format!("交握超時 (未回應 0xCC): {}", e))?;
+        if buf[0] != 0xCC {
+            return Err(format!("交握回應錯誤：預期 0xCC，實際收到 0x{:02X}", buf[0]));
+        }
 
-        true
+        // 3. Send 0xCC -> Expect 0x33
+        port.write_all(&[0xCC])
+            .map_err(|e| format!("發送 0xCC 失敗: {}", e))?;
+        let _ = port.flush();
+        port.read_exact(&mut buf)
+            .map_err(|e| format!("交握超時 (未回應 0x33): {}", e))?;
+        if buf[0] != 0x33 {
+            return Err(format!("交握回應錯誤：預期 0x33，實際收到 0x{:02X}", buf[0]));
+        }
+
+        Ok(())
+    }
+
+    /// Probe whether a specific serial port is running genuine PRO-UART0 (UARTSwitchCon) firmware
+    pub fn probe_firmware(port_name: &str, baudrate: u32) -> Result<bool, String> {
+        let mut port = match serialport::new(port_name, baudrate)
+            .timeout(Duration::from_millis(400))
+            .open()
+        {
+            Ok(p) => p,
+            Err(e) => return Err(format!("無法開啟序列埠 {}: {}", port_name, e)),
+        };
+
+        let _ = port.write_data_terminal_ready(false);
+        let _ = port.write_request_to_send(false);
+        thread::sleep(Duration::from_millis(200));
+        let _ = port.clear(ClearBuffer::All);
+
+        match Self::perform_handshake(&mut *port) {
+            Ok(()) => Ok(true),
+            Err(_) => Ok(false),
+        }
     }
 }
 

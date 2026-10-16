@@ -209,11 +209,7 @@ impl GamepadManager {
     pub fn recompute_merged_state(&self) {
         let p = self.physical_state.read().unwrap();
         let v = self.virtual_state.read().unwrap();
-        let merged = if self.is_muted.load(Ordering::Relaxed) {
-            ControllerState::default()
-        } else {
-            Self::merge(&p, &v)
-        };
+        let merged = Self::merge(&p, &v);
         *self.state.write().unwrap() = merged;
     }
 
@@ -308,7 +304,7 @@ impl GamepadManager {
         physical_state_arc: Arc<RwLock<ControllerState>>,
         virtual_state_arc: Arc<RwLock<ControllerState>>,
         active_id_arc: Arc<Mutex<Option<usize>>>,
-        muted_arc: Arc<AtomicBool>,
+        _muted_arc: Arc<AtomicBool>,
         gamepads_arc: Arc<RwLock<Vec<GamepadInfo>>>,
         app_handle: AppHandle,
     ) {
@@ -371,7 +367,7 @@ impl GamepadManager {
                             *active == Some(current_id)
                         };
 
-                        if !is_target || muted_arc.load(Ordering::Relaxed) {
+                        if !is_target {
                             continue;
                         }
 
@@ -467,11 +463,7 @@ impl GamepadManager {
                     if physical_input_changed {
                         let p = physical_state_arc.read().unwrap();
                         let v = virtual_state_arc.read().unwrap();
-                        let merged = if muted_arc.load(Ordering::Relaxed) {
-                            ControllerState::default()
-                        } else {
-                            Self::merge(&p, &v)
-                        };
+                        let merged = Self::merge(&p, &v);
                         *state_arc.write().unwrap() = merged;
                     }
 
@@ -566,16 +558,91 @@ mod tests {
         assert_eq!(s1.left_stick_x, 200);
         assert_eq!(s1.left_stick_y, 100);
 
-        // Test mute
-        manager.set_mute(true);
-        let s_muted = manager.get_current_state();
-        assert!(!s_muted.a);
-        assert_eq!(s_muted.left_stick_x, NEUTRAL_STICK);
+        // Verify input state is preserved and merged
+        let s_active = manager.get_current_state();
+        assert!(s_active.a);
+        assert_eq!(s_active.left_stick_x, 200);
+    }
 
-        manager.set_mute(false);
-        let s_unmuted = manager.get_current_state();
-        assert!(s_unmuted.a);
-        assert_eq!(s_unmuted.left_stick_x, 200);
+    #[test]
+    fn test_axis_extremes_and_clamping() {
+        // Values > 1.0 clamped to 255
+        assert_eq!(GamepadManager::axis_to_u8(1.5, 0.1), 255);
+        assert_eq!(GamepadManager::axis_to_u8(10.0, 0.1), 255);
+
+        // Values < -1.0 clamped to 0
+        assert_eq!(GamepadManager::axis_to_u8(-1.5, 0.1), 0);
+        assert_eq!(GamepadManager::axis_to_u8(-10.0, 0.1), 0);
+
+        // Deadzone exact boundary check
+        assert_eq!(GamepadManager::axis_to_u8(0.099, 0.1), NEUTRAL_STICK);
+        assert_eq!(GamepadManager::axis_to_u8(-0.099, 0.1), NEUTRAL_STICK);
+    }
+
+    #[test]
+    fn test_compute_dpad_conflicting_inputs() {
+        // Opposing vertical directions cancel to Center
+        assert_eq!(GamepadManager::compute_dpad(true, true, false, false), DPadDirection::Center);
+        // Opposing horizontal directions cancel to Center
+        assert_eq!(GamepadManager::compute_dpad(false, false, true, true), DPadDirection::Center);
+
+        // Ambiguous 3-way inputs cancel to Center
+        assert_eq!(GamepadManager::compute_dpad(true, true, true, false), DPadDirection::Center);
+        assert_eq!(GamepadManager::compute_dpad(true, true, false, true), DPadDirection::Center);
+        assert_eq!(GamepadManager::compute_dpad(true, false, true, true), DPadDirection::Center);
+        assert_eq!(GamepadManager::compute_dpad(false, true, true, true), DPadDirection::Center);
+
+        // All 4 pressed cancel each other out completely
+        assert_eq!(GamepadManager::compute_dpad(true, true, true, true), DPadDirection::Center);
+    }
+
+    #[test]
+    fn test_merge_all_buttons_and_sticks() {
+        let mut physical = ControllerState::default();
+        let mut virtual_input = ControllerState::default();
+
+        // Physical buttons
+        physical.x = true;
+        physical.l = true;
+        physical.minus = true;
+        physical.home = true;
+        physical.l_stick_click = true;
+
+        // Virtual buttons
+        virtual_input.y = true;
+        virtual_input.r = true;
+        virtual_input.plus = true;
+        virtual_input.capture = true;
+        virtual_input.r_stick_click = true;
+
+        // Sticks: physical non-neutral, virtual non-neutral
+        physical.left_stick_x = 50;
+        virtual_input.right_stick_y = 220;
+
+        let merged = GamepadManager::merge(&physical, &virtual_input);
+
+        // All pressed buttons from both sources are true
+        assert!(merged.x);
+        assert!(merged.l);
+        assert!(merged.minus);
+        assert!(merged.home);
+        assert!(merged.l_stick_click);
+        assert!(merged.y);
+        assert!(merged.r);
+        assert!(merged.plus);
+        assert!(merged.capture);
+        assert!(merged.r_stick_click);
+
+        // Non-pressed buttons remain false
+        assert!(!merged.a);
+        assert!(!merged.b);
+        assert!(!merged.zl);
+        assert!(!merged.zr);
+
+        // Sticks merge
+        assert_eq!(merged.left_stick_x, 50);
+        assert_eq!(merged.right_stick_y, 220);
     }
 }
+
 

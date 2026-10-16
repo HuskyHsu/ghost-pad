@@ -2,8 +2,8 @@ import { useEffect, useRef, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { ControllerState, DEFAULT_CONTROLLER_STATE } from "../types";
 
-export const isTauriAvailable = (): boolean =>
-  typeof window !== "undefined" && Boolean((window as any).__TAURI_INTERNALS__);
+export { isTauriAvailable } from "../utils/tauri";
+import { isTauriAvailable } from "../utils/tauri";
 
 // Keyboard Key to Controller Button Mapping
 export const KEYBOARD_MAP: Record<string, string> = {
@@ -88,11 +88,9 @@ export function useVirtualGamepad(
   // Direct trigger function used by on-screen click and keyboard
   const sendButton = useCallback(
     async (button: string, pressed: boolean) => {
-      if (isMuted) return;
-
       const btnLower = button.toLowerCase();
 
-      // 1. Optimistic UI update: Immediate visual and packet feedback with zero latency
+      // 1. Optimistic UI update: Immediate visual and timeline stream feedback with zero latency
       if (onStateUpdate) {
         onStateUpdate((prev) => {
           const next = { ...prev };
@@ -140,7 +138,7 @@ export function useVirtualGamepad(
       }
 
       // 2. Tauri IPC bridge to ESP32 serial packet sender
-      if (isTauriAvailable()) {
+      if (!isMuted && isTauriAvailable()) {
         try {
           await invoke("send_virtual_button", { button, pressed });
         } catch (err) {
@@ -158,8 +156,6 @@ export function useVirtualGamepad(
   // Analog stick position sender with coalescing
   const sendStick = useCallback(
     async (stick: "left" | "right", x: number, y: number) => {
-      if (isMuted) return;
-
       // 1. Optimistic UI update
       if (onStateUpdate) {
         onStateUpdate((prev) => {
@@ -176,7 +172,7 @@ export function useVirtualGamepad(
       }
 
       // 2. Coalescing IPC queue
-      if (isTauriAvailable()) {
+      if (!isMuted && isTauriAvailable()) {
         if (stickInFlightRef.current[stick]) {
           stickPendingRef.current[stick] = { x, y };
           return;
@@ -220,7 +216,6 @@ export function useVirtualGamepad(
 
   // Compute Left Stick position from WASD
   const updateWasdStick = useCallback(() => {
-    if (isMuted) return;
     const up = activeKeys.current.has("KeyW");
     const down = activeKeys.current.has("KeyS");
     const left = activeKeys.current.has("KeyA");
@@ -236,7 +231,7 @@ export function useVirtualGamepad(
     else if (down && !up) y = 0; // Down in Switch is 0
 
     sendStick("left", x, y);
-  }, [isMuted, sendStick]);
+  }, [sendStick]);
 
   // Keyboard Event Listeners
   useEffect(() => {

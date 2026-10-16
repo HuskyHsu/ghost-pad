@@ -126,22 +126,32 @@ npm run tauri build
 
 ## 📁 目錄結構說明
 
+> 詳細架構規格、資料流向圖與通訊協定請參閱完整技術文件：[ARCHITECTURE.md](file:///Users/shihchi/Developer/ghost-pad/desktop/ARCHITECTURE.md)。
+
 ```
 desktop/
+├── ARCHITECTURE.md           # 系統架構、三路輸入橋接與協定設計手冊
 ├── src/                      # 前端 React + TypeScript 原始碼
 │   ├── components/           # UI 元件庫
 │   │   ├── GamepadVisualizer.tsx   # 幽靈手把主舞台與拖曳邏輯
 │   │   ├── InputTimelineStream.tsx # 60~120Hz 五線譜時序流 Canvas
 │   │   ├── CompactWidget.tsx       # 迷你浮動 HUD 模式視窗
+│   │   ├── HardwareSettings.tsx    # ESP32 硬體序列埠與韌體管理
 │   │   └── Sidebar.tsx             # 側邊導航與手把連線管理
-│   ├── hooks/                # 自訂 React Hooks (手把與鍵盤映射)
+│   ├── hooks/                # 自訂 React Hooks
+│   │   ├── useVirtualGamepad.ts    # 鍵盤映射與虛擬手把狀態
+│   │   ├── useStickDrag.ts         # 類比搖桿拖曳、RAF IPC 節流與彈力回彈
+│   │   └── usePulsedButtonPress.ts # 按鍵脈衝延遲保證與指標捕捉管理
+│   ├── utils/                # 輔助函式庫
+│   │   └── tauri.ts          # Tauri 桌面環境識別工具
 │   ├── types.ts              # 手把狀態與協定型別定義
 │   ├── App.tsx               # 根應用與自適應視窗模式切換
 │   └── index.css             # Tailwind CSS 設計樣式
 ├── src-tauri/                # Tauri Rust 後端
 │   ├── src/
 │   │   ├── gamepad.rs        # gilrs 手把輪詢、實體虛擬狀態合併
-│   │   ├── protocol.rs       # Switch 協定定義
+│   │   ├── protocol.rs       # Switch 協定定義 (9-Byte CRC8 / 10-Byte XOR)
+│   │   ├── serial.rs         # 序列通訊與 60Hz 心跳封包管理
 │   │   └── lib.rs            # Tauri IPC 指令橋接
 │   └── tauri.conf.json       # 視窗外觀與打包設定
 └── package.json              # 專案相依套件與指令設定

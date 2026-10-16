@@ -102,6 +102,11 @@ fn send_serial_command(command: String, state: State<AppState>) -> Result<(), St
     state.serial_mgr.send_special_command(&command)
 }
 
+#[tauri::command]
+fn probe_firmware(port_name: String, baudrate: u32) -> Result<bool, String> {
+    SerialManager::probe_firmware(&port_name, baudrate)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let gamepad_mgr = Arc::new(GamepadManager::new());
@@ -149,6 +154,7 @@ pub fn run() {
             disconnect_serial,
             get_serial_status,
             send_serial_command,
+            probe_firmware,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

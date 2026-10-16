@@ -298,4 +298,71 @@ mod tests {
         let de_num_center: DPadDirection = serde_json::from_str("8").unwrap();
         assert_eq!(de_num_center, DPadDirection::Center);
     }
+
+    #[test]
+    fn test_all_buttons_bitmask_full() {
+        let mut state = ControllerState::default();
+        // Set all low buttons
+        state.y = true;
+        state.b = true;
+        state.a = true;
+        state.x = true;
+        state.l = true;
+        state.r = true;
+        state.zl = true;
+        state.zr = true;
+        assert_eq!(state.btn_lo(), 0xFF);
+
+        // Set all high buttons
+        state.minus = true;
+        state.plus = true;
+        state.home = true;
+        state.capture = true;
+        state.l_stick_click = true;
+        state.r_stick_click = true;
+        assert_eq!(state.btn_hi(), 0x3F);
+    }
+
+    #[test]
+    fn test_pack_uart_switchcon_crc_and_inversion() {
+        let mut state = ControllerState::default();
+        state.a = true;
+        state.left_stick_x = 255;
+        state.left_stick_y = 255; // Should be inverted to 0
+        state.right_stick_x = 0;
+        state.right_stick_y = 0; // Should be inverted to 255
+
+        let packet = state.pack_uart_switchcon();
+        assert_eq!(packet[0], state.btn_hi());
+        assert_eq!(packet[1], state.btn_lo());
+        assert_eq!(packet[2], DPadDirection::Center as u8);
+        assert_eq!(packet[3], 255);
+        assert_eq!(packet[4], 0); // 255 - 255 = 0
+        assert_eq!(packet[5], 0);
+        assert_eq!(packet[6], 255); // 255 - 0 = 255
+
+        // Verify CRC8 matches
+        let calculated_crc = ControllerState::calculate_crc8(&packet[..8]);
+        assert_eq!(packet[8], calculated_crc);
+    }
+
+    #[test]
+    fn test_pack_10byte_extremes() {
+        let mut state = ControllerState::default();
+        state.left_stick_x = 0;
+        state.left_stick_y = 0;
+        state.right_stick_x = 255;
+        state.right_stick_y = 255;
+
+        let packet = state.pack_10byte();
+        assert_eq!(packet[0], HEADER_BYTE_0);
+        assert_eq!(packet[1], HEADER_BYTE_1);
+        assert_eq!(packet[5], 0);
+        assert_eq!(packet[6], 0);
+        assert_eq!(packet[7], 255);
+        assert_eq!(packet[8], 255);
+
+        let expected_checksum = packet[2] ^ packet[3] ^ packet[4] ^ packet[5] ^ packet[6] ^ packet[7] ^ packet[8];
+        assert_eq!(packet[9], expected_checksum);
+    }
 }

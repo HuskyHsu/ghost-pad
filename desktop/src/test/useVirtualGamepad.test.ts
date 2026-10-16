@@ -120,7 +120,8 @@ describe("useVirtualGamepad and helpers", () => {
       });
 
       expect(invoke).not.toHaveBeenCalled();
-      expect(setState).not.toHaveBeenCalled();
+      // Optimistic UI and timeline updates still occur even when muted
+      expect(setState).toHaveBeenCalled();
     });
 
     it("calls invoke with send_virtual_stick when sendStick is called", async () => {

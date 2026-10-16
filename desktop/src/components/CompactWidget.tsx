@@ -1,5 +1,7 @@
-import React, { useState, useRef, useCallback } from "react";
+import React from "react";
 import { ControllerState, GamepadInfo } from "../types";
+import { usePulsedButtonPress } from "../hooks/usePulsedButtonPress";
+import { useStickDrag } from "../hooks/useStickDrag";
 
 interface Props {
   state: ControllerState;
@@ -22,183 +24,30 @@ export const CompactWidget: React.FC<Props> = ({
 }) => {
   const activeGamepad = gamepads.find((g) => g.is_active);
 
-  // References and states for Draggable Thumbsticks
-  const leftStickBaseRef = useRef<HTMLDivElement>(null);
-  const rightStickBaseRef = useRef<HTMLDivElement>(null);
-  const leftKnobRef = useRef<HTMLDivElement>(null);
-  const rightKnobRef = useRef<HTMLDivElement>(null);
-  const [isDraggingLeft, setIsDraggingLeft] = useState(false);
-  const [isDraggingRight, setIsDraggingRight] = useState(false);
-
   const STICK_MAX_TRAVEL = 15; // Travel radius in px for compact mode
 
-  const pressTimeoutsRef = useRef<Record<string, number>>({});
-  const pressStartTimesRef = useRef<Record<string, number>>({});
+  // Reusable button pulse holding & binding
+  const { handleButtonPress, bindButton } = usePulsedButtonPress({
+    minHoldMs: 140,
+    onTriggerButton,
+  });
 
-  const handleButtonPress = useCallback(
-    (buttonName: string, pressed: boolean) => {
-      const now = Date.now();
-      if (pressed) {
-        if (pressTimeoutsRef.current[buttonName]) {
-          clearTimeout(pressTimeoutsRef.current[buttonName]);
-          delete pressTimeoutsRef.current[buttonName];
-        }
-        pressStartTimesRef.current[buttonName] = now;
-        onTriggerButton?.(buttonName, true);
-      } else {
-        const startTime = pressStartTimesRef.current[buttonName] || 0;
-        const elapsed = now - startTime;
-        const MIN_HOLD_MS = 140;
-        if (elapsed < MIN_HOLD_MS) {
-          pressTimeoutsRef.current[buttonName] = window.setTimeout(() => {
-            delete pressTimeoutsRef.current[buttonName];
-            delete pressStartTimesRef.current[buttonName];
-            onTriggerButton?.(buttonName, false);
-          }, MIN_HOLD_MS - elapsed);
-        } else {
-          delete pressStartTimesRef.current[buttonName];
-          onTriggerButton?.(buttonName, false);
-        }
-      }
-    },
-    [onTriggerButton]
-  );
-
-  const startStickDrag = (
-    stick: "left" | "right",
-    baseRef: React.RefObject<HTMLDivElement | null>,
-    knobRef: React.RefObject<HTMLDivElement | null>,
-    setDragging: (d: boolean) => void,
-    e: React.PointerEvent<HTMLDivElement>
-  ) => {
-    e.preventDefault();
-    const base = baseRef.current;
-    const knob = knobRef.current;
-    if (!base) return;
-
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch (_) {}
-
-    setDragging(true);
-    if (knob) {
-      knob.style.transition = "none";
-    }
-
-    const rect = base.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    let totalMoved = 0;
-
-    let targetStickX = 128;
-    let targetStickY = 128;
-    let lastDispatchedX = 128;
-    let lastDispatchedY = 128;
-    let rafId: number | null = null;
-
-    const handlePointerMove = (moveEv: PointerEvent) => {
-      const dx = moveEv.clientX - centerX;
-      const dy = moveEv.clientY - centerY;
-      totalMoved += Math.abs(moveEv.movementX || 0) + Math.abs(moveEv.movementY || 0);
-
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const clampedDist = Math.min(dist, STICK_MAX_TRAVEL);
-      const angle = Math.atan2(dy, dx);
-
-      const clampedX = clampedDist > 0 ? Math.cos(angle) * clampedDist : 0;
-      const clampedY = clampedDist > 0 ? Math.sin(angle) * clampedDist : 0;
-
-      if (knob) {
-        knob.style.transform = `translate3d(${clampedX}px, ${clampedY}px, 0)`;
-      }
-
-      const normX = clampedDist > 0 ? clampedX / STICK_MAX_TRAVEL : 0;
-      const normY = clampedDist > 0 ? clampedY / STICK_MAX_TRAVEL : 0;
-      targetStickX = Math.round(Math.max(0, Math.min(255, 128 + normX * 127)));
-      targetStickY = Math.round(Math.max(0, Math.min(255, 128 - normY * 127)));
-
-      if (rafId === null) {
-        rafId = requestAnimationFrame(() => {
-          rafId = null;
-          if (targetStickX !== lastDispatchedX || targetStickY !== lastDispatchedY) {
-            lastDispatchedX = targetStickX;
-            lastDispatchedY = targetStickY;
-            onTriggerStick?.(stick, targetStickX, targetStickY);
-          }
-        });
-      }
-    };
-
-    const handlePointerUp = (upEv: PointerEvent) => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("pointercancel", handlePointerUp);
-
-      try {
-        if (base && base.hasPointerCapture(upEv.pointerId)) {
-          base.releasePointerCapture(upEv.pointerId);
-        }
-      } catch (_) {}
-
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
-
-      setDragging(false);
-
-      if (knob) {
-        knob.style.transition = "transform 0.18s cubic-bezier(0.18, 0.89, 0.32, 1.28)";
-        knob.style.transform = "translate3d(0px, 0px, 0)";
-      }
-
-      onTriggerStick?.(stick, 128, 128);
-
-      const upDx = upEv.clientX - centerX;
-      const upDy = upEv.clientY - centerY;
-      const upDist = Math.sqrt(upDx * upDx + upDy * upDy);
-      if (totalMoved < 5 || upDist < 5) {
-        const btn = stick === "left" ? "l3" : "r3";
-        handleButtonPress(btn, true);
-        setTimeout(() => handleButtonPress(btn, false), 140);
-      }
-    };
-
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-    window.addEventListener("pointercancel", handlePointerUp);
-  };
-
-  const bindButton = (buttonName: string) => ({
-    type: "button" as const,
-    onPointerDown: (e: React.PointerEvent) => {
-      e.preventDefault();
-      try {
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-      } catch (_) {}
-      handleButtonPress(buttonName, true);
-    },
-    onPointerUp: (e: React.PointerEvent) => {
-      e.preventDefault();
-      try {
-        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-      } catch (_) {}
-      handleButtonPress(buttonName, false);
-    },
-    onPointerCancel: (e: React.PointerEvent) => {
-      e.preventDefault();
-      try {
-        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-      } catch (_) {}
-      handleButtonPress(buttonName, false);
-    },
-    onClick: (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (e.detail === 0) {
-        handleButtonPress(buttonName, true);
-        setTimeout(() => handleButtonPress(buttonName, false), 140);
-      }
-    },
+  // Reusable analog stick drag tracking & IPC throttling
+  const {
+    leftStickBaseRef,
+    rightStickBaseRef,
+    leftKnobRef,
+    rightKnobRef,
+    isDraggingLeft,
+    isDraggingRight,
+    setIsDraggingLeft,
+    setIsDraggingRight,
+    startStickDrag,
+  } = useStickDrag({
+    stickMaxTravel: STICK_MAX_TRAVEL,
+    tapThreshold: 5,
+    onTriggerStick,
+    onButtonPress: handleButtonPress,
   });
 
   // Scaled stick offsets for compact view (-12px .. +12px)

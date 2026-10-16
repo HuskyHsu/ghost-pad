@@ -4,8 +4,9 @@ import "@testing-library/jest-dom/vitest";
 import { HardwareSettings } from "../components/HardwareSettings";
 import { invoke } from "@tauri-apps/api/core";
 
-describe("HardwareSettings Component (Phase 2 Two-State Management)", () => {
+describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
   beforeEach(() => {
+    localStorage.clear();
     vi.clearAllMocks();
     (invoke as any).mockImplementation((cmd: string) => {
       if (cmd === "get_serial_ports") {
@@ -32,17 +33,24 @@ describe("HardwareSettings Component (Phase 2 Two-State Management)", () => {
           switch_pairing_state: "disconnected",
         });
       }
+      if (cmd === "probe_firmware") {
+        return Promise.resolve(true);
+      }
       return Promise.resolve(undefined);
     });
   });
 
-  it("renders header and the two management state sections", async () => {
+  it("renders header and the three management step sections and status cards", async () => {
     render(<HardwareSettings />);
 
-    expect(screen.getByText(/ESP32 硬體與雙狀態管理控制台/i)).toBeInTheDocument();
-    expect(screen.getByText(/狀態 1：虛擬手把服務/i)).toBeInTheDocument();
-    expect(screen.getByText(/狀態 2：Switch 藍牙配對與回連管理/i)).toBeInTheDocument();
-    expect(screen.getByText("ESP32 韌體一鍵燒錄")).toBeInTheDocument();
+    expect(screen.getByText(/ESP32 硬體與連線控制台/i)).toBeInTheDocument();
+    expect(screen.getByText(/硬體與韌體/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/虛擬手把服務/i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/Switch 主機連線/i)[0]).toBeInTheDocument();
+
+    expect(screen.getByText(/步驟 0：檢查 USB 連線與 ESP32 韌體/i)).toBeInTheDocument();
+    expect(screen.getByText(/步驟 1：開關虛擬手把服務/i)).toBeInTheDocument();
+    expect(screen.getByText(/步驟 2：Switch 自動配對與連線/i)).toBeInTheDocument();
   });
 
   it("lists detected serial ports and allows selecting port", async () => {
@@ -78,7 +86,7 @@ describe("HardwareSettings Component (Phase 2 Two-State Management)", () => {
         baudrate: 19200,
       });
       expect(onConn).toHaveBeenCalledWith(true);
-      expect(onPairing).toHaveBeenCalledWith("pairing");
+      expect(onPairing).toHaveBeenCalledWith("disconnected");
     });
   });
 
@@ -110,11 +118,11 @@ describe("HardwareSettings Component (Phase 2 Two-State Management)", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("一鍵送出 L+R 首次配對握手")
+        screen.getByText("開始首次配對 (送出 L+R 並記憶)")
       ).toBeInTheDocument();
     });
 
-    const lrBtn = screen.getByText("一鍵送出 L+R 首次配對握手");
+    const lrBtn = screen.getByText("開始首次配對 (送出 L+R 並記憶)");
     fireEvent.click(lrBtn);
 
     await waitFor(() => {
@@ -126,6 +134,7 @@ describe("HardwareSettings Component (Phase 2 Two-State Management)", () => {
   });
 
   it("sends wake reconnect command when connected", async () => {
+    localStorage.setItem("ghostpad_switch_paired", "true");
     (invoke as any).mockImplementation((cmd: string) => {
       if (cmd === "get_serial_ports") {
         return Promise.resolve([
@@ -152,11 +161,11 @@ describe("HardwareSettings Component (Phase 2 Two-State Management)", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("一鍵喚醒重連 (Reconnect)")
+        screen.getByText("手動觸發自動回連 (A鍵喚醒)")
       ).toBeInTheDocument();
     });
 
-    const wakeBtn = screen.getByText("一鍵喚醒重連 (Reconnect)");
+    const wakeBtn = screen.getByText("手動觸發自動回連 (A鍵喚醒)");
     fireEvent.click(wakeBtn);
 
     await waitFor(() => {
@@ -168,6 +177,10 @@ describe("HardwareSettings Component (Phase 2 Two-State Management)", () => {
 
   it("handles simulated firmware flashing process", async () => {
     render(<HardwareSettings />);
+
+    // Open flasher drawer
+    const flasherToggle = screen.getByText("韌體燒錄工具");
+    fireEvent.click(flasherToggle);
 
     await waitFor(() => {
       expect(screen.getByText("開始燒錄 PRO-UART0.bin")).toBeInTheDocument();

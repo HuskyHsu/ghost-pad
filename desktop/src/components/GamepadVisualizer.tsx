@@ -1,26 +1,36 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { ControllerState } from "../types";
 import { Activity, Keyboard, X as CloseIcon } from "lucide-react";
 import { KEYBOARD_GUIDE } from "../hooks/useVirtualGamepad";
+import { usePulsedButtonPress } from "../hooks/usePulsedButtonPress";
+import { useStickDrag } from "../hooks/useStickDrag";
 import { InputTimelineStream } from "./InputTimelineStream";
 
 interface Props {
   state: ControllerState;
   gamepadName?: string;
   isMuted?: boolean;
+  esp32Connected?: boolean;
   fps?: number;
   onTriggerButton?: (button: string, pressed: boolean) => void;
   onTriggerStick?: (stick: "left" | "right", x: number, y: number) => void;
+  onToggleMute?: () => void;
+  onToggleEsp32?: () => void;
 }
 
 export const GamepadVisualizer: React.FC<Props> = ({
   state,
   gamepadName,
-  isMuted = false,
+  isMuted: _isMuted = true,
+  esp32Connected = false,
   fps = 100,
   onTriggerButton,
   onTriggerStick,
+  onToggleMute,
+  onToggleEsp32,
 }) => {
+  // Ghost only wakes up when ESP32 virtual controller service is started
+  const isGhostAwake = Boolean(esp32Connected);
   const [showKeyGuide, setShowKeyGuide] = useState(false);
 
   // Responsive stage scaling state
@@ -53,195 +63,31 @@ export const GamepadVisualizer: React.FC<Props> = ({
     return () => observer.disconnect();
   }, []);
 
-  // References and states for Draggable Thumbsticks
-  const leftStickBaseRef = React.useRef<HTMLDivElement>(null);
-  const rightStickBaseRef = React.useRef<HTMLDivElement>(null);
-  const leftKnobRef = React.useRef<HTMLDivElement>(null);
-  const rightKnobRef = React.useRef<HTMLDivElement>(null);
-  const [isDraggingLeft, setIsDraggingLeft] = useState(false);
-  const [isDraggingRight, setIsDraggingRight] = useState(false);
-
   const STICK_MAX_TRAVEL = 22; // Travel radius in px
 
-  // Helper for on-screen mouse click / touch triggers with pulse holding
-  const pressTimeoutsRef = useRef<Record<string, number>>({});
-  const pressStartTimesRef = useRef<Record<string, number>>({});
+  // Reusable button pulse holding & binding
+  const { handleButtonPress, bindButton } = usePulsedButtonPress({
+    minHoldMs: 140,
+    onTriggerButton,
+  });
 
-  const handleButtonPress = useCallback(
-    (buttonName: string, pressed: boolean) => {
-      const now = Date.now();
-      if (pressed) {
-        if (pressTimeoutsRef.current[buttonName]) {
-          clearTimeout(pressTimeoutsRef.current[buttonName]);
-          delete pressTimeoutsRef.current[buttonName];
-        }
-        pressStartTimesRef.current[buttonName] = now;
-        onTriggerButton?.(buttonName, true);
-      } else {
-        const startTime = pressStartTimesRef.current[buttonName] || 0;
-        const elapsed = now - startTime;
-        const MIN_HOLD_MS = 140; // 140ms ensures crisp, visible glow and packet update even on rapid tap
-        if (elapsed < MIN_HOLD_MS) {
-          pressTimeoutsRef.current[buttonName] = window.setTimeout(() => {
-            delete pressTimeoutsRef.current[buttonName];
-            delete pressStartTimesRef.current[buttonName];
-            onTriggerButton?.(buttonName, false);
-          }, MIN_HOLD_MS - elapsed);
-        } else {
-          delete pressStartTimesRef.current[buttonName];
-          onTriggerButton?.(buttonName, false);
-        }
-      }
-    },
-    [onTriggerButton]
-  );
-
-  const startStickDrag = (
-    stick: "left" | "right",
-    baseRef: React.RefObject<HTMLDivElement | null>,
-    knobRef: React.RefObject<HTMLDivElement | null>,
-    setDragging: (d: boolean) => void,
-    e: React.PointerEvent<HTMLDivElement>
-  ) => {
-    e.preventDefault();
-    const base = baseRef.current;
-    const knob = knobRef.current;
-    if (!base) return;
-
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch (_) {}
-
-    setDragging(true);
-    if (knob) {
-      knob.style.transition = "none";
-    }
-
-    const rect = base.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    let totalMoved = 0;
-
-    let targetStickX = 128;
-    let targetStickY = 128;
-    let lastDispatchedX = 128;
-    let lastDispatchedY = 128;
-    let rafId: number | null = null;
-
-    const handlePointerMove = (moveEv: PointerEvent) => {
-      const currentScale = scaleRef.current || 1;
-      const dx = (moveEv.clientX - centerX) / currentScale;
-      const dy = (moveEv.clientY - centerY) / currentScale;
-      totalMoved += Math.abs(moveEv.movementX || 0) + Math.abs(moveEv.movementY || 0);
-
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const clampedDist = Math.min(dist, STICK_MAX_TRAVEL);
-      const angle = Math.atan2(dy, dx);
-
-      const clampedX = clampedDist > 0 ? Math.cos(angle) * clampedDist : 0;
-      const clampedY = clampedDist > 0 ? Math.sin(angle) * clampedDist : 0;
-
-      // 1. Direct hardware-accelerated DOM update: ZERO latency / buttery smooth 120Hz tracking
-      if (knob) {
-        knob.style.transform = `translate3d(${clampedX}px, ${clampedY}px, 0)`;
-      }
-
-      // 2. Compute Switch stick coords (0..255):
-      const normX = clampedDist > 0 ? clampedX / STICK_MAX_TRAVEL : 0;
-      const normY = clampedDist > 0 ? clampedY / STICK_MAX_TRAVEL : 0;
-      targetStickX = Math.round(Math.max(0, Math.min(255, 128 + normX * 127)));
-      targetStickY = Math.round(Math.max(0, Math.min(255, 128 - normY * 127)));
-
-      // 3. Throttle IPC to 60Hz via requestAnimationFrame to avoid queue congestion
-      if (rafId === null) {
-        rafId = requestAnimationFrame(() => {
-          rafId = null;
-          if (targetStickX !== lastDispatchedX || targetStickY !== lastDispatchedY) {
-            lastDispatchedX = targetStickX;
-            lastDispatchedY = targetStickY;
-            onTriggerStick?.(stick, targetStickX, targetStickY);
-          }
-        });
-      }
-    };
-
-    const handlePointerUp = (upEv: PointerEvent) => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("pointercancel", handlePointerUp);
-
-      try {
-        if (base && base.hasPointerCapture(upEv.pointerId)) {
-          base.releasePointerCapture(upEv.pointerId);
-        }
-      } catch (_) {}
-
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
-
-      setDragging(false);
-
-      // Snap back with smooth tactile spring bounce
-      if (knob) {
-        knob.style.transition = "transform 0.18s cubic-bezier(0.18, 0.89, 0.32, 1.28)";
-        knob.style.transform = "translate3d(0px, 0px, 0)";
-      }
-
-      // Send neutral center
-      onTriggerStick?.(stick, 128, 128);
-
-      // If user tapped without dragging, trigger L3/R3 click
-      const upDx = upEv.clientX - centerX;
-      const upDy = upEv.clientY - centerY;
-      const upDist = Math.sqrt(upDx * upDx + upDy * upDy);
-      if (totalMoved < 6 || upDist < 6) {
-        const btn = stick === "left" ? "l3" : "r3";
-        handleButtonPress(btn, true);
-        setTimeout(() => {
-          handleButtonPress(btn, false);
-        }, 140);
-      }
-    };
-
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-    window.addEventListener("pointercancel", handlePointerUp);
-  };
-
-  const bindButton = (buttonName: string) => ({
-    type: "button" as const,
-    onPointerDown: (e: React.PointerEvent) => {
-      e.stopPropagation();
-      try {
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-      } catch (_) {}
-      handleButtonPress(buttonName, true);
-    },
-    onPointerUp: (e: React.PointerEvent) => {
-      e.stopPropagation();
-      try {
-        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-      } catch (_) {}
-      handleButtonPress(buttonName, false);
-    },
-    onPointerCancel: (e: React.PointerEvent) => {
-      e.stopPropagation();
-      try {
-        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-      } catch (_) {}
-      handleButtonPress(buttonName, false);
-    },
-    onClick: (e: React.MouseEvent) => {
-      e.stopPropagation();
-      // If triggered via keyboard accessibility (Space or Enter, e.detail === 0), pulse the button.
-      // Pointer clicks are already cleanly handled by pointerdown / pointerup.
-      if (e.detail === 0) {
-        handleButtonPress(buttonName, true);
-        setTimeout(() => handleButtonPress(buttonName, false), 140);
-      }
-    },
+  // Reusable analog stick drag tracking & IPC throttling
+  const {
+    leftStickBaseRef,
+    rightStickBaseRef,
+    leftKnobRef,
+    rightKnobRef,
+    isDraggingLeft,
+    isDraggingRight,
+    setIsDraggingLeft,
+    setIsDraggingRight,
+    startStickDrag,
+  } = useStickDrag({
+    stickMaxTravel: STICK_MAX_TRAVEL,
+    tapThreshold: 6,
+    getScale: () => scaleRef.current,
+    onTriggerStick,
+    onButtonPress: handleButtonPress,
   });
 
   // Convert 0..255 stick values to offset in pixels (-18px .. +18px)
@@ -296,15 +142,24 @@ export const GamepadVisualizer: React.FC<Props> = ({
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950 relative">
       {/* Top Header Bar */}
       <div className="h-14 px-6 border-b border-zinc-800/80 flex items-center justify-between shrink-0 bg-zinc-950/60 backdrop-blur-sm z-30">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-xs select-none">
           <span
-            className={`w-2 h-2 rounded-full ${
-              gamepadName && !isMuted ? "bg-emerald-500 animate-pulse" : "bg-zinc-600"
+            className={`w-2 h-2 rounded-full transition-colors ${
+              gamepadName
+                ? "bg-emerald-500 animate-pulse"
+                : "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]"
             }`}
           />
-          <span className="font-semibold text-xs text-zinc-100">
-            {isMuted ? "手把訊號暫停中" : gamepadName || "等待實體控制器連線"}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-xs text-zinc-100">
+              {gamepadName || "本機控制模式"}
+            </span>
+            <span className="text-[11px] text-zinc-400">
+              {gamepadName
+                ? "• 實體手把已就緒 (可同時混用鍵盤與點擊)"
+                : "• 鍵盤與畫面按鈕皆可直接操作 (外接手把非必須)"}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2.5 text-xs text-zinc-400 font-mono">
@@ -312,7 +167,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
           <button
             onClick={() => setShowKeyGuide(!showKeyGuide)}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-700/80 hover:border-zinc-500 text-zinc-200 transition-colors shadow-xs"
-            title="查看電腦鍵盤對應手把鍵位"
+            title="查看電腦鍵盤與畫面操作對照 (外接手把非必須)"
           >
             <Keyboard className="w-3.5 h-3.5 text-cyan-400" />
             <span>鍵盤對照表</span>
@@ -332,7 +187,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
             <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
               <div className="flex items-center gap-2 text-zinc-100 font-semibold text-sm">
                 <Keyboard className="w-4 h-4 text-cyan-400" />
-                <span>電腦鍵盤操作對照表 (3條輸入路線之一)</span>
+                <span>電腦鍵盤操作對照表 (外接手把非必須)</span>
               </div>
               <button
                 onClick={() => setShowKeyGuide(false)}
@@ -343,8 +198,12 @@ export const GamepadVisualizer: React.FC<Props> = ({
             </div>
 
             <div className="p-4 overflow-y-auto space-y-3 text-xs">
+              <div className="p-2.5 rounded-lg bg-cyan-950/40 border border-cyan-800/40 text-cyan-200 text-[11px] leading-relaxed">
+                💡 <strong>外接手把非必須</strong>：Ghost-Pad 支援純電腦操作！您可以直接敲擊鍵盤（WASD 類比搖桿、L/K/I/J 確認取消）或直接用滑鼠點擊畫面按鈕與拖曳搖桿，皆能即時驅動 Switch。
+              </div>
+
               <p className="text-zinc-400 leading-relaxed text-[11px]">
-                支援三路並行：無論按下實體手把、敲擊電腦鍵盤、或直接用滑鼠點擊螢幕上的幽靈手把按鈕，皆會觸發實體訊號並同步顯示回饋！
+                支援三路並行：實體手把、電腦鍵盤、螢幕點擊拖曳皆可隨時混用！
               </p>
 
               <div className="grid grid-cols-2 gap-2">
@@ -398,15 +257,27 @@ export const GamepadVisualizer: React.FC<Props> = ({
           {/* SVG Cute Ghost Silhouette with Raised Little Hands (Boo! 👻) & Kawaii Face */}
           <svg
             viewBox="0 0 620 390"
-            className="absolute inset-0 w-full h-full drop-shadow-[0_22px_50px_rgba(0,0,0,0.85)] pointer-events-none"
+            className={`absolute inset-0 w-full h-full pointer-events-none transition-all duration-500 ease-out ${
+              isGhostAwake
+                ? "drop-shadow-[0_0_35px_rgba(255,255,255,0.22)] drop-shadow-[0_22px_45px_rgba(0,0,0,0.65)]"
+                : "drop-shadow-[0_22px_50px_rgba(0,0,0,0.85)]"
+            }`}
           >
             <defs>
-              {/* Frosted Translucent Ghost Sheet Gradient */}
-              <linearGradient id="cuteGhostGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#30303c" stopOpacity="0.94" />
-                <stop offset="30%" stopColor="#22222c" stopOpacity="0.95" />
-                <stop offset="70%" stopColor="#15151c" stopOpacity="0.97" />
-                <stop offset="100%" stopColor="#0c0c11" stopOpacity="0.99" />
+              {/* Frosted Translucent Ghost Sheet Gradient (休眠/未啟用時的半透明暗色幽靈質感) */}
+              <linearGradient id="cuteGhostGradTranslucent" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#353544" stopOpacity="0.55" />
+                <stop offset="30%" stopColor="#242432" stopOpacity="0.60" />
+                <stop offset="70%" stopColor="#171720" stopOpacity="0.68" />
+                <stop offset="100%" stopColor="#0d0d14" stopOpacity="0.75" />
+              </linearGradient>
+
+              {/* Luminous Pure White Ghost Sheet Gradient (啟用時的白色底為主色) */}
+              <linearGradient id="cuteGhostGradWhite" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+                <stop offset="30%" stopColor="#fcfcfd" stopOpacity="1" />
+                <stop offset="70%" stopColor="#f4f4f7" stopOpacity="0.99" />
+                <stop offset="100%" stopColor="#e4e4e9" stopOpacity="0.98" />
               </linearGradient>
 
               {/* Hand Aura Gradients */}
@@ -416,100 +287,163 @@ export const GamepadVisualizer: React.FC<Props> = ({
               </radialGradient>
             </defs>
 
-            {/* Reactive Left Hand Glow Aura (Higher) */}
+            {/* Reactive Left Hand Glow Aura */}
             {isLeftHandActive && (
-              <ellipse cx="110" cy="42" rx="85" ry="45" fill="url(#handGlowGrad)" />
+              <ellipse
+                cx={isGhostAwake ? "110" : "118"}
+                cy={isGhostAwake ? "42" : "88"}
+                rx="85"
+                ry="45"
+                fill="url(#handGlowGrad)"
+                className="transition-all duration-700 ease-out"
+              />
             )}
 
-            {/* Reactive Right Hand Glow Aura (Lower & Asymmetric) */}
+            {/* Reactive Right Hand Glow Aura */}
             {isRightHandActive && (
-              <ellipse cx="515" cy="54" rx="85" ry="45" fill="url(#handGlowGrad)" />
+              <ellipse
+                cx={isGhostAwake ? "515" : "508"}
+                cy={isGhostAwake ? "54" : "96"}
+                rx="85"
+                ry="45"
+                fill="url(#handGlowGrad)"
+                className="transition-all duration-700 ease-out"
+              />
             )}
 
-            {/* Asymmetric Ghost Silhouette with Playful Raised Hands (Left high, Right waved) */}
+            {/* Cute Ghost Silhouette with Animated Drooping Hands (Sleeping) vs Raised Hands (Awake) */}
             <path
-              d="M 310, 38
-                 C 352, 38, 385, 49, 406, 75
-                 C 416, 85, 428, 87, 442, 75
-                 C 465, 54, 492, 28, 532, 26
-                 C 564, 25, 588, 44, 584, 70
-                 C 580, 95, 568, 130, 562, 168
-                 C 553, 215, 558, 272, 550, 345
-                 C 530, 328, 514, 362, 494, 346
-                 C 474, 328, 458, 362, 438, 346
-                 C 418, 328, 402, 362, 374, 346
-                 C 346, 328, 330, 362, 308, 346
-                 C 286, 362, 270, 328, 242, 346
-                 C 214, 362, 198, 328, 178, 346
-                 C 158, 362, 142, 328, 122, 346
-                 C 102, 362, 86, 328, 66, 345
-                 C 58, 270, 64, 210, 54, 160
-                 C 46, 118, 34, 80, 30, 55
-                 C 26, 30, 46, 12, 78, 14
-                 C 120, 16, 150, 46, 170, 70
-                 C 186, 84, 200, 84, 210, 74
-                 C 230, 46, 264, 38, 310, 38 Z"
-              fill="url(#cuteGhostGrad)"
-              stroke="rgba(255, 255, 255, 0.3)"
-              strokeWidth="2.2"
+              d={
+                isGhostAwake
+                  ? "M 310, 38 C 352, 38, 385, 49, 406, 75 C 416, 85, 428, 87, 442, 75 C 465, 54, 492, 28, 532, 26 C 564, 25, 588, 44, 584, 70 C 580, 95, 568, 130, 562, 168 C 553, 215, 558, 272, 550, 345 C 530, 328, 514, 362, 494, 346 C 474, 328, 458, 362, 438, 346 C 418, 328, 402, 362, 374, 346 C 346, 328, 330, 362, 308, 346 C 286, 362, 270, 328, 242, 346 C 214, 362, 198, 328, 178, 346 C 158, 362, 142, 328, 122, 346 C 102, 362, 86, 328, 66, 345 C 58, 270, 64, 210, 54, 160 C 46, 118, 34, 80, 30, 55 C 26, 30, 46, 12, 78, 14 C 120, 16, 150, 46, 170, 70 C 186, 84, 200, 84, 210, 74 C 230, 46, 264, 38, 310, 38 Z"
+                  : "M 310, 38 C 352, 38, 385, 52, 408, 78 C 424, 94, 444, 108, 470, 118 C 496, 128, 522, 136, 546, 126 C 564, 118, 574, 105, 568, 132 C 562, 158, 558, 180, 556, 205 C 550, 242, 556, 285, 550, 345 C 530, 328, 514, 362, 494, 346 C 474, 328, 458, 362, 438, 346 C 418, 328, 402, 362, 374, 346 C 346, 328, 330, 362, 308, 346 C 286, 362, 270, 328, 242, 346 C 214, 362, 198, 328, 178, 346 C 158, 362, 142, 328, 122, 346 C 102, 362, 86, 328, 66, 345 C 58, 285, 64, 242, 54, 205 C 50, 180, 44, 158, 48, 132 C 54, 105, 66, 118, 86, 126 C 110, 136, 136, 128, 162, 118 C 188, 108, 200, 94, 212, 78 C 230, 48, 264, 38, 310, 38 Z"
+              }
+              fill={isGhostAwake ? "url(#cuteGhostGradWhite)" : "url(#cuteGhostGradTranslucent)"}
+              stroke={isGhostAwake ? "rgba(203, 213, 225, 0.95)" : "rgba(255, 255, 255, 0.25)"}
+              strokeWidth={isGhostAwake ? "2.4" : "2.2"}
+              style={{
+                transition: "d 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.5s ease-out, stroke 0.5s ease-out, stroke-width 0.5s ease-out",
+              }}
             />
 
             {/* Asymmetric Underarm & Cloth Drape Creases */}
             <path
-              d="M 170, 70 C 152, 105 136, 165 128, 230"
+              d={
+                isGhostAwake
+                  ? "M 170, 70 C 152, 105 136, 165 128, 230"
+                  : "M 162, 118 C 150, 142 136, 180 128, 230"
+              }
               fill="none"
-              stroke="rgba(255, 255, 255, 0.14)"
+              stroke={isGhostAwake ? "rgba(100, 116, 139, 0.35)" : "rgba(255, 255, 255, 0.14)"}
               strokeWidth="1.2"
               strokeDasharray="4 2"
+              style={{ transition: "d 0.7s ease-out, stroke 0.5s ease-out" }}
             />
             <path
-              d="M 442, 75 C 462, 112 482, 172 490, 235"
+              d={
+                isGhostAwake
+                  ? "M 442, 75 C 462, 112 482, 172 490, 235"
+                  : "M 470, 118 C 478, 145 484, 185 490, 235"
+              }
               fill="none"
-              stroke="rgba(255, 255, 255, 0.14)"
+              stroke={isGhostAwake ? "rgba(100, 116, 139, 0.35)" : "rgba(255, 255, 255, 0.14)"}
               strokeWidth="1.2"
               strokeDasharray="4 2"
+              style={{ transition: "d 0.7s ease-out, stroke 0.5s ease-out" }}
             />
             <path
               d="M 310, 38 C 310, 120 310, 240 310, 346"
               fill="none"
-              stroke="rgba(255, 255, 255, 0.05)"
+              stroke={isGhostAwake ? "rgba(100, 116, 139, 0.2)" : "rgba(255, 255, 255, 0.05)"}
               strokeWidth="1"
+              className="transition-colors duration-500"
             />
 
-            {/* DITTO MINIMALIST FACE (百變怪純真線條表情，無腮紅) */}
-            {/* Simple Beady Dot Eyes (•   •) */}
-            <circle cx="282" cy="88" r="3.6" fill="#f4f4f5" />
-            <circle cx="338" cy="88" r="3.6" fill="#f4f4f5" />
+            {/* DITTO GHOST EXPRESSION (休眠睡覺 vs 啟用醒來) */}
+            {!isGhostAwake ? (
+              /* SLEEPING FACE (休眠狀態：閉眼安詳睡覺，伴隨浮動 zZ) */
+              <g className="transition-opacity duration-300">
+                {/* Sleeping Closed Eyes (⌒   ⌒) */}
+                <path
+                  d="M 275, 89 Q 282, 82 289, 89"
+                  fill="none"
+                  stroke="#a1a1aa"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 331, 89 Q 338, 82 345, 89"
+                  fill="none"
+                  stroke="#a1a1aa"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                />
 
-            {/* Ditto Minimalist Line Mouth ( ︶ / ~ ) */}
-            {isAnyButtonPressed ? (
-              /* Quirky Wavy Smile when pressing buttons */
-              <path
-                d="M 302, 95 Q 306, 98.5 310, 95 Q 314, 98.5 318, 95"
-                fill="none"
-                stroke="#22d3ee"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-              />
+                {/* Peaceful Relaxed Sleep Mouth */}
+                <path
+                  d="M 306, 96 Q 310, 98 314, 96"
+                  fill="none"
+                  stroke="#71717a"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+
+                {/* Floating Sleep 'z' 'Z' Indicator */}
+                <g className="select-none pointer-events-none opacity-50">
+                  <text x="350" y="74" fill="#a1a1aa" fontSize="11" fontFamily="monospace" fontWeight="bold">z</text>
+                  <text x="359" y="63" fill="#71717a" fontSize="14" fontFamily="monospace" fontWeight="bold">Z</text>
+                </g>
+              </g>
             ) : (
-              /* Classic Relaxed Ditto Smile */
-              <path
-                d="M 302, 95 Q 310, 100 318, 95"
-                fill="none"
-                stroke="#f4f4f5"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-              />
+              /* AWAKE FACE (啟用狀態：黑瞳圓眼醒來、神采奕奕，伴隨腮紅與動態笑容) */
+              <g className="transition-opacity duration-300">
+                {/* Rosy Cheeks */}
+                <ellipse cx="268" cy="95" rx="5.5" ry="3.5" fill="#fb7185" opacity="0.35" />
+                <ellipse cx="352" cy="95" rx="5.5" ry="3.5" fill="#fb7185" opacity="0.35" />
+
+                {/* Awake Beady Eyes (•   •) with Sparkle Catchlights */}
+                <circle cx="282" cy="88" r="4.2" fill="#18181b" />
+                <circle cx="338" cy="88" r="4.2" fill="#18181b" />
+                <circle cx="283.5" cy="86.5" r="1.4" fill="#ffffff" />
+                <circle cx="339.5" cy="86.5" r="1.4" fill="#ffffff" />
+
+                {/* Awake Smile (Ditto Minimalist Line Mouth) */}
+                {isAnyButtonPressed ? (
+                  /* Quirky Wavy Smile when pressing buttons */
+                  <path
+                    d="M 300, 94 Q 305, 98.5 310, 94 Q 315, 98.5 320, 94"
+                    fill="none"
+                    stroke="#0891b2"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  />
+                ) : (
+                  /* Classic Happy Awake Ditto Smile */
+                  <path
+                    d="M 302, 95 Q 310, 101.5 318, 95"
+                    fill="none"
+                    stroke="#18181b"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                  />
+                )}
+              </g>
             )}
           </svg>
 
-          {/* Asymmetric Raised Little Ghost Hands (Boo! 👻 with ZL, L, R, ZR) */}
+          {/* Asymmetric Ghost Hands (Boo! 👻 with ZL, L, R, ZR) - Drooping during sleep, raised when awake */}
           <div className="absolute top-[12px] left-[36px] right-[36px] flex justify-between items-start z-30 pointer-events-auto">
-            {/* Left Raised Ghost Hand (Higher, slightly jaunty angle) */}
+            {/* Left Ghost Hand */}
             <div
-              className={`flex items-center gap-2 p-1.5 rounded-2xl transition-all duration-200 rotate-[-2deg] pointer-events-auto ${
+              className={`flex items-center gap-2 p-1.5 rounded-2xl transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] pointer-events-auto ${
+                isGhostAwake
+                  ? "translate-y-0 rotate-[-2deg] translate-x-0 opacity-100 scale-100"
+                  : "translate-y-[40px] rotate-[-12deg] -translate-x-1 opacity-90 scale-[0.98]"
+              } ${
                 isLeftHandActive
                   ? "bg-cyan-500/15 ring-2 ring-cyan-400/60 shadow-[0_0_25px_rgba(34,211,238,0.35)]"
+                  : isGhostAwake
+                  ? "bg-white/40 border border-zinc-300/60 shadow-xs backdrop-blur-[2px]"
                   : "bg-zinc-900/40 border border-white/5"
               }`}
             >
@@ -537,11 +471,17 @@ export const GamepadVisualizer: React.FC<Props> = ({
               </button>
             </div>
 
-            {/* Right Raised Ghost Hand (Slightly lower & waved at a gentle angle) */}
+            {/* Right Ghost Hand */}
             <div
-              className={`flex items-center gap-2 p-1.5 rounded-2xl transition-all duration-200 mt-2.5 rotate-[3deg] pointer-events-auto ${
+              className={`flex items-center gap-2 p-1.5 rounded-2xl transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] pointer-events-auto ${
+                isGhostAwake
+                  ? "mt-2.5 translate-y-0 rotate-[3deg] translate-x-0 opacity-100 scale-100"
+                  : "mt-2.5 translate-y-[42px] rotate-[12deg] translate-x-1 opacity-90 scale-[0.98]"
+              } ${
                 isRightHandActive
                   ? "bg-cyan-500/15 ring-2 ring-cyan-400/60 shadow-[0_0_25px_rgba(34,211,238,0.35)]"
+                  : isGhostAwake
+                  ? "bg-white/40 border border-zinc-300/60 shadow-xs backdrop-blur-[2px]"
                   : "bg-zinc-900/40 border border-white/5"
               }`}
             >
@@ -686,10 +626,29 @@ export const GamepadVisualizer: React.FC<Props> = ({
               </div>
 
               {/* Ethereal Floating Ghost Badge */}
-              <div className="px-4 py-1 rounded-full text-[11px] font-mono tracking-widest text-zinc-100 border-2 border-zinc-600 bg-zinc-950/95 shadow-md flex items-center gap-2 select-none pointer-events-none">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.9)]" />
+              <button
+                type="button"
+                onClick={onToggleEsp32 || onToggleMute}
+                className={`px-4 py-1 rounded-full text-[11px] font-mono tracking-widest border-2 shadow-md flex items-center gap-2 select-none transition-all cursor-pointer pointer-events-auto active:scale-95 ${
+                  isGhostAwake
+                    ? "text-zinc-100 border-cyan-500/70 bg-zinc-950 shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:border-cyan-400"
+                    : "text-zinc-400 border-zinc-600 bg-zinc-950/95 hover:border-zinc-500 hover:text-zinc-200"
+                }`}
+                title={
+                  isGhostAwake
+                    ? "ESP32 服務運作中 (Ghost 已醒來，點擊停止)"
+                    : "ESP32 待命中 (Ghost 休眠中，點擊啟動)"
+                }
+              >
+                <span
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    isGhostAwake
+                      ? "bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.9)]"
+                      : "bg-zinc-600"
+                  }`}
+                />
                 <span>GHOST-PAD</span>
-              </div>
+              </button>
 
               {/* Capture & Home - Larger & Distinct */}
               <div className="flex items-center gap-10 pb-1">

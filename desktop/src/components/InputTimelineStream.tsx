@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ControllerState } from "../types";
 import { Film, Trash2, Zap, Clock } from "lucide-react";
 
@@ -50,6 +50,45 @@ export const getStickDirection = (x: number, y: number, prefix: "L" | "R"): stri
   return `${prefix}↘`;
 };
 
+// Helper to extract active button states from controller state
+export const getButtonStates = (s: ControllerState) => {
+  const dpadVal = typeof s.dpad === "number" ? s.dpad : 8;
+  const isUp = [0, 1, 7].includes(dpadVal);
+  const isRight = [1, 2, 3].includes(dpadVal);
+  const isDown = [3, 4, 5].includes(dpadVal);
+  const isLeft = [5, 6, 7].includes(dpadVal);
+
+  return {
+    // Lane 0: Action Buttons
+    a: { active: s.a, label: "A", lane: 0, color: "#10b981", glow: "rgba(16,185,129,0.7)" },
+    b: { active: s.b, label: "B", lane: 0, color: "#ef4444", glow: "rgba(239,68,68,0.7)" },
+    x: { active: s.x, label: "X", lane: 0, color: "#38bdf8", glow: "rgba(56,189,248,0.7)" },
+    y: { active: s.y, label: "Y", lane: 0, color: "#f59e0b", glow: "rgba(245,158,11,0.7)" },
+
+    // Lane 1: D-Pad
+    dpad_up: { active: isUp, label: "▲", lane: 1, color: "#c084fc", glow: "rgba(192,132,252,0.7)" },
+    dpad_down: { active: isDown, label: "▼", lane: 1, color: "#c084fc", glow: "rgba(192,132,252,0.7)" },
+    dpad_left: { active: isLeft, label: "◀", lane: 1, color: "#c084fc", glow: "rgba(192,132,252,0.7)" },
+    dpad_right: { active: isRight, label: "▶", lane: 1, color: "#c084fc", glow: "rgba(192,132,252,0.7)" },
+
+    // Lane 2: Stick Clicks
+    l3: { active: s.l_stick_click, label: "L3", lane: 2, color: "#06b6d4", glow: "rgba(6,182,212,0.7)" },
+    r3: { active: s.r_stick_click, label: "R3", lane: 2, color: "#14b8a6", glow: "rgba(20,184,166,0.7)" },
+
+    // Lane 3: Shoulder Buttons
+    l: { active: s.l, label: "L", lane: 3, color: "#ec4899", glow: "rgba(236,72,153,0.7)" },
+    zl: { active: s.zl, label: "ZL", lane: 3, color: "#f43f5e", glow: "rgba(244,63,94,0.7)" },
+    r: { active: s.r, label: "R", lane: 3, color: "#ec4899", glow: "rgba(236,72,153,0.7)" },
+    zr: { active: s.zr, label: "ZR", lane: 3, color: "#f43f5e", glow: "rgba(244,63,94,0.7)" },
+
+    // Lane 4: System Function Buttons
+    minus: { active: s.minus, label: "−", lane: 4, color: "#94a3b8", glow: "rgba(148,163,184,0.7)" },
+    plus: { active: s.plus, label: "+", lane: 4, color: "#94a3b8", glow: "rgba(148,163,184,0.7)" },
+    capture: { active: s.capture, label: "◉", lane: 4, color: "#94a3b8", glow: "rgba(148,163,184,0.7)" },
+    home: { active: s.home, label: "⌂", lane: 4, color: "#38bdf8", glow: "rgba(56,189,248,0.7)" },
+  };
+};
+
 export const InputTimelineStream: React.FC<Props> = ({ state }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -64,46 +103,6 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
   const lastVisibleCountRef = useRef<number>(0);
   const prevStateRef = useRef<ControllerState>(state);
   const heldNotesMapRef = useRef<Map<string, NoteEvent>>(new Map());
-
-  // Helper to extract active button booleans from state
-  const getButtonStates = useCallback((s: ControllerState) => {
-    // D-Pad numeric decode
-    const dpadVal = typeof s.dpad === "number" ? s.dpad : 8;
-    const isUp = [0, 1, 7].includes(dpadVal);
-    const isRight = [1, 2, 3].includes(dpadVal);
-    const isDown = [3, 4, 5].includes(dpadVal);
-    const isLeft = [5, 6, 7].includes(dpadVal);
-
-    return {
-      // Lane 0: Action Buttons
-      a: { active: s.a, label: "A", lane: 0, color: "#10b981", glow: "rgba(16,185,129,0.7)" },
-      b: { active: s.b, label: "B", lane: 0, color: "#ef4444", glow: "rgba(239,68,68,0.7)" },
-      x: { active: s.x, label: "X", lane: 0, color: "#38bdf8", glow: "rgba(56,189,248,0.7)" },
-      y: { active: s.y, label: "Y", lane: 0, color: "#f59e0b", glow: "rgba(245,158,11,0.7)" },
-
-      // Lane 1: D-Pad
-      dpad_up: { active: isUp, label: "▲", lane: 1, color: "#c084fc", glow: "rgba(192,132,252,0.7)" },
-      dpad_down: { active: isDown, label: "▼", lane: 1, color: "#c084fc", glow: "rgba(192,132,252,0.7)" },
-      dpad_left: { active: isLeft, label: "◀", lane: 1, color: "#c084fc", glow: "rgba(192,132,252,0.7)" },
-      dpad_right: { active: isRight, label: "▶", lane: 1, color: "#c084fc", glow: "rgba(192,132,252,0.7)" },
-
-      // Lane 2: Stick Clicks
-      l3: { active: s.l_stick_click, label: "L3", lane: 2, color: "#06b6d4", glow: "rgba(6,182,212,0.7)" },
-      r3: { active: s.r_stick_click, label: "R3", lane: 2, color: "#14b8a6", glow: "rgba(20,184,166,0.7)" },
-
-      // Lane 3: Shoulder Buttons
-      l: { active: s.l, label: "L", lane: 3, color: "#ec4899", glow: "rgba(236,72,153,0.7)" },
-      zl: { active: s.zl, label: "ZL", lane: 3, color: "#f43f5e", glow: "rgba(244,63,94,0.7)" },
-      r: { active: s.r, label: "R", lane: 3, color: "#ec4899", glow: "rgba(236,72,153,0.7)" },
-      zr: { active: s.zr, label: "ZR", lane: 3, color: "#f43f5e", glow: "rgba(244,63,94,0.7)" },
-
-      // Lane 4: System Function Buttons
-      minus: { active: s.minus, label: "−", lane: 4, color: "#94a3b8", glow: "rgba(148,163,184,0.7)" },
-      plus: { active: s.plus, label: "+", lane: 4, color: "#94a3b8", glow: "rgba(148,163,184,0.7)" },
-      capture: { active: s.capture, label: "◉", lane: 4, color: "#94a3b8", glow: "rgba(148,163,184,0.7)" },
-      home: { active: s.home, label: "⌂", lane: 4, color: "#38bdf8", glow: "rgba(56,189,248,0.7)" },
-    };
-  }, []);
 
   // Detect state transitions and spawn / finalize notes
   useEffect(() => {
@@ -203,7 +202,7 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
     }
 
     prevStateRef.current = state;
-  }, [state, getButtonStates]);
+  }, [state]);
 
   // Clear timeline history
   const handleClear = () => {
@@ -290,75 +289,17 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
       else if (duration <= 30) majorStep = 5;
       else majorStep = 10;
 
-      // Top ruler background
-      ctx.fillStyle = "rgba(18, 18, 22, 0.9)";
-      ctx.fillRect(0, 0, width, RULER_TOP_H);
-      ctx.strokeStyle = "rgba(63, 63, 70, 0.4)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, RULER_TOP_H);
-      ctx.lineTo(width, RULER_TOP_H);
-      ctx.stroke();
-
-      // Bottom ruler background
-      ctx.fillStyle = "rgba(18, 18, 22, 0.85)";
-      ctx.fillRect(0, height - RULER_BOT_H, width, RULER_BOT_H);
-      ctx.beginPath();
-      ctx.moveTo(0, height - RULER_BOT_H);
-      ctx.lineTo(width, height - RULER_BOT_H);
-      ctx.stroke();
-
-      // Draw Time Ticks & Nodes
-      for (let sec = 0; sec <= duration; sec += 1) {
+      // 2. Draw 5s Vertical Grid lines across all lanes
+      for (let sec = 1; sec < duration; sec += 1) {
         const x = strikeX + (sec / duration) * trackWidth;
         const isMajor = sec % majorStep === 0;
 
         if (isMajor) {
-          // Vertical fine line traversing all lanes
-          if (sec > 0 && sec < duration) {
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(x, RULER_TOP_H);
-            ctx.lineTo(x, height - RULER_BOT_H);
-            ctx.stroke();
-          }
-
-          // Top ruler tick & label
-          ctx.strokeStyle = "rgba(161, 161, 170, 0.7)";
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
           ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.moveTo(x, RULER_TOP_H - 5);
-          ctx.lineTo(x, RULER_TOP_H);
-          ctx.stroke();
-
-          ctx.fillStyle = "#a1a1aa";
-          ctx.font = "bold 9px monospace";
-          ctx.textAlign = sec === 0 ? "left" : sec === duration ? "right" : "center";
-          ctx.textBaseline = "bottom";
-          ctx.fillText(`${sec}s`, x + (sec === 0 ? 3 : sec === duration ? -3 : 0), RULER_TOP_H - 4);
-
-          // Bottom ruler tick & label
-          ctx.strokeStyle = "rgba(161, 161, 170, 0.45)";
-          ctx.beginPath();
-          ctx.moveTo(x, height - RULER_BOT_H);
-          ctx.lineTo(x, height - RULER_BOT_H + 4);
-          ctx.stroke();
-
-          ctx.fillStyle = "#71717a";
-          ctx.font = "8px monospace";
-          ctx.textAlign = sec === 0 ? "left" : sec === duration ? "right" : "center";
-          ctx.textBaseline = "top";
-          ctx.fillText(`${sec}s`, x + (sec === 0 ? 3 : sec === duration ? -3 : 0), height - RULER_BOT_H + 3);
-        } else {
-          // Minor 1-second tick at top & bottom
-          ctx.strokeStyle = "rgba(113, 113, 122, 0.25)";
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(x, RULER_TOP_H - 3);
-          ctx.lineTo(x, RULER_TOP_H);
-          ctx.moveTo(x, height - RULER_BOT_H);
-          ctx.lineTo(x, height - RULER_BOT_H + 3);
+          ctx.moveTo(x, RULER_TOP_H);
+          ctx.lineTo(x, height - RULER_BOT_H);
           ctx.stroke();
         }
       }
@@ -518,6 +459,64 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
       ctx.lineTo(strikeX, height - RULER_BOT_H);
       ctx.stroke();
       ctx.restore();
+
+      // 7. Draw Top and Bottom Rulers & Ticks ON TOP so 0s is perfectly centered and unclipped
+      ctx.fillStyle = "rgba(18, 18, 22, 0.92)";
+      ctx.fillRect(SIDEBAR_W - 12, 0, width - (SIDEBAR_W - 12), RULER_TOP_H);
+      ctx.fillRect(SIDEBAR_W - 12, height - RULER_BOT_H, width - (SIDEBAR_W - 12), RULER_BOT_H);
+
+      ctx.strokeStyle = "rgba(63, 63, 70, 0.4)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, RULER_TOP_H);
+      ctx.lineTo(width, RULER_TOP_H);
+      ctx.moveTo(0, height - RULER_BOT_H);
+      ctx.lineTo(width, height - RULER_BOT_H);
+      ctx.stroke();
+
+      for (let sec = 0; sec <= duration; sec += 1) {
+        const x = strikeX + (sec / duration) * trackWidth;
+        const isMajor = sec % majorStep === 0;
+
+        if (isMajor) {
+          // Top ruler tick & label
+          ctx.strokeStyle = "rgba(161, 161, 170, 0.7)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x, RULER_TOP_H - 5);
+          ctx.lineTo(x, RULER_TOP_H);
+          ctx.stroke();
+
+          ctx.fillStyle = sec === 0 ? "#22d3ee" : "#a1a1aa";
+          ctx.font = "bold 9px monospace";
+          ctx.textAlign = sec === duration ? "right" : "center";
+          ctx.textBaseline = "bottom";
+          ctx.fillText(`${sec}s`, x + (sec === duration ? -3 : 0), RULER_TOP_H - 4);
+
+          // Bottom ruler tick & label
+          ctx.strokeStyle = "rgba(161, 161, 170, 0.45)";
+          ctx.beginPath();
+          ctx.moveTo(x, height - RULER_BOT_H);
+          ctx.lineTo(x, height - RULER_BOT_H + 4);
+          ctx.stroke();
+
+          ctx.fillStyle = sec === 0 ? "#22d3ee" : "#71717a";
+          ctx.font = "8px monospace";
+          ctx.textAlign = sec === duration ? "right" : "center";
+          ctx.textBaseline = "top";
+          ctx.fillText(`${sec}s`, x + (sec === duration ? -3 : 0), height - RULER_BOT_H + 3);
+        } else {
+          // Minor 1-second tick at top & bottom
+          ctx.strokeStyle = "rgba(113, 113, 122, 0.25)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x, RULER_TOP_H - 3);
+          ctx.lineTo(x, RULER_TOP_H);
+          ctx.moveTo(x, height - RULER_BOT_H);
+          ctx.lineTo(x, height - RULER_BOT_H + 3);
+          ctx.stroke();
+        }
+      }
 
       animId = requestAnimationFrame(render);
     };

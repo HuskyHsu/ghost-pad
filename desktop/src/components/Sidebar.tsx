@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { GamepadInfo } from "../types";
+import { GamepadInfo, SerialStatus } from "../types";
 import {
   Gamepad2,
   Cpu,
@@ -12,6 +12,9 @@ import {
   Bluetooth,
   Laptop,
   Tv,
+  Zap,
+  Sparkles,
+  X,
 } from "lucide-react";
 
 interface Props {
@@ -24,18 +27,28 @@ interface Props {
   onToggleMute: () => void;
   esp32Connected: boolean;
   switchPairingState?: string;
+  isStep0Ready?: boolean;
+  serialStatus?: SerialStatus;
+  hasPairedSwitch?: boolean;
+  onToggleVirtualController?: () => void;
+  onSendSerialCommand?: (cmd: string) => void;
 }
 
 export const Sidebar: React.FC<Props> = ({
   activeTab,
   onTabChange,
   gamepads,
-  isMuted,
+  isMuted: _isMuted,
   onRefreshGamepads,
   onSelectGamepad,
-  onToggleMute,
+  onToggleMute: _onToggleMute,
   esp32Connected,
   switchPairingState = "disconnected",
+  isStep0Ready = false,
+  serialStatus,
+  hasPairedSwitch = false,
+  onToggleVirtualController,
+  onSendSerialCommand,
 }) => {
   const [showGuide, setShowGuide] = useState(false);
 
@@ -106,7 +119,7 @@ export const Sidebar: React.FC<Props> = ({
       </div>
 
       {/* Controllers Section */}
-      <div className="p-3 border-t border-zinc-900 flex-1 overflow-y-auto space-y-2">
+      <div className="p-3 border-t border-zinc-900 flex-1 overflow-y-auto space-y-2 scrollbar-none [&::-webkit-scrollbar]:hidden">
         <div className="flex items-center justify-between px-2 py-1">
           <span className="text-[10px] font-semibold tracking-wider text-zinc-400 uppercase">
             輸入手把 ({gamepads.length})
@@ -121,9 +134,9 @@ export const Sidebar: React.FC<Props> = ({
             </button>
             <button
               onClick={() => setShowGuide(!showGuide)}
-              title="8BitDo Micro 配對說明"
-              className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${
-                showGuide ? "text-zinc-200 bg-zinc-800" : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
+              title="官方手把配對說明 (Pro / Joy-Con)"
+              className={`w-5 h-5 rounded flex items-center justify-center transition-colors cursor-pointer ${
+                showGuide ? "text-cyan-300 bg-zinc-800" : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
               }`}
             >
               <HelpCircle className="w-3 h-3" />
@@ -131,36 +144,16 @@ export const Sidebar: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Global Input Mute / Pause Toggle */}
-        <div className="px-2.5 py-2 rounded-lg bg-zinc-900/60 border border-zinc-800/60 flex items-center justify-between">
-          <div>
-            <div className="text-[11px] font-medium text-zinc-300">手把訊號監聽</div>
-            <div className="text-[9px] text-zinc-400">控制是否即時轉送動作</div>
-          </div>
-          <button
-            onClick={onToggleMute}
-            className={`px-2 py-1 rounded-md text-[10px] font-medium border transition-colors flex items-center gap-1.5 ${
-              isMuted
-                ? "bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20"
-                : "bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20"
-            }`}
-          >
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                isMuted ? "bg-amber-400" : "bg-emerald-400"
-              }`}
-            />
-            <span>{isMuted ? "已暫停" : "輸入啟用"}</span>
-          </button>
-        </div>
-
         {/* Device List */}
-        <div className="space-y-1 mt-2">
+        <div className="space-y-1">
           {gamepads.length === 0 ? (
-            <div className="py-6 px-3 text-center rounded-lg bg-zinc-900/40 border border-zinc-800/40 text-zinc-400 text-xs">
-              <Gamepad2 className="w-4 h-4 mx-auto mb-1 text-zinc-400" />
-              <div className="text-[11px] text-zinc-400">未連線手把</div>
-              <div className="text-[10px] text-zinc-400 mt-0.5">請於藍牙完成配對</div>
+            <div className="py-4 px-3 text-center rounded-lg bg-zinc-900/40 border border-zinc-800/40 text-zinc-400 text-xs">
+              <Gamepad2 className="w-4 h-4 mx-auto mb-1 text-zinc-500" />
+              <div className="text-[11px] font-medium text-zinc-300">未連線外接手把 (選用)</div>
+              <div className="text-[10px] text-zinc-400 mt-1 leading-relaxed">
+                可隨時連線藍牙實體手把<br />
+                <span className="text-zinc-500">電腦鍵盤與畫面按鈕亦可直接操作</span>
+              </div>
             </div>
           ) : (
             gamepads.map((g) => (
@@ -196,18 +189,106 @@ export const Sidebar: React.FC<Props> = ({
           )}
         </div>
 
-        {/* Pairing Instructions Drawer */}
-        {showGuide && (
-          <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 space-y-1.5 mt-2">
-            <div className="text-[11px] font-semibold text-zinc-200 flex items-center gap-1.5">
-              <Bluetooth className="w-3.5 h-3.5 text-zinc-400" />
-              8BitDo Micro 配對說明
+        {/* Step 0 Ready: Ghost-Pad Virtual Controller Card */}
+        {isStep0Ready && (
+          <div className="mt-3 p-2.5 rounded-xl bg-zinc-900/70 border border-zinc-800 space-y-2 text-xs">
+            {/* Header: Name & Status indicator & Switch Toggle */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div
+                  className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
+                    esp32Connected
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                      : "bg-zinc-800 text-zinc-400"
+                  }`}
+                >
+                  <Gamepad2 className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-semibold text-zinc-200 truncate">
+                      Ghost-Pad (ESP32 轉發)
+                    </span>
+                    <span
+                      className={`text-[9px] px-1.5 py-0.2 rounded font-mono shrink-0 ${
+                        esp32Connected
+                          ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                          : "bg-zinc-800 text-zinc-400"
+                      }`}
+                    >
+                      {esp32Connected ? "轉發中" : "待命中"}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-zinc-400 mt-0.5 truncate">
+                    {esp32Connected
+                      ? `60Hz 串流轉發中 (${serialStatus?.tx_fps || 60} FPS)`
+                      : "ESP32 就緒，點擊啟動轉發"}
+                  </div>
+                </div>
+              </div>
+
+              {/* iOS-Style Tactile Toggle Switch (Unified with input transfer toggle) */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={esp32Connected}
+                onClick={onToggleVirtualController}
+                title={esp32Connected ? "點擊停止虛擬手把服務" : "點擊開啟虛擬手把服務"}
+                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-hidden cursor-pointer ${
+                  esp32Connected
+                    ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                    : "bg-zinc-750 hover:bg-zinc-700"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${
+                    esp32Connected ? "translate-x-4.5" : "translate-x-1"
+                  }`}
+                />
+              </button>
             </div>
-            <ol className="list-decimal list-inside space-y-1 text-zinc-400 text-[10px] leading-relaxed">
-              <li>撥至 <strong>S 模式</strong>（Switch）。</li>
-              <li>長按配對鍵 3 秒至流動閃爍。</li>
-              <li>開啟 Mac 藍牙點擊配對。</li>
-            </ol>
+
+            {/* Step 2 Fast Actions: Only available when Virtual Controller is running */}
+            {esp32Connected && (
+              <div className="pt-2 border-t border-zinc-800/80 space-y-1.5">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-zinc-400">Switch 狀態</span>
+                  <span
+                    className={`font-mono font-medium ${
+                      switchPairingState === "connected"
+                        ? "text-cyan-400"
+                        : switchPairingState === "pairing"
+                        ? "text-amber-400"
+                        : "text-zinc-400"
+                    }`}
+                  >
+                    {switchPairingState === "connected"
+                      ? "✓ 1P 已連線"
+                      : switchPairingState === "pairing"
+                      ? "● 配對中..."
+                      : "待配對"}
+                  </span>
+                </div>
+
+                {hasPairedSwitch ? (
+                  <button
+                    onClick={() => onSendSerialCommand?.("wake_reconnect")}
+                    className="w-full py-1 px-2 rounded-md bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-[10px] font-medium flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Zap className="w-2.5 h-2.5" />
+                    <span>手動喚醒秒連 (A鍵)</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => onSendSerialCommand?.("pair_lr")}
+                    className="w-full py-1 px-2 rounded-md bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 text-[10px] font-medium flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Sparkles className="w-2.5 h-2.5" />
+                    <span>首次配對 (送出 L+R)</span>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -229,7 +310,7 @@ export const Sidebar: React.FC<Props> = ({
                 gamepads.some((g) => g.is_connected) ? "text-emerald-400" : "text-zinc-400"
               }`}
             >
-              {gamepads.some((g) => g.is_connected) ? "已連線" : "待命中"}
+              {gamepads.some((g) => g.is_connected) ? "藍牙已連線" : "鍵盤/畫面 (手把選用)"}
             </span>
           </div>
 
@@ -241,10 +322,10 @@ export const Sidebar: React.FC<Props> = ({
             </div>
             <span
               className={`font-mono text-[10px] font-medium ${
-                esp32Connected ? "text-emerald-400" : "text-zinc-400"
+                esp32Connected ? "text-emerald-400" : "text-zinc-500"
               }`}
             >
-              {esp32Connected ? "已連線" : "未連線"}
+              {esp32Connected ? "60Hz 串流中" : isStep0Ready ? "USB 已就緒" : "未接 USB"}
             </span>
           </div>
 
@@ -260,18 +341,88 @@ export const Sidebar: React.FC<Props> = ({
                   ? "text-cyan-400 font-bold"
                   : switchPairingState === "pairing"
                   ? "text-amber-400 animate-pulse"
-                  : "text-zinc-400"
+                  : "text-zinc-500"
               }`}
             >
               {switchPairingState === "connected"
-                ? "1P 連線中"
+                ? "1P 已連線"
                 : switchPairingState === "pairing"
-                ? "配對中"
-                : "待命"}
+                ? "配對握手中"
+                : "尚未連線"}
             </span>
           </div>
         </div>
       </div>
+
+      {/* Official Gamepad Pairing Modal Overlay (Does not expand sidebar or trigger scrollbar) */}
+      {showGuide && (
+        <div
+          className="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => setShowGuide(false)}
+        >
+          <div
+            className="bg-zinc-900 border border-zinc-700/80 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-zinc-100 font-semibold text-sm">
+                <Bluetooth className="w-4 h-4 text-cyan-400" />
+                <span>官方手把藍牙配對指引</span>
+              </div>
+              <button
+                onClick={() => setShowGuide(false)}
+                className="p-1 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                title="關閉"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-5 space-y-3.5 text-xs">
+              {/* Switch Pro Controller */}
+              <div className="p-3.5 rounded-xl bg-zinc-950/70 border border-zinc-800 space-y-1.5">
+                <div className="font-semibold text-zinc-200 text-xs flex items-center gap-2">
+                  <span className="text-sm">🎮</span>
+                  <span>Switch Pro 控制器</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1 text-zinc-400 text-xs leading-relaxed">
+                  <li>按住頂部 USB-C 接口旁的「圓形同步鍵 (Sync)」3 秒至指示燈流動。</li>
+                  <li>於電腦「系統設定 ➔ 藍牙」搜尋並點選配對。</li>
+                </ol>
+              </div>
+
+              {/* Joy-Con */}
+              <div className="p-3.5 rounded-xl bg-zinc-950/70 border border-zinc-800 space-y-1.5">
+                <div className="font-semibold text-zinc-200 text-xs flex items-center gap-2">
+                  <span className="text-sm">🕹️</span>
+                  <span>Joy-Con (L / R)</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1 text-zinc-400 text-xs leading-relaxed">
+                  <li>按住滑軌側邊的「圓形同步鍵 (Sync)」3 秒至指示燈流動。</li>
+                  <li>於電腦「系統設定 ➔ 藍牙」搜尋並點選配對。</li>
+                </ol>
+              </div>
+
+              {/* Note */}
+              <div className="p-3 rounded-lg bg-cyan-950/30 border border-cyan-800/40 text-cyan-200 text-[11px] leading-relaxed">
+                💡 <strong>外接手把非必須</strong>：Ghost-Pad 支援純電腦操作！敲擊鍵盤或用滑鼠點擊畫面按鈕，皆可完整控制 Switch。
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-3.5 border-t border-zinc-800 flex justify-end bg-zinc-950/40">
+              <button
+                onClick={() => setShowGuide(false)}
+                className="px-4 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium transition-colors cursor-pointer"
+              >
+                我知道了
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 };
