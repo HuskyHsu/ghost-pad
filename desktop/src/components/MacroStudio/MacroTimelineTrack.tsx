@@ -117,7 +117,7 @@ export const MacroTimelineTrack: React.FC<Props> = ({
                           ? "ring-2 ring-white scale-105 shadow-[0_0_12px_rgba(255,255,255,0.7)] z-10"
                           : "hover:scale-102"
                       }`}
-                      title={`#${index + 1} ${label} (按住 ${act.durationMs}ms, 間隔 ${act.delayAfterMs}ms)`}
+                      title={`#${index + 1} ${label} (持續 ${act.durationMs}ms)`}
                     >
                       <span>#{index + 1}</span>
                       <span>{label}</span>

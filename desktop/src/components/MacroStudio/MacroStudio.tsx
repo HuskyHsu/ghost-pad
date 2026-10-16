@@ -17,7 +17,6 @@ interface Props {
   selectedScriptId: string | null;
   onSelectScript: (id: string) => void;
   onSaveScript: (script: MacroScript) => void;
-  onCreateNew: () => void;
   onDuplicateScript: (script: MacroScript) => void;
   onDeleteScript: (id: string) => void;
   onImportScripts: (scripts: MacroScript[]) => void;
@@ -35,7 +34,6 @@ export const MacroStudio: React.FC<Props> = ({
   selectedScriptId,
   onSelectScript,
   onSaveScript,
-  onCreateNew,
   onDuplicateScript,
   onDeleteScript,
   onImportScripts,
@@ -81,11 +79,6 @@ export const MacroStudio: React.FC<Props> = ({
     setViewMode("edit");
   };
 
-  const handleCreateNewAndEdit = () => {
-    onCreateNew();
-    setViewMode("edit");
-  };
-
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950 select-none">
       {/* Hidden file input for import */}
@@ -103,15 +96,10 @@ export const MacroStudio: React.FC<Props> = ({
           <MacroLibraryView
             scripts={macros}
             onSelectAndEdit={handleSelectAndEdit}
-            onCreateNew={handleCreateNewAndEdit}
             onDuplicateScript={onDuplicateScript}
             onDeleteScript={onDeleteScript}
             onImportJson={handleTriggerFileInput}
             onExportAll={() => exportAllMacrosAsJson(macros)}
-            onQuickPlay={(s) => {
-              onSelectScript(s.id);
-              onPlay(s);
-            }}
           />
         ) : activeScript ? (
           <MacroEditor
@@ -121,6 +109,7 @@ export const MacroStudio: React.FC<Props> = ({
                 ? playerStatus.currentActionIndex
                 : -1
             }
+            playerStatus={playerStatus}
             onSaveScript={onSaveScript}
             onDuplicateScript={onDuplicateScript}
             onDeleteScript={(id) => {
@@ -133,30 +122,27 @@ export const MacroStudio: React.FC<Props> = ({
           <MacroLibraryView
             scripts={macros}
             onSelectAndEdit={handleSelectAndEdit}
-            onCreateNew={handleCreateNewAndEdit}
             onDuplicateScript={onDuplicateScript}
             onDeleteScript={onDeleteScript}
             onImportJson={handleTriggerFileInput}
             onExportAll={() => exportAllMacrosAsJson(macros)}
-            onQuickPlay={(s) => {
-              onSelectScript(s.id);
-              onPlay(s);
-            }}
           />
         )}
       </div>
 
-      {/* Bottom Sticky Playback Console Bar with Taiko Rhythm Conveyor */}
-      <MacroPlayerBar
-        script={activeScript}
-        status={playerStatus}
-        config={playerConfig}
-        onChangeConfig={onChangePlayerConfig}
-        onPlay={() => activeScript && onPlay(activeScript)}
-        onPause={onPause}
-        onResume={onResume}
-        onStop={onStop}
-      />
+      {/* Bottom Sticky Playback Console Bar - Only displayed in editor view when a script is selected */}
+      {viewMode === "edit" && activeScript && (
+        <MacroPlayerBar
+          script={activeScript}
+          status={playerStatus}
+          config={playerConfig}
+          onChangeConfig={onChangePlayerConfig}
+          onPlay={() => onPlay(activeScript)}
+          onPause={onPause}
+          onResume={onResume}
+          onStop={onStop}
+        />
+      )}
     </div>
   );
 };

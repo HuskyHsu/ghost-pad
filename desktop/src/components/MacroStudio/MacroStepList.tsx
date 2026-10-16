@@ -78,7 +78,7 @@ export const MacroStepList: React.FC<Props> = ({
         type: "button",
         button: "a",
         durationMs: 120,
-        delayAfterMs: 80,
+        delayAfterMs: 0,
         note: "點擊按鈕",
       };
     } else if (type === "stick") {
@@ -89,14 +89,14 @@ export const MacroStepList: React.FC<Props> = ({
         stickX: 128,
         stickY: 0,
         durationMs: 300,
-        delayAfterMs: 50,
+        delayAfterMs: 0,
         note: "推動搖桿",
       };
     } else {
       newAct = {
         id,
         type: "wait",
-        durationMs: 300,
+        durationMs: 200,
         delayAfterMs: 0,
         note: "等待暫停",
       };
@@ -286,32 +286,18 @@ export const MacroStepList: React.FC<Props> = ({
               {/* Middle Section: Hold Duration & Delay After */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-zinc-400">持續:</span>
+                  <span className="text-[10px] text-zinc-400">
+                    {act.type === "wait" ? "等待:" : "持續:"}
+                  </span>
                   <input
                     type="number"
-                    min={20}
+                    min={10}
                     step={10}
                     value={act.durationMs}
                     onChange={(e) =>
                       handleUpdateAction(index, {
-                        durationMs: Math.max(20, Number(e.target.value) || 20),
-                      })
-                    }
-                    className="w-16 px-2 py-1 rounded bg-zinc-950 border border-zinc-700 text-xs font-mono text-zinc-200 text-right focus:outline-none"
-                  />
-                  <span className="text-[10px] text-zinc-500">ms</span>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-zinc-400">間隔:</span>
-                  <input
-                    type="number"
-                    min={0}
-                    step={10}
-                    value={act.delayAfterMs}
-                    onChange={(e) =>
-                      handleUpdateAction(index, {
-                        delayAfterMs: Math.max(0, Number(e.target.value) || 0),
+                        durationMs: Math.max(10, Number(e.target.value) || 10),
+                        delayAfterMs: 0,
                       })
                     }
                     className="w-16 px-2 py-1 rounded bg-zinc-950 border border-zinc-700 text-xs font-mono text-zinc-200 text-right focus:outline-none"

@@ -47,14 +47,16 @@ describe("Macro Storage and Utilities", () => {
     const rawJson = JSON.stringify({
       name: "自訂連擊",
       actions: [
-        { type: "button", button: "a", durationMs: 150, delayAfterMs: 50 },
+        { type: "button", button: "a", durationMs: 150, delayAfterMs: 120 },
       ],
     });
     const imported = importMacroFromJson(rawJson);
     expect(imported).not.toBeNull();
     expect(imported?.name).toBe("自訂連擊");
-    expect(imported?.actions.length).toBe(1);
+    expect(imported?.actions.length).toBe(2);
     expect(imported?.actions[0].button).toBe("a");
+    expect(imported?.actions[1].type).toBe("wait");
+    expect(imported?.actions[1].durationMs).toBe(120);
   });
 
   it("imports all macros backup JSON successfully", () => {

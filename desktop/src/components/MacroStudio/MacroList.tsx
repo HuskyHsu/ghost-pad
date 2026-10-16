@@ -3,7 +3,6 @@ import { MacroScript } from "../../types/macro";
 import { getScriptTotalDurationMs } from "../../utils/macroStorage";
 import {
   Search,
-  Plus,
   Upload,
   Download,
   FileCode2,
@@ -15,7 +14,6 @@ interface Props {
   scripts: MacroScript[];
   selectedScriptId: string | null;
   onSelectScript: (id: string) => void;
-  onCreateNew: () => void;
   onImportJson: () => void;
   onExportAll: () => void;
 }
@@ -24,19 +22,10 @@ export const MacroList: React.FC<Props> = ({
   scripts,
   selectedScriptId,
   onSelectScript,
-  onCreateNew,
   onImportJson,
   onExportAll,
 }) => {
   const [search, setSearch] = useState("");
-  const [selectedTag, setSelectedTag] = useState<string>("全部");
-
-  // Collect all unique tags
-  const allTags = useMemo(() => {
-    const set = new Set<string>();
-    scripts.forEach((s) => s.tags?.forEach((t) => set.add(t)));
-    return ["全部", ...Array.from(set)];
-  }, [scripts]);
 
   // Filter scripts
   const filteredScripts = useMemo(() => {
@@ -46,12 +35,9 @@ export const MacroList: React.FC<Props> = ({
         s.name.toLowerCase().includes(search.toLowerCase()) ||
         (s.description && s.description.toLowerCase().includes(search.toLowerCase()));
 
-      const matchTag =
-        selectedTag === "全部" || (s.tags && s.tags.includes(selectedTag));
-
-      return matchSearch && matchTag;
+      return matchSearch;
     });
-  }, [scripts, search, selectedTag]);
+  }, [scripts, search]);
 
   return (
     <aside className="w-72 xl:w-80 h-full flex flex-col bg-zinc-950 border-r border-zinc-800/80 shrink-0 select-none">
@@ -84,14 +70,6 @@ export const MacroList: React.FC<Props> = ({
             >
               <Download className="w-4 h-4" />
             </button>
-            <button
-              type="button"
-              onClick={onCreateNew}
-              className="p-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white transition-colors cursor-pointer shadow-sm shadow-violet-600/30"
-              title="建立空白新腳本"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
           </div>
         </div>
 
@@ -102,26 +80,9 @@ export const MacroList: React.FC<Props> = ({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="搜尋腳本或標籤..."
+            placeholder="搜尋腳本名稱或備註..."
             className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-violet-500/80"
           />
-        </div>
-
-        {/* Tag Filters Pills */}
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pb-0.5">
-          {allTags.map((t) => (
-            <button
-              key={t}
-              onClick={() => setSelectedTag(t)}
-              className={`px-2 py-0.5 rounded-md text-[10px] font-medium transition-colors shrink-0 cursor-pointer ${
-                selectedTag === t
-                  ? "bg-violet-600 text-white shadow-sm"
-                  : "bg-zinc-900 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -169,14 +130,6 @@ export const MacroList: React.FC<Props> = ({
                 </div>
 
                 <div className="flex items-center gap-1">
-                  {s.tags?.slice(0, 2).map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-1.5 py-0.2 rounded text-[9px] bg-zinc-800 text-zinc-400"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
                   <ChevronRight className="w-3 h-3 text-zinc-600" />
                 </div>
               </div>

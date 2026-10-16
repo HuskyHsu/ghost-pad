@@ -157,8 +157,8 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
 
       const action = actions[actionIndex];
       const speed = configRef.current.speedMultiplier || 1.0;
-      const duration = Math.max(20, Math.round(action.durationMs / speed));
-      const delayAfter = Math.max(10, Math.round(action.delayAfterMs / speed));
+      const duration = Math.max(10, Math.round(action.durationMs / speed));
+      const delayAfter = action.delayAfterMs ? Math.round(action.delayAfterMs / speed) : 0;
 
       // Update progress
       const progress = Math.round(((actionIndex + 1) / actions.length) * 100);
@@ -237,7 +237,7 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
           ...prev,
           elapsedMs: elapsed,
         }));
-      }, 30);
+      }, 16);
 
       setStatus({
         isPlaying: true,

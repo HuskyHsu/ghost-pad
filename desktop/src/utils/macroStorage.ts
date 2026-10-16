@@ -38,7 +38,25 @@ export function loadMacros(): MacroScript[] {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      return parsed;
+      let needsResave = false;
+      const result = parsed.map((m) => {
+        const hasLegacyDelays = Array.isArray(m.actions) && m.actions.some(
+          (a: any) => typeof a.delayAfterMs === "number" && a.delayAfterMs > 0
+        );
+        if (hasLegacyDelays) {
+          needsResave = true;
+          return {
+            ...m,
+            actions: splitDelaysToWaitActions(m.actions),
+          };
+        }
+        return m;
+      });
+
+      if (needsResave) {
+        saveMacros(result);
+      }
+      return result;
     }
     return [];
   } catch (err) {
@@ -118,7 +136,96 @@ export function importAllMacrosFromJson(jsonString: string): MacroScript[] | nul
   }
 }
 
+// Clean and consolidate consecutive or micro waits (< 80ms)
+export function cleanMicroWaitActions(actions: MacroAction[], minThresholdMs = 80): MacroAction[] {
+  if (actions.length === 0) return [];
+  const result: MacroAction[] = [];
+
+  for (let i = 0; i < actions.length; i++) {
+    const curr = actions[i];
+
+    if (curr.type === "wait") {
+      // 1. If micro wait (< 80ms), merge into preceding action's delayAfterMs if possible
+      if (curr.durationMs < minThresholdMs) {
+        if (result.length > 0) {
+          const prev = result[result.length - 1];
+          result[result.length - 1] = {
+            ...prev,
+            delayAfterMs: (prev.delayAfterMs || 0) + curr.durationMs,
+          };
+        }
+        continue;
+      }
+
+      // 2. If consecutive wait actions, merge durations
+      if (result.length > 0 && result[result.length - 1].type === "wait") {
+        const prev = result[result.length - 1];
+        result[result.length - 1] = {
+          ...prev,
+          durationMs: prev.durationMs + curr.durationMs,
+        };
+        continue;
+      }
+    }
+
+    result.push({ ...curr });
+  }
+
+  return result;
+}
+
+// Convert embedded delayAfterMs into independent 'wait' actions if >= minThresholdMs (default 80ms)
+export function splitDelaysToWaitActions(actions: MacroAction[], minThresholdMs = 80): MacroAction[] {
+  const result: MacroAction[] = [];
+  for (let i = 0; i < actions.length; i++) {
+    const act = actions[i];
+    const delay = act.delayAfterMs || 0;
+
+    if (act.type === "wait") {
+      result.push({ ...act, delayAfterMs: 0 });
+      continue;
+    }
+
+    // Only split into independent wait action if delay is a substantial pause (>= 80ms)
+    if (delay >= minThresholdMs) {
+      result.push({
+        ...act,
+        delayAfterMs: 0,
+      });
+      result.push({
+        id: `wait-${Date.now()}-${Math.random().toString(36).substring(2, 6)}-${i}`,
+        type: "wait",
+        durationMs: delay,
+        delayAfterMs: 0,
+        note: "等待暫停",
+      });
+    } else {
+      // Keep small debounce/release gaps as action's intrinsic delay to avoid cluttering timeline
+      result.push({
+        ...act,
+        delayAfterMs: delay,
+      });
+    }
+  }
+  return cleanMicroWaitActions(result, minThresholdMs);
+}
+
 function sanitizeMacro(data: any): MacroScript {
+  const rawActions = Array.isArray(data.actions)
+    ? data.actions.map((act: any, idx: number) => ({
+        id: act.id || `act-imp-${idx}-${Math.random().toString(36).substring(2, 6)}`,
+        type: act.type || "button",
+        button: act.button,
+        stick: act.stick,
+        stickX: typeof act.stickX === "number" ? act.stickX : 128,
+        stickY: typeof act.stickY === "number" ? act.stickY : 128,
+        dpad: typeof act.dpad === "number" ? act.dpad : 8,
+        durationMs: Math.max(20, Number(act.durationMs) || 100),
+        delayAfterMs: Math.max(0, Number(act.delayAfterMs) || 0),
+        note: act.note ? String(act.note) : undefined,
+      }))
+    : [];
+
   return {
     id: `macro-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
     name: String(data.name || "匯入之腳本"),
@@ -126,36 +233,27 @@ function sanitizeMacro(data: any): MacroScript {
     tags: Array.isArray(data.tags) ? data.tags.map(String) : ["已匯入"],
     createdAt: typeof data.createdAt === "number" ? data.createdAt : Date.now(),
     updatedAt: Date.now(),
-    actions: Array.isArray(data.actions)
-      ? data.actions.map((act: any, idx: number) => ({
-          id: act.id || `act-imp-${idx}-${Math.random().toString(36).substring(2, 6)}`,
-          type: act.type || "button",
-          button: act.button,
-          stick: act.stick,
-          stickX: typeof act.stickX === "number" ? act.stickX : 128,
-          stickY: typeof act.stickY === "number" ? act.stickY : 128,
-          dpad: typeof act.dpad === "number" ? act.dpad : 8,
-          durationMs: Math.max(20, Number(act.durationMs) || 100),
-          delayAfterMs: Math.max(0, Number(act.delayAfterMs) || 50),
-          note: act.note ? String(act.note) : undefined,
-        }))
-      : [],
+    actions: splitDelaysToWaitActions(rawActions),
     isPreset: false,
   };
 }
 
-// Trim excessive leading and trailing delays from script
+// Trim excessive leading and trailing delays and clean up micro wait noise
 export function trimMacroActions(actions: MacroAction[]): MacroAction[] {
   if (actions.length === 0) return [];
-  const copy = [...actions];
-  // If first action has delay only, or trim excessive delay
+  const cleaned = cleanMicroWaitActions(actions);
+  const copy = [...cleaned];
+
+  // If first action is wait, remove it
   if (copy.length > 0 && copy[0].type === "wait") {
     copy.shift();
   }
+  // If last action is wait, limit to at most 100ms
   if (copy.length > 0) {
-    // Limit last action's delayAfterMs to at most 100ms
     const last = copy[copy.length - 1];
-    if (last.delayAfterMs > 100) {
+    if (last.type === "wait" && last.durationMs > 100) {
+      copy[copy.length - 1] = { ...last, durationMs: 100 };
+    } else if (last.delayAfterMs && last.delayAfterMs > 100) {
       copy[copy.length - 1] = { ...last, delayAfterMs: 100 };
     }
   }

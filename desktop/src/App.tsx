@@ -200,32 +200,6 @@ export function App() {
     saveMacros(next);
   };
 
-  const handleCreateNewScript = () => {
-    const newScript: MacroScript = {
-      id: `macro-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-      name: `新巨集腳本 #${macros.length + 1}`,
-      description: "",
-      tags: ["自訂"],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      actions: [
-        {
-          id: `act-${Date.now()}-1`,
-          type: "button",
-          button: "a",
-          durationMs: 150,
-          delayAfterMs: 100,
-          note: "點擊 A",
-        },
-      ],
-      isPreset: false,
-    };
-    const next = [newScript, ...macros];
-    setMacros(next);
-    saveMacros(next);
-    setSelectedScriptId(newScript.id);
-  };
-
   const handleDuplicateScript = (script: MacroScript) => {
     const dup: MacroScript = {
       ...script,
@@ -514,7 +488,6 @@ export function App() {
             selectedScriptId={selectedScriptId}
             onSelectScript={setSelectedScriptId}
             onSaveScript={handleSaveScript}
-            onCreateNew={handleCreateNewScript}
             onDuplicateScript={handleDuplicateScript}
             onDeleteScript={handleDeleteScript}
             onImportScripts={handleImportScripts}

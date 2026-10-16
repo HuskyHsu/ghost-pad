@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { MacroScript, MacroAction } from "../../types/macro";
+import { MacroScript, MacroAction, MacroPlayerStatus } from "../../types/macro";
 import { MacroScoreSheet } from "./MacroScoreSheet";
-import { getScriptTotalDurationMs, exportMacroAsJson } from "../../utils/macroStorage";
+import {
+  getScriptTotalDurationMs,
+  exportMacroAsJson,
+  splitDelaysToWaitActions,
+  cleanMicroWaitActions,
+} from "../../utils/macroStorage";
 import {
   Save,
   Download,
@@ -9,7 +14,6 @@ import {
   Trash2,
   Clock,
   FileCode2,
-  Tag,
   Check,
   ArrowLeft,
 } from "lucide-react";
@@ -17,6 +21,7 @@ import {
 interface Props {
   script: MacroScript;
   activeActionIndex?: number;
+  playerStatus?: MacroPlayerStatus;
   onSaveScript: (updated: MacroScript) => void;
   onDuplicateScript: (script: MacroScript) => void;
   onDeleteScript: (id: string) => void;
@@ -26,6 +31,7 @@ interface Props {
 export const MacroEditor: React.FC<Props> = ({
   script,
   activeActionIndex = -1,
+  playerStatus,
   onSaveScript,
   onDuplicateScript,
   onDeleteScript,
@@ -33,17 +39,17 @@ export const MacroEditor: React.FC<Props> = ({
 }) => {
   const [name, setName] = useState(script.name);
   const [description, setDescription] = useState(script.description || "");
-  const [tags, setTags] = useState<string[]>(script.tags || []);
-  const [tagInput, setTagInput] = useState("");
-  const [actions, setActions] = useState<MacroAction[]>(script.actions);
+  const [actions, setActions] = useState<MacroAction[]>(() => {
+    return cleanMicroWaitActions(splitDelaysToWaitActions(script.actions || []));
+  });
   const [hasSaved, setHasSaved] = useState(false);
 
-  // Sync when script prop changes
+  // Sync when script prop changes and auto-upgrade legacy delayAfterMs
   useEffect(() => {
     setName(script.name);
     setDescription(script.description || "");
-    setTags(script.tags || []);
-    setActions(script.actions);
+    const cleaned = cleanMicroWaitActions(splitDelaysToWaitActions(script.actions || []));
+    setActions(cleaned);
     setHasSaved(false);
   }, [script.id]);
 
@@ -52,24 +58,13 @@ export const MacroEditor: React.FC<Props> = ({
       ...script,
       name: name.trim() || "未命名腳本",
       description: description.trim(),
-      tags,
+      tags: script.tags || [],
       actions,
       updatedAt: Date.now(),
     };
     onSaveScript(updated);
     setHasSaved(true);
     setTimeout(() => setHasSaved(false), 2000);
-  };
-
-  const handleAddTag = (t: string) => {
-    const trimmed = t.trim();
-    if (trimmed && !tags.includes(trimmed)) {
-      setTags([...tags, trimmed]);
-    }
-  };
-
-  const handleRemoveTag = (t: string) => {
-    setTags(tags.filter((item) => item !== t));
   };
 
   const currentDurationMs = getScriptTotalDurationMs({ ...script, actions });
@@ -115,41 +110,6 @@ export const MacroEditor: React.FC<Props> = ({
             className="w-full text-xs text-zinc-400 bg-transparent border-b border-transparent hover:border-zinc-800 focus:border-violet-500/50 focus:outline-none px-1 py-0.5"
             placeholder="點此填寫腳本備註說明或使用場合..."
           />
-
-          {/* Tags Pills */}
-          <div className="flex items-center gap-1.5 flex-wrap pt-1">
-            <Tag className="w-3.5 h-3.5 text-zinc-500" />
-            {tags.map((t) => (
-              <span
-                key={t}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] bg-zinc-800 text-zinc-300 border border-zinc-700/80"
-              >
-                #{t}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTag(t)}
-                  className="hover:text-rose-400 cursor-pointer ml-0.5"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-
-            <input
-              type="text"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddTag(tagInput);
-                  setTagInput("");
-                }
-              }}
-              placeholder="+ 標籤"
-              className="w-16 px-1.5 py-0.5 text-[10px] bg-zinc-950 border border-zinc-800 rounded text-zinc-300 focus:outline-none focus:border-violet-500"
-            />
-          </div>
         </div>
 
         {/* Stats & Actions */}
@@ -171,7 +131,7 @@ export const MacroEditor: React.FC<Props> = ({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => exportMacroAsJson({ ...script, name, description, tags, actions })}
+              onClick={() => exportMacroAsJson({ ...script, name, description, actions })}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition-colors cursor-pointer"
               title="匯出單一 JSON 腳本檔案"
             >
@@ -181,7 +141,7 @@ export const MacroEditor: React.FC<Props> = ({
 
             <button
               type="button"
-              onClick={() => onDuplicateScript({ ...script, name, description, tags, actions })}
+              onClick={() => onDuplicateScript({ ...script, name, description, tags: script.tags || [], actions })}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition-colors cursor-pointer"
               title="複製一份新腳本"
             >
@@ -218,6 +178,7 @@ export const MacroEditor: React.FC<Props> = ({
       <MacroScoreSheet
         script={{ ...script, actions }}
         activeActionIndex={activeActionIndex}
+        playerStatus={playerStatus}
         onChangeActions={setActions}
       />
     </div>

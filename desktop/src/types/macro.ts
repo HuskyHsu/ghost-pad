@@ -28,8 +28,8 @@ export interface MacroAction {
   // For dpad action
   dpad?: number; // 0..8
   // Timing parameters
-  durationMs: number; // how long to hold this state (ms)
-  delayAfterMs: number; // pause after releasing before next action (ms)
+  durationMs: number; // how long to hold this state or wait duration (ms)
+  delayAfterMs?: number; // legacy optional pause after releasing before next action (ms)
   // Optional note for this step
   note?: string;
 }

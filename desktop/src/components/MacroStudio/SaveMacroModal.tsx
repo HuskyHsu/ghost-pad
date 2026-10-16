@@ -9,8 +9,6 @@ interface Props {
   onDiscard: () => void;
 }
 
-const COMMON_TAGS = ["自動循環", "連點", "寶可夢", "動森", "薩爾達", "快速連招"];
-
 export const SaveMacroModal: React.FC<Props> = ({
   actions,
   durationMs,
@@ -26,26 +24,13 @@ export const SaveMacroModal: React.FC<Props> = ({
 
   const [name, setName] = useState(defaultTitle);
   const [description, setDescription] = useState("");
-  const [tags, setTags] = useState<string[]>(["自錄"]);
-  const [tagInput, setTagInput] = useState("");
-
-  const handleAddTag = (t: string) => {
-    const trimmed = t.trim();
-    if (trimmed && !tags.includes(trimmed)) {
-      setTags([...tags, trimmed]);
-    }
-  };
-
-  const handleRemoveTag = (t: string) => {
-    setTags(tags.filter((item) => item !== t));
-  };
 
   const handleSaveInternal = (openEditor: boolean) => {
     const newScript: MacroScript = {
       id: `macro-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       name: name.trim() || defaultTitle,
       description: description.trim(),
-      tags: tags.length > 0 ? tags : ["自錄"],
+      tags: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
       actions,
@@ -123,68 +108,6 @@ export const SaveMacroModal: React.FC<Props> = ({
               placeholder="說明本腳本適用遊戲場合或觸發條件..."
               className="w-full px-3.5 py-2 rounded-xl bg-zinc-950 border border-zinc-700 text-xs text-zinc-100 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 resize-none"
             />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-zinc-300">分類標籤</label>
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {tags.map((t) => (
-                <span
-                  key={t}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-violet-950/60 text-violet-300 border border-violet-700/60"
-                >
-                  #{t}
-                  <button
-                    onClick={() => handleRemoveTag(t)}
-                    className="hover:text-rose-400 transition-colors ml-0.5 cursor-pointer"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddTag(tagInput);
-                    setTagInput("");
-                  }
-                }}
-                placeholder="輸入標籤後按 Enter 加入..."
-                className="flex-1 px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-200 focus:outline-none focus:border-violet-500"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  handleAddTag(tagInput);
-                  setTagInput("");
-                }}
-                className="px-3 py-1.5 rounded-xl bg-zinc-800 text-xs font-medium text-zinc-200 hover:bg-zinc-700 cursor-pointer"
-              >
-                加入
-              </button>
-            </div>
-
-            {/* Quick Suggestions */}
-            <div className="flex items-center gap-1.5 flex-wrap pt-1">
-              <span className="text-[10px] text-zinc-500">推薦標籤：</span>
-              {COMMON_TAGS.map((ct) => (
-                <button
-                  key={ct}
-                  type="button"
-                  onClick={() => handleAddTag(ct)}
-                  className="px-2 py-0.5 rounded text-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
-                >
-                  +{ct}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 

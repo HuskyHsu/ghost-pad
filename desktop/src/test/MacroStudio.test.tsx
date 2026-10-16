@@ -36,7 +36,6 @@ describe("MacroStudio Component (Full-Width Library & Score Sheet)", () => {
         selectedScriptId={null}
         onSelectScript={vi.fn()}
         onSaveScript={vi.fn()}
-        onCreateNew={vi.fn()}
         onDuplicateScript={vi.fn()}
         onDeleteScript={vi.fn()}
         onImportScripts={vi.fn()}
@@ -51,7 +50,7 @@ describe("MacroStudio Component (Full-Width Library & Score Sheet)", () => {
     );
 
     expect(screen.getByText(/巨集腳本庫目前為空/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /建立第一個巨集腳本/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /匯入巨集腳本/ })).toBeInTheDocument();
   });
 
   it("renders full-width library cards and enters score sheet editor on card click", () => {
@@ -64,7 +63,6 @@ describe("MacroStudio Component (Full-Width Library & Score Sheet)", () => {
         selectedScriptId={sampleMacro.id}
         onSelectScript={onSelect}
         onSaveScript={onSave}
-        onCreateNew={vi.fn()}
         onDuplicateScript={vi.fn()}
         onDeleteScript={vi.fn()}
         onImportScripts={vi.fn()}
@@ -102,7 +100,6 @@ describe("MacroStudio Component (Full-Width Library & Score Sheet)", () => {
         selectedScriptId={sampleMacro.id}
         onSelectScript={vi.fn()}
         onSaveScript={vi.fn()}
-        onCreateNew={vi.fn()}
         onDuplicateScript={vi.fn()}
         onDeleteScript={vi.fn()}
         onImportScripts={vi.fn()}
@@ -119,15 +116,16 @@ describe("MacroStudio Component (Full-Width Library & Score Sheet)", () => {
     // Enter editor
     fireEvent.click(screen.getAllByText("測試連擊巨集")[0]);
 
-    // Find note element and trigger right click (contextmenu)
+    // Find note element and trigger left click
     const noteEl = screen.getByTitle(/#1 A/);
     expect(noteEl).toBeInTheDocument();
 
-    fireEvent.contextMenu(noteEl);
+    fireEvent.click(noteEl);
 
-    // Shows context menu
+    // Shows unified action editor modal
     expect(screen.getByText(/動作編輯/)).toBeInTheDocument();
-    expect(screen.getByText(/修改時長與間隔延遲/)).toBeInTheDocument();
-    expect(screen.getByText(/刪除此動作/)).toBeInTheDocument();
+    expect(screen.getByText(/按壓持續時間/)).toBeInTheDocument();
+    expect(screen.getByText(/在此後插入等待/)).toBeInTheDocument();
+    expect(screen.getByText(/刪除此步驟/)).toBeInTheDocument();
   });
 });

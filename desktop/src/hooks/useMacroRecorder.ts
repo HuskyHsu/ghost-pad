@@ -199,13 +199,11 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
     // 5. Sort all actions STRICTLY chronologically by _startedAt
     const sorted = [...completedActionsRef.current].sort((a, b) => a._startedAt - b._startedAt);
 
-    // 6. Compute accurate delayAfterMs between sequential actions
-    const finalActions: MacroAction[] = sorted.map((item, idx) => {
-      let gap = 40;
-      if (idx < sorted.length - 1) {
-        gap = Math.max(10, Math.round(sorted[idx + 1]._startedAt - item._endedAt));
-      }
-      return {
+    // 6. Split gaps into independent 'wait' actions instead of embedding in delayAfterMs
+    const finalActions: MacroAction[] = [];
+    for (let idx = 0; idx < sorted.length; idx++) {
+      const item = sorted[idx];
+      finalActions.push({
         id: item.id,
         type: item.type,
         button: item.button,
@@ -214,10 +212,24 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
         stickY: item.stickY,
         dpad: item.dpad,
         durationMs: item.durationMs,
-        delayAfterMs: gap,
+        delayAfterMs: 0,
         note: item.note,
-      };
-    });
+      });
+
+      // If gap before next action >= 10ms, insert an independent wait action
+      if (idx < sorted.length - 1) {
+        const gap = Math.round(sorted[idx + 1]._startedAt - item._endedAt);
+        if (gap >= 10) {
+          finalActions.push({
+            id: `act-wait-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            type: "wait",
+            durationMs: gap,
+            delayAfterMs: 0,
+            note: "等待暫停",
+          });
+        }
+      }
+    }
 
     setRecordedActions(finalActions);
     setPhase("idle");
