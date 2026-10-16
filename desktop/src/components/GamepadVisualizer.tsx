@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ControllerState } from "../types";
-import { Activity, Keyboard, X as CloseIcon } from "lucide-react";
+import { Activity, Keyboard, X as CloseIcon, CircleDot, Square } from "lucide-react";
 import { KEYBOARD_GUIDE } from "../hooks/useVirtualGamepad";
 import { usePulsedButtonPress } from "../hooks/usePulsedButtonPress";
 import { useStickDrag } from "../hooks/useStickDrag";
@@ -16,6 +16,12 @@ interface Props {
   onTriggerStick?: (stick: "left" | "right", x: number, y: number) => void;
   onToggleMute?: () => void;
   onToggleEsp32?: () => void;
+  // Phase 3 Recording Props
+  recordingPhase?: "idle" | "countdown" | "recording";
+  recordingElapsedMs?: number;
+  recordedActionsCount?: number;
+  onStartRecord?: () => void;
+  onStopRecord?: () => void;
 }
 
 export const GamepadVisualizer: React.FC<Props> = ({
@@ -28,6 +34,11 @@ export const GamepadVisualizer: React.FC<Props> = ({
   onTriggerStick,
   onToggleMute,
   onToggleEsp32,
+  recordingPhase = "idle",
+  recordingElapsedMs = 0,
+  recordedActionsCount = 0,
+  onStartRecord,
+  onStopRecord,
 }) => {
   // Ghost only wakes up when ESP32 virtual controller service is started
   const isGhostAwake = Boolean(esp32Connected);
@@ -163,10 +174,37 @@ export const GamepadVisualizer: React.FC<Props> = ({
         </div>
 
         <div className="flex items-center gap-2.5 text-xs text-zinc-400 font-mono">
+          {/* Phase 3: Quick Macro Recording Button */}
+          {recordingPhase === "recording" ? (
+            <button
+              type="button"
+              onClick={onStopRecord}
+              className="flex items-center gap-2 px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-[0_0_15px_rgba(244,63,94,0.6)] animate-pulse transition-all cursor-pointer select-none"
+              title="點擊停止側錄並儲存巨集腳本"
+            >
+              <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+              <span>
+                側錄中 {(recordingElapsedMs / 1000).toFixed(1)}s ({recordedActionsCount} 步)
+              </span>
+              <Square className="w-3 h-3 fill-white ml-0.5" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onStartRecord}
+              disabled={recordingPhase === "countdown"}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-900 border border-rose-500/40 hover:border-rose-400 hover:bg-rose-950/30 text-rose-300 hover:text-rose-100 transition-colors shadow-xs cursor-pointer select-none"
+              title="開始側錄手把與鍵盤操作 (倒數 321 後開始捕捉)"
+            >
+              <CircleDot className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+              <span>側錄巨集</span>
+            </button>
+          )}
+
           {/* Keyboard Guide Toggle Button */}
           <button
             onClick={() => setShowKeyGuide(!showKeyGuide)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-700/80 hover:border-zinc-500 text-zinc-200 transition-colors shadow-xs"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-700/80 hover:border-zinc-500 text-zinc-200 transition-colors shadow-xs cursor-pointer"
             title="查看電腦鍵盤與畫面操作對照 (外接手把非必須)"
           >
             <Keyboard className="w-3.5 h-3.5 text-cyan-400" />

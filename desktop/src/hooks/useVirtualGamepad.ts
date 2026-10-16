@@ -214,6 +214,26 @@ export function useVirtualGamepad(
     }
   }, [onStateUpdate]);
 
+  // Direct trigger function for D-Pad (0..8)
+  const sendDpad = useCallback(
+    async (direction: number) => {
+      if (onStateUpdate) {
+        onStateUpdate((prev) => ({
+          ...prev,
+          dpad: direction,
+        }));
+      }
+      if (isTauriAvailable()) {
+        try {
+          await invoke("send_virtual_dpad", { direction });
+        } catch (err) {
+          console.error("Failed to send virtual dpad:", err);
+        }
+      }
+    },
+    [onStateUpdate]
+  );
+
   // Compute Left Stick position from WASD
   const updateWasdStick = useCallback(() => {
     const up = activeKeys.current.has("KeyW");
@@ -298,6 +318,7 @@ export function useVirtualGamepad(
   return {
     sendButton,
     sendStick,
+    sendDpad,
     resetInputs,
     keyboardGuide: KEYBOARD_GUIDE,
   };

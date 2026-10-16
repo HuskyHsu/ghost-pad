@@ -206,7 +206,7 @@ stateDiagram-v2
 ### 8.1 執行測試
 
 ```bash
-# 1. 前端測試 (57 項全通)
+# 1. 前端測試 (71 項全通)
 cd desktop
 npm test
 
@@ -223,3 +223,27 @@ cargo test
 1. **不可修改現有測試檔斷言**：所有重構必須在維持既有單元測試完全相容的前提下進行。
 2. **非同步卸載保護**：任何含有 `setTimeout` 或非同步 IPC 呼叫的 React 元件，必須確認掛載狀態或於卸載回呼中清理計時器。
 3. **高頻 IPC 控制**：搖桿類比量更新務必透過 `requestAnimationFrame` 進行節流，切勿於每一像素移動時直接呼叫 IPC。
+
+---
+
+## 9. 巨集腳本庫與回放系統 (Phase 3: Macro Studio & Playback)
+
+### 9.1 動作差分側錄演算法 (`useMacroRecorder.ts`)
+- **倒數緩衝 (3-2-1 Countdown)**：按下側錄按鈕後觸發 3 秒倒數計時，讓操作者握妥實體手把或就位鍵盤。
+- **差分捕捉 (Delta/Action-Based Recording)**：
+  - 數位鍵：按壓瞬間記錄 `startTime`，鬆開時結算持續時長 `durationMs` 與間隔時間 `delayAfterMs`。
+  - 類比搖桿：超出死區門檻 (`STICK_DEADZONE = 25`) 時開始計時並記錄推動向量，回彈時打包為 `MacroAction`。
+  - 十字鍵：非中立 (8) 時記錄方向與持長。
+- **儲存對話框 (`SaveMacroModal.tsx`)**：錄製完成後可自訂名稱、備註說明與分類標籤（如 `#寶可夢`、`#動森`、`#連點`）。
+
+### 9.2 腳本庫管理與持久化 (`macroStorage.ts`)
+- **預設腳本 (Presets)**：內建寶可夢自動孵蛋 (Infinite Spin)、動森流星許願 (Auto A Spam)、薩爾達林克時間 (Bullet Time Aim)。
+- **JSON 匯入/匯出**：支援單一腳本匯出 (`.json`) 與全腳本備份 (`ghostpad_macros_backup_*.json`)，支援拖曳上傳與自動驗證修復。
+- **修剪頭尾 (Trim Actions)**：一鍵清除無效空檔與頭尾靜止幀。
+
+### 9.3 循環回放與安全中斷 (`useMacroPlayer.ts`)
+- **循環控制**：支援「單次播放」、「循環 N 次 (2~999 次)」與「∞ 無限循環」。
+- **倍速調控**：支援 0.5x、1.0x、1.5x、2.0x 動作調速。
+- **緊急保護 (Emergency Fail-Safe)**：
+  - 鍵盤按下 `Esc` 或點擊「緊急中止」按鈕，立即清除所有 pending timers 並調用 `reset_virtual_inputs`，防止手把卡鍵。
+

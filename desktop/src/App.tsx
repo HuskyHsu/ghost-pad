@@ -9,13 +9,19 @@ import {
   SerialStatus,
   isEsp32Chip,
 } from "./types";
+import { MacroScript, MacroAction } from "./types/macro";
+import { loadMacros, saveMacros } from "./utils/macroStorage";
 import { Sidebar } from "./components/Sidebar";
 import { GamepadVisualizer } from "./components/GamepadVisualizer";
 import { CompactWidget } from "./components/CompactWidget";
 import { HardwareSettings } from "./components/HardwareSettings";
+import { CountdownOverlay } from "./components/MacroStudio/CountdownOverlay";
+import { SaveMacroModal } from "./components/MacroStudio/SaveMacroModal";
+import { MacroStudio } from "./components/MacroStudio/MacroStudio";
 import { useVirtualGamepad } from "./hooks/useVirtualGamepad";
+import { useMacroRecorder } from "./hooks/useMacroRecorder";
+import { useMacroPlayer } from "./hooks/useMacroPlayer";
 import { isTauriAvailable } from "./utils/tauri";
-import { FileCode2 } from "lucide-react";
 
 const PAIRING_STORAGE_KEY = "ghostpad_switch_paired";
 
@@ -152,7 +158,117 @@ export function App() {
   };
 
   // Hook up Virtual Gamepad for Keyboard & On-Screen click/drag inputs with optimistic state updates
-  const { sendButton, sendStick } = useVirtualGamepad(isMuted, setControllerState);
+  const { sendButton, sendStick, sendDpad, resetInputs } = useVirtualGamepad(isMuted, setControllerState);
+
+  // Phase 3: Macro Scripts, Recorder & Player
+  const [macros, setMacros] = useState<MacroScript[]>(loadMacros);
+  const [selectedScriptId, setSelectedScriptId] = useState<string | null>(() => {
+    const list = loadMacros();
+    return list.length > 0 ? list[0].id : null;
+  });
+  const [pendingSaveRecording, setPendingSaveRecording] = useState<{
+    actions: MacroAction[];
+    durationMs: number;
+  } | null>(null);
+
+  const recorder = useMacroRecorder({
+    onRecordingComplete: (actions, durationMs) => {
+      if (actions.length > 0) {
+        setPendingSaveRecording({ actions, durationMs });
+      }
+    },
+  });
+
+  // Continuously feed live controllerState into recorder during recording
+  useEffect(() => {
+    if (recorder.phase === "recording") {
+      recorder.feedControllerState(controllerState);
+    }
+  }, [controllerState, recorder]);
+
+  const player = useMacroPlayer({
+    onTriggerButton: sendButton,
+    onTriggerStick: sendStick,
+    onTriggerDpad: sendDpad,
+    onResetInputs: resetInputs,
+  });
+
+  // Script library management handlers
+  const handleSaveScript = (updated: MacroScript) => {
+    const next = macros.map((m) => (m.id === updated.id ? updated : m));
+    setMacros(next);
+    saveMacros(next);
+  };
+
+  const handleCreateNewScript = () => {
+    const newScript: MacroScript = {
+      id: `macro-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      name: `新巨集腳本 #${macros.length + 1}`,
+      description: "",
+      tags: ["自訂"],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      actions: [
+        {
+          id: `act-${Date.now()}-1`,
+          type: "button",
+          button: "a",
+          durationMs: 150,
+          delayAfterMs: 100,
+          note: "點擊 A",
+        },
+      ],
+      isPreset: false,
+    };
+    const next = [newScript, ...macros];
+    setMacros(next);
+    saveMacros(next);
+    setSelectedScriptId(newScript.id);
+  };
+
+  const handleDuplicateScript = (script: MacroScript) => {
+    const dup: MacroScript = {
+      ...script,
+      id: `macro-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      name: `${script.name} (副本)`,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      isPreset: false,
+    };
+    const next = [dup, ...macros];
+    setMacros(next);
+    saveMacros(next);
+    setSelectedScriptId(dup.id);
+  };
+
+  const handleDeleteScript = (id: string) => {
+    const next = macros.filter((m) => m.id !== id);
+    setMacros(next);
+    saveMacros(next);
+    if (selectedScriptId === id) {
+      setSelectedScriptId(next.length > 0 ? next[0].id : null);
+    }
+  };
+
+  const handleImportScripts = (imported: MacroScript[]) => {
+    const next = [...imported, ...macros];
+    setMacros(next);
+    saveMacros(next);
+    if (imported.length > 0) {
+      setSelectedScriptId(imported[0].id);
+    }
+  };
+
+  const handleSaveRecordedScript = (script: MacroScript, openEditor: boolean) => {
+    const next = [script, ...macros];
+    setMacros(next);
+    saveMacros(next);
+    setSelectedScriptId(script.id);
+    setPendingSaveRecording(null);
+    if (openEditor) {
+      setActiveTab("macro");
+    }
+  };
 
   // Dynamic window size tracking for responsive compact HUD mode
   const [windowSize, setWindowSize] = useState({
@@ -384,21 +500,32 @@ export function App() {
             onTriggerStick={sendStick}
             onToggleMute={handleToggleMute}
             onToggleEsp32={handleToggleVirtualController}
+            recordingPhase={recorder.phase}
+            recordingElapsedMs={recorder.recordingElapsedMs}
+            recordedActionsCount={recorder.recordedActions.length}
+            onStartRecord={recorder.startCountdown}
+            onStopRecord={recorder.stopRecording}
           />
         )}
 
         {activeTab === "macro" && (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
-              <FileCode2 className="w-5 h-5" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-zinc-200">巨集錄製與時間軸編輯器 (Phase 3)</h3>
-              <p className="text-xs text-zinc-400 max-w-sm">
-                手持 8BitDo Micro 操作遊戲邊玩邊錄，視覺化時間軸調整與循環回放。
-              </p>
-            </div>
-          </div>
+          <MacroStudio
+            macros={macros}
+            selectedScriptId={selectedScriptId}
+            onSelectScript={setSelectedScriptId}
+            onSaveScript={handleSaveScript}
+            onCreateNew={handleCreateNewScript}
+            onDuplicateScript={handleDuplicateScript}
+            onDeleteScript={handleDeleteScript}
+            onImportScripts={handleImportScripts}
+            playerStatus={player.status}
+            playerConfig={player.config}
+            onChangePlayerConfig={(cfg) => player.setConfig({ ...player.config, ...cfg })}
+            onPlay={player.play}
+            onPause={player.pause}
+            onResume={player.resume}
+            onStop={player.stop}
+          />
         )}
 
         {activeTab === "hardware" && (
@@ -409,6 +536,24 @@ export function App() {
           />
         )}
       </main>
+
+      {/* 3-2-1 Countdown Overlay */}
+      {recorder.phase === "countdown" && (
+        <CountdownOverlay
+          countdown={recorder.countdown}
+          onCancel={recorder.cancelCountdown}
+        />
+      )}
+
+      {/* Save Recording Modal */}
+      {pendingSaveRecording && (
+        <SaveMacroModal
+          actions={pendingSaveRecording.actions}
+          durationMs={pendingSaveRecording.durationMs}
+          onSave={handleSaveRecordedScript}
+          onDiscard={() => setPendingSaveRecording(null)}
+        />
+      )}
     </div>
   );
 }
