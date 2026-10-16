@@ -761,7 +761,11 @@ export const MacroScoreSheet: React.FC<Props> = ({
                           const rawWidthPct = ((noteEndInLine - noteStartInLine) / lineDurationMs) * 100;
                           const widthPct = Math.max(1.2, rawWidthPct);
 
-                          const isActive = activeActionIndex === act.index;
+                          // Synchronize highlighting with exact playhead time during playback
+                          const isActive =
+                            isScriptPlaying && currentElapsedMs !== null
+                              ? currentElapsedMs >= act.startTimeMs && currentElapsedMs < act.endTimeMs
+                              : activeActionIndex === act.index;
                           const isWaitAct = act.type === "wait";
 
                           return (

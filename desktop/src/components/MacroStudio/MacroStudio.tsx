@@ -48,7 +48,11 @@ export const MacroStudio: React.FC<Props> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewMode, setViewMode] = useState<"list" | "edit">("list");
 
+  const [liveScript, setLiveScript] = useState<MacroScript | null>(null);
+
   const activeScript = macros.find((m) => m.id === selectedScriptId) || macros[0] || null;
+  const currentEditingScript =
+    liveScript && activeScript && liveScript.id === activeScript.id ? liveScript : activeScript;
 
   const handleTriggerFileInput = () => {
     fileInputRef.current?.click();
@@ -76,6 +80,7 @@ export const MacroStudio: React.FC<Props> = ({
 
   const handleSelectAndEdit = (id: string) => {
     onSelectScript(id);
+    setLiveScript(null);
     setViewMode("edit");
   };
 
@@ -110,7 +115,11 @@ export const MacroStudio: React.FC<Props> = ({
                 : -1
             }
             playerStatus={playerStatus}
-            onSaveScript={onSaveScript}
+            onChangeScript={setLiveScript}
+            onSaveScript={(updated) => {
+              setLiveScript(updated);
+              onSaveScript(updated);
+            }}
             onDuplicateScript={onDuplicateScript}
             onDeleteScript={(id) => {
               onDeleteScript(id);
@@ -130,14 +139,14 @@ export const MacroStudio: React.FC<Props> = ({
         )}
       </div>
 
-      {/* Bottom Sticky Playback Console Bar - Only displayed in editor view when a script is selected */}
-      {viewMode === "edit" && activeScript && (
+      {/* Bottom Sticky Playback Console Bar - Always plays latest actions in editor view */}
+      {viewMode === "edit" && currentEditingScript && (
         <MacroPlayerBar
-          script={activeScript}
+          script={currentEditingScript}
           status={playerStatus}
           config={playerConfig}
           onChangeConfig={onChangePlayerConfig}
-          onPlay={() => onPlay(activeScript)}
+          onPlay={() => onPlay(currentEditingScript)}
           onPause={onPause}
           onResume={onResume}
           onStop={onStop}

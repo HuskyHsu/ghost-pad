@@ -51,6 +51,7 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
   const releaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const playheadTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const loopStartTimeRef = useRef<number>(0);
+  const pausedAtRef = useRef<number>(0);
 
   // Emergency Fail-Safe Stop
   const stop = useCallback(() => {
@@ -72,6 +73,7 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
     activeScriptRef.current = null;
     currentActionIndexRef.current = 0;
     currentLoopRef.current = 1;
+    pausedAtRef.current = 0;
 
     // Reset physical & virtual outputs to neutral immediately
     if (optionsRef.current?.onResetInputs) {
@@ -261,6 +263,7 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
     if (releaseTimeoutRef.current) clearTimeout(releaseTimeoutRef.current);
 
     isPausedRef.current = true;
+    pausedAtRef.current = performance.now();
     options?.onResetInputs?.();
 
     setStatus((prev) => ({ ...prev, isPaused: true }));
@@ -268,6 +271,12 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
 
   const resume = useCallback(() => {
     if (!isPlayingRef.current || !isPausedRef.current || !activeScriptRef.current) return;
+
+    if (pausedAtRef.current > 0) {
+      const pauseDuration = performance.now() - pausedAtRef.current;
+      loopStartTimeRef.current += pauseDuration;
+      pausedAtRef.current = 0;
+    }
 
     isPausedRef.current = false;
     setStatus((prev) => ({ ...prev, isPaused: false }));

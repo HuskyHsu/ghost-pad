@@ -22,6 +22,7 @@ interface Props {
   script: MacroScript;
   activeActionIndex?: number;
   playerStatus?: MacroPlayerStatus;
+  onChangeScript?: (updated: MacroScript) => void;
   onSaveScript: (updated: MacroScript) => void;
   onDuplicateScript: (script: MacroScript) => void;
   onDeleteScript: (id: string) => void;
@@ -32,6 +33,7 @@ export const MacroEditor: React.FC<Props> = ({
   script,
   activeActionIndex = -1,
   playerStatus,
+  onChangeScript,
   onSaveScript,
   onDuplicateScript,
   onDeleteScript,
@@ -51,7 +53,30 @@ export const MacroEditor: React.FC<Props> = ({
     const cleaned = cleanMicroWaitActions(splitDelaysToWaitActions(script.actions || []));
     setActions(cleaned);
     setHasSaved(false);
+
+    // If script contained legacy delays that were upgraded, notify parent immediately
+    const hasLegacy = script.actions?.some(
+      (a) => typeof a.delayAfterMs === "number" && a.delayAfterMs > 0
+    );
+    if (hasLegacy) {
+      onSaveScript({
+        ...script,
+        actions: cleaned,
+      });
+    }
   }, [script.id]);
+
+  const handleActionsChange = (nextActions: MacroAction[]) => {
+    setActions(nextActions);
+    onChangeScript?.({
+      ...script,
+      name: name.trim() || "未命名腳本",
+      description: description.trim(),
+      tags: script.tags || [],
+      actions: nextActions,
+      updatedAt: Date.now(),
+    });
+  };
 
   const handleSave = () => {
     const updated: MacroScript = {
@@ -179,7 +204,7 @@ export const MacroEditor: React.FC<Props> = ({
         script={{ ...script, actions }}
         activeActionIndex={activeActionIndex}
         playerStatus={playerStatus}
-        onChangeActions={setActions}
+        onChangeActions={handleActionsChange}
       />
     </div>
   );
