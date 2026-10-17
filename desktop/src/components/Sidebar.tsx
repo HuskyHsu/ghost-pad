@@ -191,126 +191,139 @@ export const Sidebar: React.FC<Props> = ({
           )}
         </div>
 
-        {/* Step 0 Ready: Ghost-Pad Virtual Controller Card */}
-        {isStep0Ready && (
-          <div className="mt-3 p-3 rounded-lg bg-zinc-900/60 border border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] space-y-2.5 text-xs">
-            {/* Header: Name & Status indicator & Switch Toggle */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div
-                  className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 border transition-colors ${
-                    esp32Connected
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : "bg-zinc-800 text-zinc-400 border-white/[0.06]"
-                  }`}
-                >
-                  <Gamepad2 className="w-3.5 h-3.5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-medium text-zinc-200 truncate">
-                      Ghost-Pad 轉發
-                    </span>
-                    <span
-                      className={`text-[9px] px-1.5 py-0.2 rounded font-mono shrink-0 border ${
-                        esp32Connected
-                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                          : "bg-zinc-800/80 text-zinc-500 border-white/[0.04]"
-                      }`}
-                    >
-                      {esp32Connected ? "轉發中" : "待命中"}
-                    </span>
-                  </div>
-                  <div className="text-[10px] text-zinc-500 font-mono mt-0.5 truncate">
-                    {esp32Connected
-                      ? `60Hz • ${serialStatus?.tx_fps || 60} FPS`
-                      : "ESP32 就緒，可啟動轉發"}
-                  </div>
-                </div>
-              </div>
-
-              {/* iOS-Style Tactile Toggle Switch (No neon glow, clean border & micro-shadow) */}
-              <button
-                type="button"
-                role="switch"
-                aria-checked={esp32Connected}
-                onClick={onToggleVirtualController}
-                title={esp32Connected ? "點擊停止虛擬手把服務" : "點擊開啟虛擬手把服務"}
-                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out cursor-pointer border ${
+        {/* Unified Ghost-Pad Virtual Controller Card */}
+        <div className="mt-3 p-3 rounded-lg bg-zinc-900/60 border border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] space-y-2.5 text-xs">
+          {/* Header: Name & Status indicator & Switch Toggle */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div
+                className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 border transition-colors ${
                   esp32Connected
-                    ? "bg-emerald-500 border-emerald-400/40"
-                    : "bg-zinc-800 border-white/[0.08] hover:bg-zinc-750"
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    : isStep0Ready
+                    ? "bg-zinc-800 text-zinc-400 border-white/[0.06]"
+                    : "bg-zinc-900 text-zinc-600 border-white/[0.04]"
                 }`}
               >
-                <span
-                  className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
-                    esp32Connected ? "translate-x-4.5" : "translate-x-0.5"
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Step 2 Fast Actions: Only available when Virtual Controller is running */}
-            {esp32Connected && (
-              <div className="pt-2 border-t border-white/[0.06] space-y-2">
-                {/* Input Stream Monitor Toggle */}
-                <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-zinc-500">鍵盤/滑鼠輸入</span>
-                  <button
-                    type="button"
-                    onClick={onToggleMute}
-                    title={isMuted ? "點擊解除暫停，開始傳送操作" : "點擊暫停鍵盤與按鈕傳送"}
-                    className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium border transition-colors cursor-pointer ${
-                      isMuted
-                        ? "bg-amber-500/10 text-amber-300 border-amber-500/20 hover:bg-amber-500/20"
-                        : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20 hover:bg-emerald-500/20"
-                    }`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${isMuted ? "bg-amber-400" : "bg-emerald-400"}`} />
-                    {isMuted ? "已暫停 (點擊啟用)" : "已啟用"}
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-zinc-500">Switch 狀態</span>
+                <Gamepad2 className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-medium text-zinc-200 truncate">
+                    Ghost-Pad 轉發
+                  </span>
                   <span
-                    className={`font-mono font-medium ${
-                      switchPairingState === "connected"
-                        ? "text-emerald-400"
-                        : switchPairingState === "pairing"
-                        ? "text-amber-400"
-                        : "text-zinc-500"
+                    className={`text-[9px] px-1.5 py-0.2 rounded font-mono shrink-0 border ${
+                      esp32Connected
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : isStep0Ready
+                        ? "bg-zinc-800/80 text-zinc-500 border-white/[0.04]"
+                        : "bg-zinc-900 text-zinc-600 border-white/[0.03]"
                     }`}
                   >
-                    {switchPairingState === "connected"
-                      ? "1P 已連線"
-                      : switchPairingState === "pairing"
-                      ? "配對中..."
-                      : "待配對"}
+                    {esp32Connected ? "轉發中" : isStep0Ready ? "待命中" : "未就緒"}
                   </span>
                 </div>
-
-                {hasPairedSwitch ? (
-                  <button
-                    onClick={() => onSendSerialCommand?.("wake_reconnect")}
-                    className="w-full py-1.5 px-2 rounded-md bg-zinc-800 hover:bg-zinc-750 border border-white/[0.08] text-amber-300 text-[10px] font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
-                  >
-                    <Zap className="w-3 h-3 text-amber-400" />
-                    <span>手動喚醒重連 (A鍵)</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => onSendSerialCommand?.("pair_lr")}
-                    className="w-full py-1.5 px-2 rounded-md bg-zinc-800 hover:bg-zinc-750 border border-white/[0.08] text-zinc-200 text-[10px] font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
-                  >
-                    <Radio className="w-3 h-3 text-zinc-400" />
-                    <span>首次配對 (送出 L+R)</span>
-                  </button>
-                )}
+                <div className="text-[10px] text-zinc-500 font-mono mt-0.5 truncate">
+                  {esp32Connected
+                    ? `60Hz • ${serialStatus?.tx_fps || 60} FPS`
+                    : isStep0Ready
+                    ? "ESP32 就緒，可啟動轉發"
+                    : "尚未連接或驗證 ESP32"}
+                </div>
               </div>
-            )}
+            </div>
+
+            {/* iOS-Style Tactile Toggle Switch */}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={esp32Connected}
+              disabled={!isStep0Ready && !esp32Connected}
+              onClick={onToggleVirtualController}
+              title={
+                esp32Connected
+                  ? "點擊停止虛擬手把服務"
+                  : isStep0Ready
+                  ? "點擊開啟虛擬手把服務"
+                  : "ESP32 尚未就緒，請至「ESP32 與韌體」分頁完成連線"
+              }
+              className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out border ${
+                !isStep0Ready && !esp32Connected
+                  ? "bg-zinc-900 border-white/[0.04] opacity-40 cursor-not-allowed"
+                  : esp32Connected
+                  ? "bg-emerald-500 border-emerald-400/40 cursor-pointer"
+                  : "bg-zinc-800 border-white/[0.08] hover:bg-zinc-750 cursor-pointer"
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
+                  esp32Connected ? "translate-x-4.5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
           </div>
-        )}
+
+          {/* Controls when Virtual Controller is active */}
+          {esp32Connected && (
+            <div className="pt-2 border-t border-white/[0.06] space-y-2">
+              {/* Signal Transmission Toggle */}
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="text-zinc-400">訊號即時傳輸</span>
+                <button
+                  type="button"
+                  onClick={onToggleMute}
+                  title={isMuted ? "點擊解除暫停，開始傳送操作" : "點擊暫停訊號傳送 (看門狗安全中立)"}
+                  className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium border transition-colors cursor-pointer ${
+                    isMuted
+                      ? "bg-amber-500/10 text-amber-300 border-amber-500/20 hover:bg-amber-500/20"
+                      : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20 hover:bg-emerald-500/20"
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${isMuted ? "bg-amber-400" : "bg-emerald-400"}`} />
+                  {isMuted ? "已暫停 (點擊啟用)" : "已啟用"}
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="text-zinc-400">Switch 狀態</span>
+                <span
+                  className={`font-mono font-medium ${
+                    switchPairingState === "connected"
+                      ? "text-emerald-400"
+                      : switchPairingState === "pairing"
+                      ? "text-amber-400"
+                      : "text-zinc-500"
+                  }`}
+                >
+                  {switchPairingState === "connected"
+                    ? "1P 已連線"
+                    : switchPairingState === "pairing"
+                    ? "配對中..."
+                    : "待配對"}
+                </span>
+              </div>
+
+              {hasPairedSwitch ? (
+                <button
+                  onClick={() => onSendSerialCommand?.("wake_reconnect")}
+                  className="w-full py-1.5 px-2 rounded-md bg-zinc-800 hover:bg-zinc-750 border border-white/[0.08] text-amber-300 text-[10px] font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                >
+                  <Zap className="w-3 h-3 text-amber-400" />
+                  <span>手動喚醒重連 (A鍵)</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => onSendSerialCommand?.("pair_lr")}
+                  className="w-full py-1.5 px-2 rounded-md bg-zinc-800 hover:bg-zinc-750 border border-white/[0.08] text-zinc-200 text-[10px] font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                >
+                  <Radio className="w-3 h-3 text-zinc-400" />
+                  <span>首次配對 (送出 L+R)</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Pipeline Status (Bottom Section) */}

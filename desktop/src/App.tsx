@@ -52,6 +52,24 @@ export function App() {
     }
   });
 
+  // Refs mirroring state for use inside long-lived polling closures
+  const esp32ConnectedRef = useRef(esp32Connected);
+  const activeTabRef = useRef(activeTab);
+  const baudrateRef = useRef(serialStatus.baudrate);
+  useEffect(() => {
+    esp32ConnectedRef.current = esp32Connected;
+  }, [esp32Connected]);
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+  useEffect(() => {
+    baudrateRef.current = serialStatus.baudrate;
+  }, [serialStatus.baudrate]);
+
+  // Firmware handshake probe cache (avoid re-opening the port on every poll tick)
+  const probeCacheRef = useRef<{ key: string; ok: boolean; at: number } | null>(null);
+  const probingRef = useRef(false);
+
   // Global toggle virtual controller (used by both Sidebar and HardwareSettings)
   const handleToggleVirtualController = async () => {
     const isTauri = isTauriAvailable();
@@ -72,6 +90,12 @@ export function App() {
         switch_pairing_state: "disconnected",
       }));
     } else {
+      // Refuse to start until ESP32 firmware has passed the PRO-UART0 handshake
+      if (isTauri && !isStep0Ready) {
+        setActiveTab("hardware");
+        return;
+      }
+
       // Find candidate port or connect
       let targetPort = serialStatus.port_name;
       if (!targetPort && isTauri) {
@@ -94,13 +118,18 @@ export function App() {
       }
 
       if (isTauri) {
+        const baudrate = serialStatus.baudrate || 19200;
         try {
+          // Backend performs a mandatory firmware handshake and rejects unusable devices
           await invoke("connect_serial", {
             portName: targetPort,
-            baudrate: serialStatus.baudrate || 19200,
+            baudrate,
           });
         } catch (err) {
           console.error("Failed to connect serial:", err);
+          probeCacheRef.current = { key: `${targetPort}@${baudrate}`, ok: false, at: Date.now() };
+          setIsStep0Ready(false);
+          setActiveTab("hardware");
           return;
         }
       }
@@ -319,14 +348,54 @@ export function App() {
         list.find((p) => isEsp32Chip(p)) ||
         (list.length > 0 && !list[0].port_name.includes("Bluetooth") ? list[0] : null);
 
-      if (espPort) {
+      if (esp32ConnectedRef.current) {
+        // Streaming session exists: it already passed the mandatory handshake
         setIsStep0Ready(true);
-        setSerialStatus((prev) => ({
-          ...prev,
-          port_name: prev.port_name || espPort.port_name,
-        }));
-      } else if (!esp32Connected) {
+        return;
+      }
+
+      if (!espPort) {
+        probeCacheRef.current = null;
         setIsStep0Ready(false);
+        return;
+      }
+
+      setSerialStatus((prev) => ({
+        ...prev,
+        port_name: prev.is_connected ? prev.port_name : espPort.port_name,
+      }));
+
+      // HardwareSettings owns firmware verification while its tab is open (via onStep0Change)
+      if (activeTabRef.current === "hardware") return;
+
+      // USB chip detection alone is not enough: require a successful PRO-UART0 handshake
+      const baudrate = baudrateRef.current || 19200;
+      const key = `${espPort.port_name}@${baudrate}`;
+      const cache = probeCacheRef.current;
+      const needsProbe =
+        !cache || cache.key !== key || (!cache.ok && Date.now() - cache.at > 8000);
+      if (!needsProbe) {
+        setIsStep0Ready(cache.ok);
+        return;
+      }
+      if (probingRef.current) return;
+
+      probingRef.current = true;
+      let ok = false;
+      try {
+        ok = await invoke<boolean>("probe_firmware", {
+          portName: espPort.port_name,
+          baudrate,
+        });
+      } catch (err) {
+        console.error("Firmware probe failed:", err);
+        ok = false;
+      } finally {
+        probingRef.current = false;
+      }
+      probeCacheRef.current = { key, ok, at: Date.now() };
+      if (!esp32ConnectedRef.current) {
+        setIsStep0Ready(ok);
       }
     } catch (err) {
       console.error("Failed to query serial ports:", err);

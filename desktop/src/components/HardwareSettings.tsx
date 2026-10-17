@@ -45,7 +45,6 @@ export const HardwareSettings: React.FC<Props> = ({
     "idle" | "checking" | "compatible" | "recognized" | "incompatible"
   >("idle");
   const [probeDetails, setProbeDetails] = useState<string>("");
-  const [manualFirmwareReady, setManualFirmwareReady] = useState<boolean>(true);
 
   // Progressive Disclosure: Toggle Firmware Flasher utility
   const [showFlasher, setShowFlasher] = useState<boolean>(false);
@@ -177,28 +176,21 @@ export const HardwareSettings: React.FC<Props> = ({
         if (isOk) {
           setFirmwareStatus("compatible");
           setProbeDetails("交握通過：PRO-UART0.bin (UARTSwitchCon 9-Byte 協議確認)");
+        } else if (isRecognized) {
+          setFirmwareStatus("recognized");
+          setProbeDetails(
+            "已辨識 ESP32 序列晶片 (CH340/CP210x)，但未通過 PRO-UART0 韌體交握。請燒錄 PRO-UART0.bin 或確認鮑率後重新檢測。"
+          );
         } else {
-          if (isRecognized) {
-            setFirmwareStatus("recognized");
-            setProbeDetails(
-              "已辨識為 ESP32 序列晶片 (CH340/CP2102)。未收到握手回應可能因開機重啟延遲或免握手韌體版本，已自動許可就緒，可直接開啟虛擬手把。"
-            );
-          } else {
-            setFirmwareStatus("incompatible");
-            setProbeDetails(
-              "交握未響應，且未辨識出標準 ESP32 晶片 (CH340/CP210x)。可能為未燒錄韌體或非手把硬體。"
-            );
-          }
+          setFirmwareStatus("incompatible");
+          setProbeDetails(
+            "交握未響應，且未辨識出標準 ESP32 晶片 (CH340/CP210x)。可能為未燒錄韌體或非手把硬體。"
+          );
         }
       } catch (err: any) {
         if (!isMountedRef.current) return;
-        if (isRecognized) {
-          setFirmwareStatus("recognized");
-          setProbeDetails("已辨識 ESP32 晶片。序列埠目前處於可連線狀態，可直接啟動手把服務。");
-        } else {
-          setFirmwareStatus("incompatible");
-          setProbeDetails(String(err));
-        }
+        setFirmwareStatus(isRecognized ? "recognized" : "incompatible");
+        setProbeDetails(`韌體檢測失敗：${String(err)}`);
       }
     },
     [isTauri]
@@ -399,6 +391,9 @@ export const HardwareSettings: React.FC<Props> = ({
           });
         } catch (err: any) {
           setErrorMessage(String(err));
+          // Backend rejected the port (handshake failed): lock Step 1 until re-verified
+          setFirmwareStatus(isEsp32Chip(portsRef.current.find((p) => p.port_name === selectedPort)) ? "recognized" : "incompatible");
+          setProbeDetails(String(err));
           return;
         }
       }
@@ -493,7 +488,6 @@ export const HardwareSettings: React.FC<Props> = ({
     if (!isMountedRef.current) return;
     setIsFlashing(false);
     setSuccessNotice("PRO-UART0.bin 韌體燒錄完成！正在重新驗證交握協議...");
-    setManualFirmwareReady(true);
     await probeFirmware(selectedPort, selectedBaudrate);
   };
 
@@ -502,13 +496,13 @@ export const HardwareSettings: React.FC<Props> = ({
   const isRecognizedUsb = isEsp32Chip(activePortDetail);
 
   // --- Strict Sequential Gating Logic ---
-  // Step 0: USB detected AND (handshake compatible OR recognized ESP32 chip OR manual confirmation)
+  // Step 0: USB detected AND firmware verified via PRO-UART0 handshake
+  // (an already-streaming session implies the handshake passed at connect time)
   const isStep0Ready = Boolean(
-    selectedPort &&
-      ports.some((p) => p.port_name === selectedPort) &&
-      (firmwareStatus === "compatible" ||
-        firmwareStatus === "recognized" ||
-        manualFirmwareReady)
+    status.is_connected ||
+      (selectedPort &&
+        ports.some((p) => p.port_name === selectedPort) &&
+        firmwareStatus === "compatible")
   );
 
   // Notify parent of Step 0 readiness
@@ -812,9 +806,29 @@ export const HardwareSettings: React.FC<Props> = ({
                         {isRecognizedUsb ? "CH340 / CP2102" : "標準 USB 晶片"}
                       </span>
                     </div>
-                    <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 shrink-0">
-                      PRO-UART0
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedPort && firmwareStatus !== "checking") {
+                          probeFirmware(selectedPort, selectedBaudrate);
+                        }
+                      }}
+                      disabled={status.is_connected || firmwareStatus === "checking"}
+                      title="重新進行 PRO-UART0 韌體交握檢測"
+                      className={`text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0 transition-colors cursor-pointer disabled:cursor-default ${
+                        firmwareStatus === "compatible" || status.is_connected
+                          ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                          : firmwareStatus === "checking"
+                          ? "text-zinc-400 bg-zinc-800 border-white/[0.08] animate-pulse"
+                          : "text-rose-400 bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20"
+                      }`}
+                    >
+                      {firmwareStatus === "compatible" || status.is_connected
+                        ? "PRO-UART0 ✓"
+                        : firmwareStatus === "checking"
+                        ? "檢測中…"
+                        : "未驗證 · 重試"}
+                    </button>
                   </div>
                 </div>
                 {probeDetails && (
@@ -911,7 +925,9 @@ export const HardwareSettings: React.FC<Props> = ({
               <div className="text-[11px] text-zinc-400 max-w-xs">
                 {ports.length === 0
                   ? "請先接上 ESP32 USB 裝置"
-                  : "請先完成步驟 0 裝置選取"}
+                  : firmwareStatus === "checking"
+                  ? "正在驗證 ESP32 韌體…"
+                  : "ESP32 韌體尚未通過 PRO-UART0 交握驗證，請確認已燒錄正確韌體後重新檢測"}
               </div>
             </div>
           )}

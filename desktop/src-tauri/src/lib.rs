@@ -76,15 +76,19 @@ fn get_serial_ports() -> Vec<SerialPortDetail> {
 }
 
 #[tauri::command]
-fn connect_serial(
+async fn connect_serial(
     port_name: String,
     baudrate: u32,
-    state: State<AppState>,
+    state: State<'_, AppState>,
     app: AppHandle,
 ) -> Result<(), String> {
-    state
-        .serial_mgr
-        .connect(&port_name, baudrate, state.gamepad_mgr.clone(), app)
+    let serial_mgr = state.serial_mgr.clone();
+    let gamepad_mgr = state.gamepad_mgr.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        serial_mgr.connect(&port_name, baudrate, gamepad_mgr, app)
+    })
+    .await
+    .map_err(|e| format!("連線工作執行失敗: {}", e))?
 }
 
 #[tauri::command]
@@ -103,8 +107,19 @@ fn send_serial_command(command: String, state: State<AppState>) -> Result<(), St
 }
 
 #[tauri::command]
-fn probe_firmware(port_name: String, baudrate: u32) -> Result<bool, String> {
-    SerialManager::probe_firmware(&port_name, baudrate)
+async fn probe_firmware(
+    port_name: String,
+    baudrate: u32,
+    state: State<'_, AppState>,
+) -> Result<bool, String> {
+    // Port already streaming: it passed the mandatory handshake when connecting.
+    let status = state.serial_mgr.get_status();
+    if status.is_connected && status.port_name.as_deref() == Some(port_name.as_str()) {
+        return Ok(true);
+    }
+    tauri::async_runtime::spawn_blocking(move || SerialManager::probe_firmware(&port_name, baudrate))
+        .await
+        .map_err(|e| format!("韌體檢測工作執行失敗: {}", e))?
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

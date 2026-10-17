@@ -15,6 +15,14 @@ use tauri::{AppHandle, Emitter};
 use crate::gamepad::GamepadManager;
 use crate::protocol::ControllerState;
 
+/// Serializes all operations that open a serial port for handshake (probe / connect),
+/// preventing concurrent exclusive opens from spuriously failing verification.
+static PORT_OPEN_LOCK: Mutex<()> = Mutex::new(());
+
+/// Delays (ms) before each handshake attempt. Covers ESP32 auto-reset boot time
+/// triggered by DTR/RTS toggling when the port is opened.
+const HANDSHAKE_RETRY_DELAYS_MS: [u64; 4] = [0, 250, 450, 700];
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SerialPortDetail {
     pub port_name: String,
@@ -148,23 +156,29 @@ impl SerialManager {
         // Disconnect any existing session first
         let _ = self.disconnect();
 
+        let _open_guard = PORT_OPEN_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+
         let mut port = serialport::new(port_name, baudrate)
             .timeout(Duration::from_millis(200))
             .open()
             .map_err(|e| format!("無法開啟序列埠 {}: {}", port_name, e))?;
 
-        // Give DTR/RTS time to stabilize
+        // Release DTR/RTS so ESP32 auto-reset circuits leave EN high, then let it stabilize
+        let _ = port.write_data_terminal_ready(false);
+        let _ = port.write_request_to_send(false);
         thread::sleep(Duration::from_millis(150));
         let _ = port.clear(ClearBuffer::All);
 
-        // Perform 3-step handshake with ESP32 (0xFF, 0x33, 0xCC)
-        // If ESP32 is still rebooting from DTR/RTS or runs firmware without handshake,
-        // log notice and proceed with 60Hz streaming instead of hard-aborting.
-        if let Err(e) = Self::perform_handshake(&mut *port) {
-            eprintln!("[Serial Info] 握手未收到回應 ({}), 繼續啟動 60Hz 串流", e);
-        } else {
-            println!("[Serial Info] ESP32 PRO-UART0 協議握手成功！");
+        // Mandatory 3-step handshake with ESP32 (0xFF, 0x33, 0xCC).
+        // Only genuine PRO-UART0 (UARTSwitchCon) firmware is allowed to start streaming.
+        if let Err(e) = Self::handshake_with_retry(&mut *port) {
+            eprintln!("[Serial Error] 韌體交握失敗，拒絕啟動虛擬手把: {}", e);
+            return Err(format!(
+                "ESP32 韌體驗證失敗：{}。請確認已燒錄 PRO-UART0.bin、序列埠與鮑率 ({}) 正確。",
+                e, baudrate
+            ));
         }
+        println!("[Serial Info] ESP32 PRO-UART0 協議握手成功！");
 
         {
             let mut s = self.status.write().unwrap();
@@ -412,8 +426,26 @@ impl SerialManager {
         Ok(())
     }
 
+    /// Run the handshake several times to tolerate ESP32 reboot / boot-log noise after port open.
+    fn handshake_with_retry(port: &mut dyn SerialPort) -> Result<(), String> {
+        let mut last_err = String::from("未執行交握");
+        for delay in HANDSHAKE_RETRY_DELAYS_MS {
+            if delay > 0 {
+                thread::sleep(Duration::from_millis(delay));
+            }
+            let _ = port.clear(ClearBuffer::All);
+            match Self::perform_handshake(port) {
+                Ok(()) => return Ok(()),
+                Err(e) => last_err = e,
+            }
+        }
+        Err(last_err)
+    }
+
     /// Probe whether a specific serial port is running genuine PRO-UART0 (UARTSwitchCon) firmware
     pub fn probe_firmware(port_name: &str, baudrate: u32) -> Result<bool, String> {
+        let _open_guard = PORT_OPEN_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+
         let mut port = match serialport::new(port_name, baudrate)
             .timeout(Duration::from_millis(400))
             .open()
@@ -427,7 +459,7 @@ impl SerialManager {
         thread::sleep(Duration::from_millis(200));
         let _ = port.clear(ClearBuffer::All);
 
-        match Self::perform_handshake(&mut *port) {
+        match Self::handshake_with_retry(&mut *port) {
             Ok(()) => Ok(true),
             Err(_) => Ok(false),
         }

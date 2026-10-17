@@ -170,7 +170,8 @@ describe("UI Components", () => {
       );
 
       expect(screen.getByText("Test Gamepad")).toBeInTheDocument();
-      expect(screen.getByText(/60\s*Hz/i)).toBeInTheDocument();
+      expect(screen.getByText("鍵盤對照表")).toBeInTheDocument();
+      expect(screen.getByText("側錄巨集")).toBeInTheDocument();
     });
 
     it("toggles keyboard mapping guide modal", () => {

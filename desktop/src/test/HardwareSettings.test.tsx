@@ -74,7 +74,7 @@ describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("開啟虛擬手把")).toBeInTheDocument();
+      expect(screen.getByText("開啟虛擬手把").closest("button")).not.toBeDisabled();
     });
 
     const toggleBtn = screen.getByText("開啟虛擬手把");
@@ -88,6 +88,86 @@ describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
       expect(onConn).toHaveBeenCalledWith(true);
       expect(onPairing).toHaveBeenCalledWith("disconnected");
     });
+  });
+
+  it("keeps virtual controller locked when firmware handshake fails (even on a recognized ESP32 chip)", async () => {
+    (invoke as any).mockImplementation((cmd: string) => {
+      if (cmd === "get_serial_ports") {
+        return Promise.resolve([
+          {
+            port_name: "/dev/cu.usbserial-0001",
+            description: "Silicon Labs CP2102",
+            usb_info: { vid: 0x10c4, pid: 0xea60 },
+          },
+        ]);
+      }
+      if (cmd === "probe_firmware") return Promise.resolve(false);
+      if (cmd === "get_serial_status") {
+        return Promise.resolve({
+          is_connected: false,
+          baudrate: 19200,
+          packets_sent: 0,
+          tx_fps: 0,
+          switch_pairing_state: "disconnected",
+        });
+      }
+      return Promise.resolve(undefined);
+    });
+
+    const onStep0 = vi.fn();
+    render(<HardwareSettings onStep0Change={onStep0} />);
+
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("probe_firmware", {
+        portName: "/dev/cu.usbserial-0001",
+        baudrate: 19200,
+      });
+      expect(screen.getByText(/未通過 PRO-UART0 韌體交握/)).toBeInTheDocument();
+    });
+
+    const toggleBtn = screen.getByText("開啟虛擬手把").closest("button")!;
+    expect(toggleBtn).toBeDisabled();
+    fireEvent.click(toggleBtn);
+    expect(invoke).not.toHaveBeenCalledWith("connect_serial", expect.anything());
+    expect(onStep0).not.toHaveBeenCalledWith(true);
+  });
+
+  it("does not report connected when backend rejects connection", async () => {
+    (invoke as any).mockImplementation((cmd: string) => {
+      if (cmd === "get_serial_ports") {
+        return Promise.resolve([
+          { port_name: "/dev/cu.usbserial-0001", description: "CP2102" },
+        ]);
+      }
+      if (cmd === "probe_firmware") return Promise.resolve(true);
+      if (cmd === "connect_serial") {
+        return Promise.reject("ESP32 韌體驗證失敗：交握超時");
+      }
+      if (cmd === "get_serial_status") {
+        return Promise.resolve({
+          is_connected: false,
+          baudrate: 19200,
+          packets_sent: 0,
+          tx_fps: 0,
+          switch_pairing_state: "disconnected",
+        });
+      }
+      return Promise.resolve(undefined);
+    });
+
+    const onConn = vi.fn();
+    render(<HardwareSettings onConnectionChange={onConn} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("開啟虛擬手把").closest("button")).not.toBeDisabled();
+    });
+    fireEvent.click(screen.getByText("開啟虛擬手把"));
+
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("connect_serial", expect.anything());
+      expect(screen.getByText("開啟虛擬手把").closest("button")).toBeDisabled();
+    });
+    expect(onConn).not.toHaveBeenCalledWith(true);
   });
 
   it("sends L+R handshake command when connected", async () => {

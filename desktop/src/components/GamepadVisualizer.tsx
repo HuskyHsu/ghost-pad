@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ControllerState } from "../types";
-import { Activity, Keyboard, X as CloseIcon, CircleDot, Square, Gamepad2 } from "lucide-react";
+import { Keyboard, X as CloseIcon, CircleDot, Square, Gamepad2 } from "lucide-react";
 import { KEYBOARD_GUIDE } from "../hooks/useVirtualGamepad";
 import { usePulsedButtonPress } from "../hooks/usePulsedButtonPress";
 import { useStickDrag } from "../hooks/useStickDrag";
@@ -28,10 +28,7 @@ interface Props {
 export const GamepadVisualizer: React.FC<Props> = ({
   state,
   gamepadName,
-  isMuted = false,
   esp32Connected = false,
-  switchPairingState = "disconnected",
-  fps = 100,
   onTriggerButton,
   onTriggerStick,
   onToggleMute,
@@ -211,21 +208,6 @@ export const GamepadVisualizer: React.FC<Props> = ({
             </button>
           )}
 
-          {/* Input Transmission State Toggle */}
-          <button
-            type="button"
-            onClick={onToggleMute}
-            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-md border text-xs font-medium transition-colors cursor-pointer select-none ${
-              isMuted
-                ? "bg-amber-500/15 border-amber-500/30 text-amber-300 hover:bg-amber-500/25"
-                : "bg-zinc-850 hover:bg-zinc-800 border-white/[0.08] hover:border-white/[0.14] text-zinc-300 hover:text-zinc-100"
-            }`}
-            title={isMuted ? "點擊解除暫停，開始傳送操作訊號" : "點擊暫停訊號傳送 (看門狗安全中立)"}
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${isMuted ? "bg-amber-400" : "bg-emerald-400"}`} />
-            <span>{isMuted ? "訊號已暫停" : "訊號已啟用"}</span>
-          </button>
-
           {/* Keyboard Guide Toggle Button */}
           <button
             onClick={() => setShowKeyGuide(!showKeyGuide)}
@@ -235,12 +217,6 @@ export const GamepadVisualizer: React.FC<Props> = ({
             <Keyboard className="w-3.5 h-3.5 text-zinc-400" />
             <span>鍵盤對照表</span>
           </button>
-
-          {/* Live FPS Badge */}
-          <span className="flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-zinc-900 border border-white/[0.06] text-zinc-400 font-mono text-xs">
-            <Activity className="w-3.5 h-3.5 text-zinc-500" />
-            <span>{fps} Hz</span>
-          </span>
         </div>
       </div>
 
@@ -770,23 +746,6 @@ export const GamepadVisualizer: React.FC<Props> = ({
         {/* Real-Time Live Input Timeline Stream */}
         <div className="w-full shrink-0 pt-1 pb-1">
           <InputTimelineStream state={state} />
-        </div>
-      </div>
-
-      {/* 3. Unified Bottom Footer Bar */}
-      <div className="h-9 px-6 border-t border-white/[0.06] bg-zinc-950/90 backdrop-blur-sm flex items-center justify-between text-[11px] font-mono text-zinc-400 select-none shrink-0 z-20">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5">
-            <span className={`w-1.5 h-1.5 rounded-full ${gamepadName ? "bg-emerald-400" : "bg-zinc-500"}`} />
-            <span>手把: {gamepadName || "未連接 (電腦模式)"}</span>
-          </span>
-          <span className="text-zinc-700">|</span>
-          <span>傳輸: {isMuted ? "暫停中" : "即時傳送"}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span>ESP32: {esp32Connected ? "60Hz 串流中" : "未啟用"}</span>
-          <span className="text-zinc-700">|</span>
-          <span>Switch: {switchPairingState === "connected" ? "1P 已連線" : switchPairingState === "pairing" ? "配對中..." : "離線"}</span>
         </div>
       </div>
     </div>
