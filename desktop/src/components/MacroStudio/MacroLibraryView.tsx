@@ -56,7 +56,7 @@ export const MacroLibraryView: React.FC<Props> = ({
                 巨集腳本庫
               </h1>
               <span className="px-1.5 py-0.5 rounded font-mono text-[10px] bg-zinc-850 text-zinc-400 border border-white/[0.06]">
-                {scripts.length} 筆
+                {scripts.length} 筆腳本
               </span>
             </div>
             <p className="text-xs text-zinc-400 truncate hidden sm:block">

@@ -529,14 +529,14 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
           <div className="w-5 h-5 rounded-md bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-zinc-300">
             <Film className="w-3 h-3" />
           </div>
-          <span className="text-xs font-medium text-zinc-200">即時操作時序流</span>
+          <span className="text-xs font-medium text-zinc-200">即時操作時序流 (Live Stream)</span>
         </div>
 
         <div className="flex items-center gap-2 text-xs">
           {/* Operation count badge */}
           <span className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 bg-zinc-950/60 px-2.5 py-1 rounded-md border border-white/[0.06]">
             <Zap className="w-3 h-3 text-amber-400" />
-            <span>操作: <span className="text-zinc-100 font-bold">{operationCount}</span></span>
+            <span>操作次數: <span className="text-zinc-100 font-bold">{operationCount}</span></span>
           </span>
 
           {/* Time Duration Window Selector */}
@@ -551,7 +551,7 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
             title="點擊切換時間軸總長度 (10s / 15s / 30s / 60s)"
           >
             <Clock className="w-3 h-3 text-zinc-400" />
-            <span>{duration}s 窗格</span>
+            <span>總長度 {duration}s</span>
           </button>
 
           {/* Clear history button */}

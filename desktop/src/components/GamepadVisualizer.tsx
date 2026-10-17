@@ -171,7 +171,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 }`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${gamepadName ? "bg-emerald-400" : "bg-zinc-500"}`} />
-                <span>{gamepadName ? "實體手把已就緒" : "本機控制模式"}</span>
+                <span>{gamepadName || "本機控制模式"}</span>
               </span>
             </div>
             <p className="text-xs text-zinc-400 truncate hidden sm:block">

@@ -1004,7 +1004,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-rose-400 hover:bg-rose-950/30 transition-colors cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>刪除步驟</span>
+                <span>刪除此步驟</span>
               </button>
 
               <div className="flex items-center gap-2">
@@ -1014,7 +1014,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-white/[0.08] text-xs font-medium text-zinc-300 transition-colors cursor-pointer"
                 >
                   <Clock className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>插入等待</span>
+                  <span>在此後插入等待</span>
                 </button>
 
                 <button
