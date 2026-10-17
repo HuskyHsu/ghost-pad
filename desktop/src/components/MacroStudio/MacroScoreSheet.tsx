@@ -42,10 +42,10 @@ function getActionVisual(act: MacroAction) {
     const btn = (act.button || "a").toLowerCase();
     if (["a", "b", "x", "y"].includes(btn)) {
       const colors: Record<string, string> = {
-        a: "bg-emerald-500 text-white border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]",
-        b: "bg-rose-500 text-white border-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.5)]",
-        x: "bg-sky-500 text-white border-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.5)]",
-        y: "bg-amber-500 text-white border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.5)]",
+        a: "bg-emerald-500/25 text-emerald-200 border-emerald-500/40",
+        b: "bg-rose-500/25 text-rose-200 border-rose-500/40",
+        x: "bg-sky-500/25 text-sky-200 border-sky-500/40",
+        y: "bg-amber-500/25 text-amber-200 border-amber-500/40",
       };
       return { lane: 0, label: btn.toUpperCase(), style: colors[btn] || colors.a };
     }
@@ -53,20 +53,20 @@ function getActionVisual(act: MacroAction) {
       return {
         lane: 3,
         label: btn.toUpperCase(),
-        style: "bg-pink-600 text-white border-pink-400 shadow-[0_0_10px_rgba(236,72,153,0.5)]",
+        style: "bg-pink-500/25 text-pink-200 border-pink-500/40 font-mono",
       };
     }
     if (["l_stick_click", "r_stick_click"].includes(btn)) {
       return {
         lane: 2,
         label: btn === "l_stick_click" ? "L3" : "R3",
-        style: "bg-cyan-600 text-white border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]",
+        style: "bg-cyan-500/25 text-cyan-200 border-cyan-500/40 font-mono",
       };
     }
     return {
       lane: 4,
       label: btn === "home" ? "⌂" : btn === "capture" ? "◉" : btn === "plus" ? "+" : "−",
-      style: "bg-slate-600 text-white border-slate-400 shadow-[0_0_10px_rgba(148,163,184,0.5)]",
+      style: "bg-zinc-800 text-zinc-200 border-white/[0.1] font-mono",
     };
   }
 
@@ -78,7 +78,7 @@ function getActionVisual(act: MacroAction) {
     return {
       lane: 2,
       label: dir,
-      style: "bg-cyan-600 text-white border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]",
+      style: "bg-cyan-500/25 text-cyan-200 border-cyan-500/40 font-mono",
     };
   }
 
@@ -88,7 +88,7 @@ function getActionVisual(act: MacroAction) {
     return {
       lane: 1,
       label: dir,
-      style: "bg-purple-600 text-white border-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.5)]",
+      style: "bg-purple-500/25 text-purple-200 border-purple-500/40 font-mono",
     };
   }
 
@@ -97,14 +97,14 @@ function getActionVisual(act: MacroAction) {
     return {
       lane: 4,
       label: `⏸ ${formatted}`,
-      style: "bg-zinc-800 text-amber-300 border border-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.15)]",
+      style: "bg-zinc-850 text-amber-300 border-amber-500/30 font-mono",
     };
   }
 
   return {
     lane: 4,
     label: "Wait",
-    style: "bg-zinc-800 text-zinc-300 border-zinc-600",
+    style: "bg-zinc-850 text-zinc-300 border-white/[0.08] font-mono",
   };
 }
 
@@ -114,28 +114,28 @@ const ABXY_ITEMS: ActionPresetOption[] = [
     subLabel: "A 鍵 (右/確認)",
     type: "button",
     button: "a",
-    style: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30 hover:border-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.2)]",
+    style: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30 hover:border-emerald-400",
   },
   {
     label: "B",
     subLabel: "B 鍵 (下/取消)",
     type: "button",
     button: "b",
-    style: "bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30 hover:border-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.2)]",
+    style: "bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30 hover:border-rose-400",
   },
   {
     label: "X",
     subLabel: "X 鍵 (上/選單)",
     type: "button",
     button: "x",
-    style: "bg-sky-500/20 text-sky-300 border-sky-500/40 hover:bg-sky-500/30 hover:border-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.2)]",
+    style: "bg-sky-500/20 text-sky-300 border-sky-500/40 hover:bg-sky-500/30 hover:border-sky-400",
   },
   {
     label: "Y",
     subLabel: "Y 鍵 (左/特殊)",
     type: "button",
     button: "y",
-    style: "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30 hover:border-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.2)]",
+    style: "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30 hover:border-amber-400",
   },
 ];
 
@@ -353,12 +353,12 @@ const GamepadKeypadMatrix: React.FC<{
         type="button"
         title={item.subLabel}
         onClick={() => onSelectAction(item)}
-        className={`w-full h-9 rounded-xl border flex items-center justify-center font-black text-xs transition-all cursor-pointer select-none ${
+        className={`w-full h-8 rounded-md border flex items-center justify-center font-bold text-xs transition-all cursor-pointer select-none ${
           item.style
         } ${
           selected
-            ? "ring-2 ring-white scale-105 shadow-[0_0_12px_rgba(255,255,255,0.7)] brightness-125 z-10"
-            : "opacity-85 hover:opacity-100 hover:scale-[1.03]"
+            ? "ring-1 ring-white brightness-125 z-10 shadow-xs"
+            : "opacity-85 hover:opacity-100"
         }`}
       >
         <span>{item.label}</span>
@@ -637,24 +637,24 @@ export const MacroScoreSheet: React.FC<Props> = ({
           return (
             <div
               key={lineIndex}
-              className="w-full rounded-2xl bg-zinc-950 border border-zinc-800 shadow-md overflow-hidden"
+              className="w-full rounded-xl bg-zinc-900/40 border border-white/[0.06] overflow-hidden"
             >
               {/* Line Header */}
-              <div className="flex items-center justify-between px-3 py-1 bg-zinc-900/80 border-b border-zinc-800 text-[10px] font-mono text-zinc-400">
-                <span className="font-bold text-violet-400">
+              <div className="flex items-center justify-between px-3 py-1 bg-zinc-900/60 border-b border-white/[0.06] text-[10px] font-mono text-zinc-400">
+                <span className="font-medium text-zinc-200">
                   第 {lineIndex + 1} 行 ({(lineStartMs / 1000).toFixed(1)}s ~ {(lineEndMs / 1000).toFixed(1)}s)
                 </span>
-                <span className="text-[9px] text-zinc-500 font-sans">
+                <span className="text-[9px] text-zinc-500 font-mono">
                   每格 1 秒 • 共 {lineDurationSec} 秒
                 </span>
               </div>
 
               {/* Time Ruler (Proportionally aligned with lanes below) */}
-              <div className="flex items-center px-2 py-0.5 bg-zinc-900/40 border-b border-zinc-800/60 text-[8px] font-mono text-zinc-400">
+              <div className="flex items-center px-2 py-0.5 bg-zinc-900/20 border-b border-white/[0.04] text-[8px] font-mono text-zinc-500">
                 {/* Left track spacer (matches w-14 shrink-0 lane header) */}
                 <div className="w-14 shrink-0 flex items-center gap-1.5 pl-2 select-none pointer-events-none">
                   <Clock className="w-2.5 h-2.5 text-zinc-500" />
-                  <span className="text-[8px] font-bold text-zinc-500">
+                  <span className="text-[8px] font-medium text-zinc-500 font-mono">
                     時間軸
                   </span>
                 </div>
@@ -677,10 +677,10 @@ export const MacroScoreSheet: React.FC<Props> = ({
                               : "translateX(-50%)",
                         }}
                       >
-                        <span className="text-[8px] leading-none text-zinc-400 font-mono select-none">
+                        <span className="text-[8px] leading-none text-zinc-500 font-mono select-none">
                           +{sec}s
                         </span>
-                        <div className="w-px h-1 bg-zinc-600 mt-0.5" />
+                        <div className="w-px h-1 bg-zinc-700 mt-0.5" />
                       </div>
                     );
                   })}
@@ -694,7 +694,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                         transform: "translateX(-50%)",
                       }}
                     >
-                      <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] border-t-cyan-400 filter drop-shadow-[0_0_6px_rgba(34,211,238,0.95)]" />
+                      <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] border-t-zinc-200" />
                     </div>
                   )}
                 </div>
@@ -702,21 +702,18 @@ export const MacroScoreSheet: React.FC<Props> = ({
 
               {/* 5-Track Score Lanes */}
               <div className="relative p-1.5 space-y-0.5">
-                {/* Playhead Blue Line across all 5 lanes */}
+                {/* Playhead Line across all 5 lanes */}
                 {isPlayheadOnThisLine && (
                   <div className="absolute inset-y-0 left-1.5 right-1.5 flex pointer-events-none z-30">
                     <div className="w-14 shrink-0" />
                     <div className="flex-1 relative h-full">
                       <div
-                        className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,1)]"
+                        className="absolute top-0 bottom-0 w-0.5 bg-white/80"
                         style={{
                           left: `${playheadPct}%`,
                           transform: "translateX(-50%)",
                         }}
-                      >
-                        {/* Glowing aura */}
-                        <div className="absolute inset-y-0 -left-1 -right-1 bg-cyan-400/25 blur-xs" />
-                      </div>
+                      />
                     </div>
                   </div>
                 )}
@@ -726,15 +723,15 @@ export const MacroScoreSheet: React.FC<Props> = ({
                   return (
                     <div
                       key={lane.name}
-                      className="h-6 rounded-md bg-zinc-900/40 border border-zinc-800/40 relative flex items-center"
+                      className="h-6 rounded-md bg-zinc-900/30 border border-white/[0.04] relative flex items-center"
                     >
                       {/* Left Track Name with Color Indicator Dot */}
                       <div className="w-14 shrink-0 flex items-center gap-1.5 pl-2 select-none pointer-events-none">
                         <div
-                          className="w-1.5 h-1.5 rounded-full shrink-0 shadow-[0_0_6px_currentColor]"
-                          style={{ backgroundColor: laneIdx === 4 ? "#f59e0b" : lane.color, color: laneIdx === 4 ? "#f59e0b" : lane.color }}
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={{ backgroundColor: laneIdx === 4 ? "#71717a" : lane.color }}
                         />
-                        <span className="text-[8.5px] font-bold text-zinc-300 truncate">
+                        <span className="text-[8.5px] font-medium text-zinc-400 truncate">
                           {laneTitle}
                         </span>
                       </div>
@@ -745,7 +742,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                         {Array.from({ length: lineDurationSec + 1 }).map((__, sec) => (
                           <div
                             key={sec}
-                            className="absolute top-0 bottom-0 w-px bg-zinc-800/40 pointer-events-none"
+                            className="absolute top-0 bottom-0 w-px bg-white/[0.03] pointer-events-none"
                             style={{ left: `${(sec / lineDurationSec) * 100}%` }}
                           />
                         ))}
@@ -782,11 +779,11 @@ export const MacroScoreSheet: React.FC<Props> = ({
                               }}
                               className={`absolute top-0.5 bottom-0.5 rounded-md border flex items-center justify-center ${
                                 isWaitAct ? "min-w-[16px] px-0.5" : "min-w-[18px] px-0.5"
-                              } text-[10px] font-black cursor-pointer transition-all hover:scale-105 hover:z-20 z-10 select-none shadow-sm ${
+                              } text-[10px] font-bold cursor-pointer transition-all hover:scale-105 hover:z-20 z-10 select-none ${
                                 vis.style
                               } ${
                                 isActive
-                                  ? "ring-2 ring-white scale-105 shadow-[0_0_15px_rgba(255,255,255,0.9)] z-30"
+                                  ? "ring-1 ring-white scale-105 z-30 brightness-125"
                                   : ""
                               }`}
                               title={
@@ -833,40 +830,40 @@ export const MacroScoreSheet: React.FC<Props> = ({
         <button
           type="button"
           onClick={() => setActionPicker({ visible: true, durationMs: 150 })}
-          className="flex-[2] flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-emerald-500/60 hover:border-emerald-400 bg-emerald-950/20 hover:bg-emerald-900/30 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all cursor-pointer shadow-sm"
+          className="flex-[2] flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-white/[0.1] hover:border-white/[0.2] bg-zinc-900/30 hover:bg-zinc-900/60 text-xs font-medium text-zinc-300 hover:text-white transition-all cursor-pointer shadow-xs"
         >
-          <Gamepad2 className="w-4 h-4 text-emerald-400" />
+          <Gamepad2 className="w-3.5 h-3.5 text-zinc-400" />
           <span>+ 新增手把動作 (可選按鍵 / 搖桿方向)</span>
         </button>
 
         <button
           type="button"
           onClick={handleAppendWait}
-          className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl border border-dashed border-amber-600/60 hover:border-amber-400 bg-amber-950/20 hover:bg-amber-900/30 text-xs font-bold text-amber-400 hover:text-amber-300 transition-all cursor-pointer shadow-sm"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-dashed border-white/[0.1] hover:border-white/[0.2] bg-zinc-900/30 hover:bg-zinc-900/60 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer shadow-xs"
         >
-          <Clock className="w-4 h-4 text-amber-400" />
+          <Clock className="w-3.5 h-3.5 text-zinc-500" />
           <span>+ 新增空白等待 (Wait)</span>
         </button>
       </div>
 
-      {/* Unified Action Editor Modal (左鍵點擊開啟完整編輯控制) */}
+      {/* Unified Action Editor Modal */}
       {editingIndex !== null && currentEditingAction && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
           onClick={() => setEditingIndex(null)}
         >
           <div
-            className="w-full max-w-2xl rounded-3xl bg-zinc-900 border border-zinc-700/80 p-5 shadow-2xl flex flex-col gap-3.5 select-none"
+            className="w-full max-w-2xl rounded-xl bg-zinc-900 border border-white/[0.1] p-5 shadow-2xl flex flex-col gap-3.5 select-none"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header: 步驟編號、動作標籤與順序微調 */}
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
               <div className="flex items-center gap-2.5">
                 <div
-                  className={`p-1.5 rounded-xl border ${
+                  className={`p-1.5 rounded-md border ${
                     currentEditingAction.type === "wait"
-                      ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
-                      : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                      ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                      : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                   }`}
                 >
                   {currentEditingAction.type === "wait" ? (
@@ -876,44 +873,44 @@ export const MacroScoreSheet: React.FC<Props> = ({
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-bold text-zinc-100">
+                  <h4 className="text-xs font-semibold text-zinc-100">
                     步驟 #{editingIndex + 1} 動作編輯
                   </h4>
-                  <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">
+                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-white/[0.08]">
                     {getActionVisual(currentEditingAction).label}
                   </span>
-                  <span className="text-xs text-zinc-400 font-medium">
+                  <span className="text-xs text-zinc-500 font-medium">
                     {currentEditingAction.note || (currentEditingAction.type === "wait" ? "空白等待" : "")}
                   </span>
                 </div>
               </div>
 
-              {/* 右側順序微調按鈕組與關閉按鈕 */}
+              {/* Order adjust and close */}
               <div className="flex items-center gap-1.5">
-                <div className="flex items-center gap-0.5 bg-zinc-800/80 p-0.5 rounded-xl border border-zinc-700/60">
+                <div className="flex items-center gap-0.5 bg-zinc-850 p-0.5 rounded-md border border-white/[0.08]">
                   <button
                     type="button"
                     disabled={editingIndex === 0}
                     onClick={() => handleMoveAction(editingIndex, -1)}
-                    className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-700 disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                    className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-750 disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer transition-colors"
                     title="向前移動順序"
                   >
-                    <ArrowUp className="w-3.5 h-3.5 text-cyan-400" />
+                    <ArrowUp className="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
                     disabled={editingIndex === script.actions.length - 1}
                     onClick={() => handleMoveAction(editingIndex, 1)}
-                    className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-700 disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                    className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-750 disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer transition-colors"
                     title="向後移動順序"
                   >
-                    <ArrowDown className="w-3.5 h-3.5 text-cyan-400" />
+                    <ArrowDown className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 <button
                   type="button"
                   onClick={() => setEditingIndex(null)}
-                  className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -921,10 +918,10 @@ export const MacroScoreSheet: React.FC<Props> = ({
             </div>
 
             {/* Hold / Wait Duration Setting */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 rounded-xl bg-zinc-950/70 border border-zinc-800/80">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 rounded-lg bg-zinc-950/70 border border-white/[0.06]">
               <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-xs font-semibold text-zinc-300">
+                <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                <span className="text-xs font-medium text-zinc-300">
                   {currentEditingAction.type === "wait"
                     ? "空白等待時間："
                     : "按壓持續時間："}
@@ -940,9 +937,9 @@ export const MacroScoreSheet: React.FC<Props> = ({
                         durationMs: Math.max(10, Number(e.target.value) || 10),
                       })
                     }
-                    className="w-16 px-2 py-0.5 rounded-lg bg-zinc-900 border border-zinc-700 text-xs font-mono font-bold text-cyan-300 text-center focus:outline-none focus:border-cyan-500"
+                    className="w-16 px-2 py-0.5 rounded-md bg-zinc-900 border border-white/[0.08] text-xs font-mono font-bold text-zinc-100 text-center focus:outline-none focus:border-white/[0.22]"
                   />
-                  <span className="text-xs text-zinc-400 font-mono">ms</span>
+                  <span className="text-xs text-zinc-500 font-mono">ms</span>
                 </div>
               </div>
 
@@ -957,10 +954,10 @@ export const MacroScoreSheet: React.FC<Props> = ({
                         durationMs: presetMs,
                       })
                     }
-                    className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-semibold transition-colors cursor-pointer ${
+                    className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium transition-colors cursor-pointer ${
                       currentEditingAction.durationMs === presetMs
-                        ? "bg-cyan-500 text-zinc-950 font-bold shadow-sm"
-                        : "bg-zinc-800/90 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200"
+                        ? "bg-zinc-100 text-zinc-950 font-bold shadow-xs"
+                        : "bg-zinc-800 hover:bg-zinc-750 text-zinc-400 hover:text-zinc-200 border border-white/[0.04]"
                     }`}
                   >
                     {presetMs}ms
@@ -969,7 +966,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* Compact Gamepad Keypad Matrix (清爽對稱無捲軸) */}
+            {/* Compact Gamepad Keypad Matrix */}
             <div className="pt-0.5">
               <GamepadKeypadMatrix
                 currentAction={currentEditingAction}
@@ -1000,24 +997,24 @@ export const MacroScoreSheet: React.FC<Props> = ({
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between border-t border-zinc-800 pt-3">
+            <div className="flex items-center justify-between border-t border-white/[0.06] pt-3">
               <button
                 type="button"
                 onClick={() => handleDeleteAction(editingIndex)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-950/40 border border-transparent hover:border-rose-800/50 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-rose-400 hover:bg-rose-950/30 transition-colors cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>刪除此步驟</span>
+                <span>刪除步驟</span>
               </button>
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => handleInsertWaitAfter(editingIndex)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/20 hover:bg-amber-900/30 border border-amber-600/40 text-xs font-semibold text-amber-300 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-white/[0.08] text-xs font-medium text-zinc-300 transition-colors cursor-pointer"
                 >
-                  <Clock className="w-3.5 h-3.5 text-amber-400" />
-                  <span>在此後插入等待</span>
+                  <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>插入等待</span>
                 </button>
 
                 <button
@@ -1027,16 +1024,16 @@ export const MacroScoreSheet: React.FC<Props> = ({
                     setEditingIndex(null);
                     setActionPicker({ visible: true, insertIndex: idx, durationMs: 150 });
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/20 hover:bg-emerald-900/30 border border-emerald-600/40 text-xs font-semibold text-emerald-300 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-white/[0.08] text-xs font-medium text-zinc-300 transition-colors cursor-pointer"
                 >
-                  <Gamepad2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>在此後插入動作...</span>
+                  <Gamepad2 className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>插入動作...</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setEditingIndex(null)}
-                  className="px-5 py-1.5 rounded-xl text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white shadow-md cursor-pointer transition-colors"
+                  className="px-4 py-1.5 rounded-md text-xs font-medium bg-zinc-100 hover:bg-white text-zinc-950 shadow-xs cursor-pointer transition-colors"
                 >
                   完成
                 </button>
@@ -1046,27 +1043,27 @@ export const MacroScoreSheet: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Action Picker Modal (手把動作選擇器) */}
+      {/* Action Picker Modal */}
       {actionPicker && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
           onClick={() => setActionPicker(null)}
         >
           <div
-            className="w-full max-w-2xl rounded-3xl bg-zinc-900 border border-zinc-700/80 p-5 shadow-2xl flex flex-col gap-3.5 select-none"
+            className="w-full max-w-2xl rounded-xl bg-zinc-900 border border-white/[0.1] p-5 shadow-2xl flex flex-col gap-3.5 select-none"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                <div className="p-1.5 rounded-md bg-zinc-800 border border-white/[0.08] text-zinc-200">
                   <Gamepad2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-zinc-100">
+                  <h4 className="text-xs font-semibold text-zinc-100">
                     新增手把動作
                   </h4>
-                  <p className="text-[11px] text-zinc-400">
+                  <p className="text-[11px] text-zinc-500">
                     {actionPicker.insertIndex !== undefined && actionPicker.insertIndex >= 0
                       ? `將於步驟 #${actionPicker.insertIndex + 1} 之後插入`
                       : "將新增至腳本末端"}
@@ -1077,17 +1074,17 @@ export const MacroScoreSheet: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={() => setActionPicker(null)}
-                className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Hold Duration Setting Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 rounded-xl bg-zinc-950/70 border border-zinc-800/80">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 rounded-lg bg-zinc-950/70 border border-white/[0.06]">
               <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-xs font-semibold text-zinc-300">
+                <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                <span className="text-xs font-medium text-zinc-300">
                   按壓持續時間 (Hold Duration)：
                 </span>
                 <div className="flex items-center gap-1">
@@ -1102,9 +1099,9 @@ export const MacroScoreSheet: React.FC<Props> = ({
                         durationMs: Math.max(20, Number(e.target.value) || 20),
                       })
                     }
-                    className="w-16 px-2 py-0.5 rounded-lg bg-zinc-900 border border-zinc-700 text-xs font-mono font-bold text-emerald-300 text-center focus:outline-none focus:border-emerald-500"
+                    className="w-16 px-2 py-0.5 rounded-md bg-zinc-900 border border-white/[0.08] text-xs font-mono font-bold text-zinc-100 text-center focus:outline-none focus:border-white/[0.22]"
                   />
-                  <span className="text-xs text-zinc-400 font-mono">ms</span>
+                  <span className="text-xs text-zinc-500 font-mono">ms</span>
                 </div>
               </div>
 
@@ -1120,10 +1117,10 @@ export const MacroScoreSheet: React.FC<Props> = ({
                         durationMs: presetMs,
                       })
                     }
-                    className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-semibold transition-colors cursor-pointer ${
+                    className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium transition-colors cursor-pointer ${
                       actionPicker.durationMs === presetMs
-                        ? "bg-emerald-500 text-zinc-950 font-bold shadow-sm"
-                        : "bg-zinc-800/90 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200"
+                        ? "bg-zinc-100 text-zinc-950 font-bold shadow-xs"
+                        : "bg-zinc-800 hover:bg-zinc-750 text-zinc-400 hover:text-zinc-200 border border-white/[0.04]"
                     }`}
                   >
                     {presetMs}ms
@@ -1140,14 +1137,14 @@ export const MacroScoreSheet: React.FC<Props> = ({
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between border-t border-zinc-800 pt-3">
+            <div className="flex items-center justify-between border-t border-white/[0.06] pt-3">
               <span className="text-[11px] text-zinc-500">
-                💡 點選上方任意手把動作鍵帽，將以設定之持續時間即刻送出
+                點選上方任意按鈕動作，將以設定之持續時間即刻加入
               </span>
               <button
                 type="button"
                 onClick={() => setActionPicker(null)}
-                className="px-4 py-1.5 rounded-xl text-xs font-medium text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 cursor-pointer"
+                className="px-3.5 py-1.5 rounded-md text-xs font-medium bg-zinc-800 hover:bg-zinc-750 text-zinc-300 border border-white/[0.08] cursor-pointer transition-colors"
               >
                 關閉
               </button>

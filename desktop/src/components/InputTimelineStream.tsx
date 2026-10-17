@@ -449,16 +449,12 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
       }
 
       // 6. Draw Strike Line (Playhead Line - flush to left border of tracks)
-      ctx.save();
-      ctx.shadowColor = "rgba(34, 211, 238, 0.85)";
-      ctx.shadowBlur = 8;
-      ctx.strokeStyle = "rgba(34, 211, 238, 0.95)";
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(strikeX, RULER_TOP_H);
       ctx.lineTo(strikeX, height - RULER_BOT_H);
       ctx.stroke();
-      ctx.restore();
 
       // 7. Draw Top and Bottom Rulers & Ticks ON TOP so 0s is perfectly centered and unclipped
       ctx.fillStyle = "rgba(18, 18, 22, 0.92)";
@@ -526,21 +522,21 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
   }, [duration]);
 
   return (
-    <div className="w-full rounded-2xl bg-zinc-950/90 border border-zinc-800 shadow-xl overflow-hidden flex flex-col backdrop-blur-md">
+    <div className="w-full rounded-xl bg-zinc-900/40 border border-white/[0.06] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] overflow-hidden flex flex-col">
       {/* Stream Control Header */}
-      <div className="h-9 sm:h-10 px-3 sm:px-4 border-b border-zinc-800/80 bg-zinc-900/60 flex items-center justify-between select-none">
+      <div className="h-9 sm:h-10 px-3 sm:px-4 border-b border-white/[0.06] bg-zinc-900/60 flex items-center justify-between select-none">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-cyan-400">
+          <div className="w-5 h-5 rounded-md bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-zinc-300">
             <Film className="w-3 h-3" />
           </div>
-          <span className="text-xs font-semibold text-zinc-200">即時操作時序流 (Live Stream)</span>
+          <span className="text-xs font-medium text-zinc-200">即時操作時序流</span>
         </div>
 
         <div className="flex items-center gap-2 text-xs">
           {/* Operation count badge */}
-          <span className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 bg-zinc-900/80 px-2.5 py-1 rounded-lg border border-zinc-800">
+          <span className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 bg-zinc-950/60 px-2.5 py-1 rounded-md border border-white/[0.06]">
             <Zap className="w-3 h-3 text-amber-400" />
-            <span>操作次數: <span className="text-zinc-100 font-bold">{operationCount}</span></span>
+            <span>操作: <span className="text-zinc-100 font-bold">{operationCount}</span></span>
           </span>
 
           {/* Time Duration Window Selector */}
@@ -551,17 +547,17 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
                 return DURATION_OPTIONS[(idx + 1) % DURATION_OPTIONS.length];
               });
             }}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/80 text-zinc-200 text-[11px] transition-colors font-mono cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-800 hover:bg-zinc-750 border border-white/[0.08] text-zinc-200 text-[11px] transition-colors font-mono cursor-pointer"
             title="點擊切換時間軸總長度 (10s / 15s / 30s / 60s)"
           >
-            <Clock className="w-3 h-3 text-cyan-400" />
-            <span>總長度 {duration}s</span>
+            <Clock className="w-3 h-3 text-zinc-400" />
+            <span>{duration}s 窗格</span>
           </button>
 
           {/* Clear history button */}
           <button
             onClick={handleClear}
-            className="p-1 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-rose-400 transition-colors cursor-pointer"
+            className="p-1 rounded-md text-zinc-500 hover:text-rose-400 hover:bg-zinc-800 transition-colors cursor-pointer"
             title="清空歷史紀錄"
           >
             <Trash2 className="w-3.5 h-3.5" />

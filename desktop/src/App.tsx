@@ -29,7 +29,7 @@ export function App() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "macro" | "hardware">("dashboard");
   const [controllerState, setControllerState] = useState<ControllerState>(DEFAULT_CONTROLLER_STATE);
   const [gamepads, setGamepads] = useState<GamepadInfo[]>([]);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [fps, setFps] = useState(0);
   const [esp32Connected, setEsp32Connected] = useState(false);
   const [switchPairingState, setSwitchPairingState] = useState("disconnected");
@@ -108,6 +108,10 @@ export function App() {
       const nextPairState = hasPairedSwitch ? "pairing" : "disconnected";
       setEsp32Connected(true);
       setSwitchPairingState(nextPairState);
+      setIsMuted(false);
+      if (isTauri) {
+        invoke("set_gamepad_muted", { muted: false }).catch(() => {});
+      }
       setSerialStatus((prev) => ({
         ...prev,
         is_connected: true,
@@ -469,6 +473,7 @@ export function App() {
             gamepadName={activeGamepad?.name}
             isMuted={isMuted}
             esp32Connected={esp32Connected}
+            switchPairingState={switchPairingState}
             fps={fps}
             onTriggerButton={sendButton}
             onTriggerStick={sendStick}
@@ -503,7 +508,15 @@ export function App() {
 
         {activeTab === "hardware" && (
           <HardwareSettings
-            onConnectionChange={setEsp32Connected}
+            onConnectionChange={(connected) => {
+              setEsp32Connected(connected);
+              if (connected) {
+                setIsMuted(false);
+                if (isTauriAvailable()) {
+                  invoke("set_gamepad_muted", { muted: false }).catch(() => {});
+                }
+              }
+            }}
             onPairingChange={setSwitchPairingState}
             onStep0Change={setIsStep0Ready}
           />

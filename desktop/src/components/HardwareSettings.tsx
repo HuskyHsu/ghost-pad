@@ -8,8 +8,7 @@ import {
   Zap,
   CheckCircle2,
   AlertCircle,
-  Flame,
-  Sparkles,
+  Radio,
   RotateCcw,
   ShieldCheck,
   Lock,
@@ -525,18 +524,52 @@ export const HardwareSettings: React.FC<Props> = ({
   const isSwitchPairing = status.switch_pairing_state === "pairing";
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-zinc-950 p-4 sm:p-6 lg:p-8 space-y-6 text-zinc-100 select-none max-w-5xl mx-auto w-full">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950 select-none relative">
+      {/* 1. Unified Top Header */}
+      <div className="h-16 px-6 border-b border-white/[0.06] flex items-center justify-between shrink-0 bg-zinc-950/80 backdrop-blur-sm z-30">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shadow-sm">
-            <Cpu className="w-5 h-5" />
+          <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-300 shadow-xs shrink-0">
+            <Cpu className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-base sm:text-lg font-bold tracking-tight text-zinc-100">
-              ESP32 硬體與連線控制台
-            </h1>
-            <p className="text-xs text-zinc-400">
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm font-semibold tracking-tight text-zinc-100">
+                ESP32 硬體與連線控制台
+              </h1>
+              <span
+                className={`px-1.5 py-0.5 rounded font-mono text-[10px] border flex items-center gap-1.5 ${
+                  isSwitchConnected
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    : status.is_connected
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    : isStep0Ready
+                    ? "bg-zinc-850 text-zinc-400 border-white/[0.06]"
+                    : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    isSwitchConnected
+                      ? "bg-emerald-400"
+                      : status.is_connected
+                      ? "bg-emerald-400 animate-pulse"
+                      : isStep0Ready
+                      ? "bg-zinc-500"
+                      : "bg-rose-400"
+                  }`}
+                />
+                <span>
+                  {isSwitchConnected
+                    ? "Switch 1P 已連線"
+                    : status.is_connected
+                    ? "虛擬手把串流中"
+                    : isStep0Ready
+                    ? "硬體就緒"
+                    : "待接妥硬體"}
+                </span>
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 truncate hidden sm:block">
               依序連接「硬體裝置」➔「虛擬手把服務」➔「Switch 主機連線」
             </p>
           </div>
@@ -546,37 +579,40 @@ export const HardwareSettings: React.FC<Props> = ({
           onClick={fetchPorts}
           disabled={isLoading}
           title="重新掃描 USB 序列埠"
-          className="self-start sm:self-center px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 hover:text-zinc-100 transition-colors flex items-center gap-2 text-xs cursor-pointer shadow-sm"
+          className="flex items-center gap-2 h-8 px-3 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-white/[0.08] hover:border-white/[0.14] text-zinc-300 hover:text-zinc-100 transition-colors text-xs font-medium cursor-pointer shadow-xs disabled:opacity-50"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-cyan-400" : ""}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-zinc-100" : ""}`} />
           <span>重新掃描裝置</span>
         </button>
       </div>
 
+      {/* 2. Unified Body */}
+      <div className="flex-1 overflow-y-auto px-6 py-5 w-full max-w-6xl mx-auto space-y-5 min-h-0">
+
       {/* Integrated Pipeline Status Stepper Bar (Replaces redundant top status cards) */}
-      <div className="p-1 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 grid grid-cols-1 md:grid-cols-3 gap-1">
+      <div className="p-1 rounded-xl bg-zinc-900/40 border border-white/[0.06] grid grid-cols-1 md:grid-cols-3 gap-1">
         {/* Step 0 Pill */}
         <div
-          className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+          className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
             isStep0Ready
-              ? "bg-zinc-900/90 border border-emerald-500/30 text-emerald-300 shadow-sm"
-              : "bg-zinc-950/60 text-zinc-400 border border-transparent"
+              ? "bg-zinc-900/80 border border-emerald-500/20 text-emerald-300 shadow-xs"
+              : "bg-transparent text-zinc-400 border border-transparent"
           }`}
         >
           <div
-            className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
+            className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-mono font-medium shrink-0 ${
               isStep0Ready
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                : "bg-zinc-800 text-zinc-500"
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                : "bg-zinc-800/80 text-zinc-500 border border-white/[0.04]"
             }`}
           >
             0
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-[10px] uppercase font-mono tracking-wider opacity-70">
+            <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500">
               硬體與韌體
             </div>
-            <div className="text-xs font-semibold truncate flex items-center gap-1.5 mt-0.5">
+            <div className="text-xs font-medium truncate flex items-center gap-1.5 mt-0.5">
               <span
                 className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                   isStep0Ready ? "bg-emerald-400" : "bg-zinc-600"
@@ -591,34 +627,34 @@ export const HardwareSettings: React.FC<Props> = ({
               </span>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-zinc-600 hidden md:block shrink-0" />
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-600 hidden md:block shrink-0" />
         </div>
 
         {/* Step 1 Pill */}
         <div
-          className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+          className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
             status.is_connected
-              ? "bg-zinc-900/90 border border-emerald-500/30 text-emerald-300 shadow-sm"
-              : "bg-zinc-950/60 text-zinc-400 border border-transparent"
+              ? "bg-zinc-900/80 border border-emerald-500/20 text-emerald-300 shadow-xs"
+              : "bg-transparent text-zinc-400 border border-transparent"
           }`}
         >
           <div
-            className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
+            className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-mono font-medium shrink-0 ${
               status.is_connected
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                : "bg-zinc-800 text-zinc-500"
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                : "bg-zinc-800/80 text-zinc-500 border border-white/[0.04]"
             }`}
           >
             1
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-[10px] uppercase font-mono tracking-wider opacity-70">
+            <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500">
               虛擬手把服務
             </div>
-            <div className="text-xs font-semibold truncate flex items-center gap-1.5 mt-0.5">
+            <div className="text-xs font-medium truncate flex items-center gap-1.5 mt-0.5">
               <span
                 className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                  status.is_connected ? "bg-emerald-400 animate-pulse" : "bg-zinc-600"
+                  status.is_connected ? "bg-emerald-400" : "bg-zinc-600"
                 }`}
               />
               <span className="truncate">
@@ -626,39 +662,39 @@ export const HardwareSettings: React.FC<Props> = ({
               </span>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-zinc-600 hidden md:block shrink-0" />
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-600 hidden md:block shrink-0" />
         </div>
 
         {/* Step 2 Pill */}
         <div
-          className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+          className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
             isSwitchConnected
-              ? "bg-zinc-900/90 border border-cyan-500/30 text-cyan-300 shadow-sm"
+              ? "bg-zinc-900/80 border border-emerald-500/20 text-emerald-300 shadow-xs"
               : isSwitchPairing
-              ? "bg-zinc-900/90 border border-amber-500/30 text-amber-300"
-              : "bg-zinc-950/60 text-zinc-400 border border-transparent"
+              ? "bg-zinc-900/80 border border-amber-500/20 text-amber-300 shadow-xs"
+              : "bg-transparent text-zinc-400 border border-transparent"
           }`}
         >
           <div
-            className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
+            className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-mono font-medium shrink-0 ${
               isSwitchConnected
-                ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/40"
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                 : isSwitchPairing
-                ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
-                : "bg-zinc-800 text-zinc-500"
+                ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                : "bg-zinc-800/80 text-zinc-500 border border-white/[0.04]"
             }`}
           >
             2
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-[10px] uppercase font-mono tracking-wider opacity-70">
+            <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500">
               Switch 主機連線
             </div>
-            <div className="text-xs font-semibold truncate flex items-center gap-1.5 mt-0.5">
+            <div className="text-xs font-medium truncate flex items-center gap-1.5 mt-0.5">
               <span
                 className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                   isSwitchConnected
-                    ? "bg-cyan-400"
+                    ? "bg-emerald-400"
                     : isSwitchPairing
                     ? "bg-amber-400 animate-pulse"
                     : "bg-zinc-600"
@@ -677,18 +713,18 @@ export const HardwareSettings: React.FC<Props> = ({
       </div>
 
       {/* Main Sequential Step Cards */}
-      <div className="space-y-5">
+      <div className="space-y-4">
         {/* ============================================================ */}
         {/* STEP 0: Check USB & Firmware Compliance                      */}
         {/* ============================================================ */}
-        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-5 shadow-xl space-y-4 backdrop-blur-md relative">
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
+        <div className="bg-zinc-900/40 border border-white/[0.06] rounded-xl p-5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4 backdrop-blur-sm relative">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
             <div className="flex items-center gap-2.5">
               <div
-                className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
+                className={`w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-mono font-medium ${
                   isStep0Ready
-                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                    : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
                 }`}
               >
                 0
@@ -705,10 +741,10 @@ export const HardwareSettings: React.FC<Props> = ({
 
             <div className="flex items-center gap-2">
               <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                className={`text-[10px] font-mono px-2 py-0.5 rounded-md border ${
                   isStep0Ready
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-                    : "bg-rose-500/10 border-rose-500/30 text-rose-300"
+                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                    : "bg-rose-500/10 border-rose-500/20 text-rose-400"
                 }`}
               >
                 {isStep0Ready ? "✓ 硬體就緒" : "✕ 需接妥硬體"}
@@ -717,10 +753,10 @@ export const HardwareSettings: React.FC<Props> = ({
               {/* Maintenance Tool Toggle */}
               <button
                 onClick={() => setShowFlasher(!showFlasher)}
-                className={`px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md border text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
                   showFlasher
-                    ? "bg-amber-500/20 border-amber-500/40 text-amber-200"
-                    : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
+                    ? "bg-zinc-800 border-white/[0.14] text-zinc-200"
+                    : "bg-zinc-900/80 border-white/[0.06] text-zinc-400 hover:text-zinc-200 hover:border-white/[0.12]"
                 }`}
               >
                 <Wrench className="w-3 h-3" />
@@ -734,10 +770,10 @@ export const HardwareSettings: React.FC<Props> = ({
 
           <div className="space-y-3">
             {ports.length === 0 ? (
-              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-start gap-3">
+              <div className="p-3.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-start gap-3">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <div className="font-semibold">尚未偵測到 ESP32 USB 裝置</div>
+                  <div className="font-medium">尚未偵測到 ESP32 USB 裝置</div>
                   <div className="text-[11px] text-rose-300/80 leading-relaxed">
                     請將 ESP32 透過 USB 傳輸線插入電腦（確認線材具備數據傳輸功能），接妥後點擊右上角「重新掃描裝置」。
                   </div>
@@ -758,7 +794,7 @@ export const HardwareSettings: React.FC<Props> = ({
                     value={selectedPort}
                     onChange={(e) => handlePortChange(e.target.value)}
                     disabled={status.is_connected}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-hidden focus:border-cyan-500 transition-colors font-mono cursor-pointer"
+                    className="w-full bg-zinc-950 border border-white/[0.08] hover:border-white/[0.14] rounded-md px-3 py-2 text-xs text-zinc-200 focus:outline-hidden focus:border-white/[0.22] transition-colors font-mono cursor-pointer"
                   >
                     {ports.map((p) => (
                       <option key={p.port_name} value={p.port_name}>
@@ -769,9 +805,9 @@ export const HardwareSettings: React.FC<Props> = ({
                 </div>
 
                 <div className="md:col-span-4">
-                  <div className="p-2 rounded-xl bg-zinc-950 border border-zinc-800/80 flex items-center justify-between text-xs">
+                  <div className="p-2 rounded-lg bg-zinc-950/80 border border-white/[0.06] flex items-center justify-between text-xs">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <Cpu className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                      <Cpu className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                       <span className="font-mono text-[11px] text-zinc-300 truncate">
                         {isRecognizedUsb ? "CH340 / CP2102" : "標準 USB 晶片"}
                       </span>
@@ -791,11 +827,11 @@ export const HardwareSettings: React.FC<Props> = ({
 
             {/* Collapsible Firmware Flasher Drawer */}
             {showFlasher && (
-              <div className="pt-3 border-t border-zinc-800/80 space-y-3">
+              <div className="pt-3 border-t border-white/[0.06] space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Flame className="w-4 h-4 text-amber-400" />
-                    <span className="text-xs font-semibold text-zinc-200">
+                    <Wrench className="w-4 h-4 text-zinc-300" />
+                    <span className="text-xs font-medium text-zinc-200">
                       ESP32 韌體一鍵燒錄 (PRO-UART0.bin)
                     </span>
                   </div>
@@ -810,9 +846,9 @@ export const HardwareSettings: React.FC<Props> = ({
                       <span>燒錄進度</span>
                       <span>{flashProgress}%</span>
                     </div>
-                    <div className="w-full h-1.5 rounded-full bg-zinc-950 overflow-hidden border border-zinc-800">
+                    <div className="w-full h-1.5 rounded-full bg-zinc-950 overflow-hidden border border-white/[0.08]">
                       <div
-                        className="h-full bg-gradient-to-r from-cyan-500 to-amber-500 transition-all duration-300"
+                        className="h-full bg-zinc-100 transition-all duration-300"
                         style={{ width: `${flashProgress}%` }}
                       />
                     </div>
@@ -823,13 +859,13 @@ export const HardwareSettings: React.FC<Props> = ({
                   <button
                     onClick={handleFlashFirmware}
                     disabled={isFlashing || !selectedPort}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50 ${
+                    className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 ${
                       isFlashing
                         ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                        : "bg-amber-500 hover:bg-amber-400 text-zinc-950"
+                        : "bg-zinc-100 hover:bg-white text-zinc-950"
                     }`}
                   >
-                    <Flame className={`w-3.5 h-3.5 ${isFlashing ? "animate-pulse" : ""}`} />
+                    <Zap className={`w-3.5 h-3.5 ${isFlashing ? "animate-pulse" : ""}`} />
                     <span>{isFlashing ? "正在燒錄韌體中..." : "開始燒錄 PRO-UART0.bin"}</span>
                   </button>
                   <span className="text-[11px] text-zinc-400">
@@ -838,13 +874,13 @@ export const HardwareSettings: React.FC<Props> = ({
                 </div>
 
                 {/* Console Log */}
-                <div className="h-28 rounded-xl bg-zinc-950 border border-zinc-800/80 p-2.5 font-mono text-[10px] overflow-y-auto space-y-0.5 text-zinc-400">
+                <div className="h-28 rounded-lg bg-zinc-950 border border-white/[0.06] p-2.5 font-mono text-[10px] overflow-y-auto space-y-0.5 text-zinc-400">
                   {flashLogs.map((log, index) => (
                     <div
                       key={index}
                       className={
                         log.includes("成功") || log.includes("完成")
-                          ? "text-emerald-400 font-semibold"
+                          ? "text-emerald-400 font-medium"
                           : log.includes("錯誤")
                           ? "text-rose-400"
                           : "text-zinc-400"
@@ -862,14 +898,14 @@ export const HardwareSettings: React.FC<Props> = ({
         {/* ============================================================ */}
         {/* STEP 1: Toggle Virtual Controller Service                   */}
         {/* ============================================================ */}
-        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-5 shadow-xl space-y-4 backdrop-blur-md relative overflow-hidden">
+        <div className="bg-zinc-900/40 border border-white/[0.06] rounded-xl p-5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4 backdrop-blur-sm relative overflow-hidden">
           {/* Step 1 Lock Overlay if Step 0 is not ready */}
           {!isStep0Ready && (
             <div className="absolute inset-0 bg-zinc-950/85 backdrop-blur-xs z-20 flex flex-col items-center justify-center p-4 text-center space-y-2">
-              <div className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center text-zinc-400 shadow-md">
-                <Lock className="w-4 h-4 text-amber-400" />
+              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-400 shadow-xs">
+                <Lock className="w-4 h-4 text-zinc-400" />
               </div>
-              <div className="text-xs font-semibold text-zinc-200">
+              <div className="text-xs font-medium text-zinc-200">
                 步驟 1 已鎖定
               </div>
               <div className="text-[11px] text-zinc-400 max-w-xs">
@@ -880,13 +916,13 @@ export const HardwareSettings: React.FC<Props> = ({
             </div>
           )}
 
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
             <div className="flex items-center gap-2.5">
               <div
-                className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
+                className={`w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-mono font-medium ${
                   status.is_connected
-                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                    : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "bg-zinc-800 text-zinc-400 border border-white/[0.06]"
                 }`}
               >
                 1
@@ -919,7 +955,7 @@ export const HardwareSettings: React.FC<Props> = ({
                     if (selectedPort) probeFirmware(selectedPort, newBaud);
                   }}
                   disabled={status.is_connected || !isStep0Ready}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-hidden focus:border-cyan-500 transition-colors font-mono cursor-pointer disabled:opacity-50"
+                  className="w-full bg-zinc-950 border border-white/[0.08] hover:border-white/[0.14] rounded-md px-3 py-2 text-xs text-zinc-200 focus:outline-hidden focus:border-white/[0.22] transition-colors font-mono cursor-pointer disabled:opacity-50"
                 >
                   {COMMON_BAUDRATES.map((b) => (
                     <option key={b} value={b}>
@@ -931,11 +967,11 @@ export const HardwareSettings: React.FC<Props> = ({
 
               <div className="md:col-span-8 flex flex-col sm:flex-row items-center gap-3 md:justify-end">
                 {/* Live Telemetry Pill */}
-                <div className="flex items-center gap-3 p-2 rounded-xl bg-zinc-950 border border-zinc-800 text-xs w-full sm:w-auto">
+                <div className="flex items-center gap-3 p-2 rounded-lg bg-zinc-950/80 border border-white/[0.06] text-xs w-full sm:w-auto">
                   <div className="flex items-center gap-1.5 text-zinc-400">
-                    <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                    <Activity className="w-3.5 h-3.5 text-zinc-400" />
                     <span>頻率:</span>
-                    <span className="font-mono text-zinc-200 font-bold">{status.tx_fps} Hz</span>
+                    <span className="font-mono text-zinc-200 font-medium">{status.tx_fps} Hz</span>
                   </div>
                   <span className="text-zinc-700">|</span>
                   <div className="text-zinc-400 text-[11px]">
@@ -947,10 +983,10 @@ export const HardwareSettings: React.FC<Props> = ({
                 <button
                   onClick={toggleVirtualController}
                   disabled={!isStep0Ready}
-                  className={`w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50 shrink-0 ${
+                  className={`w-full sm:w-auto px-5 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 shrink-0 ${
                     status.is_connected
-                      ? "bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-200"
-                      : "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-[0_0_15px_rgba(16,185,129,0.25)]"
+                      ? "bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-200"
+                      : "bg-zinc-100 hover:bg-white text-zinc-950"
                   }`}
                 >
                   <Power className="w-3.5 h-3.5" />
@@ -960,9 +996,9 @@ export const HardwareSettings: React.FC<Props> = ({
             </div>
 
             {/* Heartbeat info banner */}
-            <div className="p-2.5 rounded-xl bg-zinc-950/70 border border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
+            <div className="p-2.5 rounded-lg bg-zinc-950/60 border border-white/[0.06] flex items-center justify-between text-xs text-zinc-400">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <ShieldCheck className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                 <span className="text-[11px]">
                   60Hz 心跳常駐保活已啟用：防止 Switch 閒置休眠踢掉手把，200ms 斷訊看門狗自動歸零防暴走。
                 </span>
@@ -974,14 +1010,14 @@ export const HardwareSettings: React.FC<Props> = ({
         {/* ============================================================ */}
         {/* STEP 2: Switch Auto-Pairing & Reconnect                      */}
         {/* ============================================================ */}
-        <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-5 shadow-xl space-y-4 backdrop-blur-md relative overflow-hidden">
+        <div className="bg-zinc-900/40 border border-white/[0.06] rounded-xl p-5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4 backdrop-blur-sm relative overflow-hidden">
           {/* Step 2 Lock Overlay if Step 1 is not running */}
           {!isStep1Ready && (
             <div className="absolute inset-0 bg-zinc-950/85 backdrop-blur-xs z-20 flex flex-col items-center justify-center p-4 text-center space-y-2">
-              <div className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center text-zinc-400 shadow-md">
-                <Lock className="w-4 h-4 text-amber-400" />
+              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-400 shadow-xs">
+                <Lock className="w-4 h-4 text-zinc-400" />
               </div>
-              <div className="text-xs font-semibold text-zinc-200">
+              <div className="text-xs font-medium text-zinc-200">
                 步驟 2 已鎖定
               </div>
               <div className="text-[11px] text-zinc-400 max-w-xs">
@@ -990,13 +1026,13 @@ export const HardwareSettings: React.FC<Props> = ({
             </div>
           )}
 
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
             <div className="flex items-center gap-2.5">
               <div
-                className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
+                className={`w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-mono font-medium ${
                   isSwitchConnected
-                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
-                    : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "bg-zinc-800 text-zinc-400 border border-white/[0.06]"
                 }`}
               >
                 2
@@ -1017,13 +1053,13 @@ export const HardwareSettings: React.FC<Props> = ({
 
           {/* Branch A: Already Paired Console (Auto-reconnect workflow) */}
           {hasPairedSwitch ? (
-            <div className="p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-800/40 space-y-3">
+            <div className="p-3.5 rounded-lg bg-zinc-950/80 border border-emerald-500/20 space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-semibold text-cyan-200">
-                  <Check className="w-4 h-4 text-cyan-400" />
+                <div className="flex items-center gap-2 text-xs font-medium text-emerald-300">
+                  <Check className="w-4 h-4 text-emerald-400" />
                   <span>已記憶配對主機 (自動配對就緒)</span>
                 </div>
-                <span className="text-[10px] font-mono text-cyan-300 px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30">
+                <span className="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
                   Auto-Pair Active
                 </span>
               </div>
@@ -1041,10 +1077,10 @@ export const HardwareSettings: React.FC<Props> = ({
                     )
                   }
                   disabled={activeCommand !== null || !isStep1Ready}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50 ${
+                  className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 ${
                     activeCommand === "wake_reconnect"
-                      ? "bg-amber-400 text-zinc-950 scale-95"
-                      : "bg-amber-500 hover:bg-amber-400 text-zinc-950"
+                      ? "bg-zinc-200 text-zinc-950"
+                      : "bg-zinc-100 hover:bg-white text-zinc-950"
                   }`}
                 >
                   <Zap className="w-3.5 h-3.5" />
@@ -1054,7 +1090,7 @@ export const HardwareSettings: React.FC<Props> = ({
                 <button
                   onClick={handleClearMemory}
                   disabled={activeCommand !== null || !isStep1Ready}
-                  className="px-3 py-2 rounded-xl text-xs font-medium bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   <RotateCcw className="w-3 h-3 text-zinc-400" />
                   <span>更換主機（清除配對記憶）</span>
@@ -1068,7 +1104,7 @@ export const HardwareSettings: React.FC<Props> = ({
                     )
                   }
                   disabled={activeCommand !== null || !isStep1Ready}
-                  className="px-3 py-2 rounded-xl text-xs font-medium bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   <Power className="w-3 h-3 text-rose-400" />
                   <span>緊急訊號歸零</span>
@@ -1077,13 +1113,13 @@ export const HardwareSettings: React.FC<Props> = ({
             </div>
           ) : (
             /* Branch B: First-time Pairing Workflow */
-            <div className="p-3.5 rounded-xl bg-zinc-950/70 border border-zinc-800/80 space-y-3">
+            <div className="p-3.5 rounded-lg bg-zinc-950/80 border border-white/[0.06] space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-semibold text-zinc-200">
-                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                <div className="flex items-center gap-2 text-xs font-medium text-zinc-200">
+                  <Radio className="w-3.5 h-3.5 text-zinc-400" />
                   <span>首次配對流程（尚未記憶主機）</span>
                 </div>
-                <span className="text-[10px] text-amber-400 font-mono">
+                <span className="text-[10px] text-amber-400/90 font-mono">
                   需要手動配對
                 </span>
               </div>
@@ -1091,20 +1127,20 @@ export const HardwareSettings: React.FC<Props> = ({
               <div className="text-[11px] text-zinc-400 space-y-1 leading-relaxed">
                 <div>1. 請在 Switch 打開主畫面<strong>「控制器」➔「更改拿法 / 順序」</strong>畫面。</div>
                 <div>2. 點擊下方按鈕送出 <strong>L + R</strong> 握手脈衝，讓 Switch 自動分配為 1P。</div>
-                <div className="text-cyan-400 font-medium">3. 配對成功後將自動記憶，下次啟動直接自動連線！</div>
+                <div className="text-zinc-300 font-medium">3. 配對成功後將自動記憶，下次啟動直接自動連線！</div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 <button
                   onClick={handleFirstTimePair}
                   disabled={activeCommand !== null || !isStep1Ready}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50 ${
+                  className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 ${
                     activeCommand === "pair_lr"
-                      ? "bg-cyan-400 text-zinc-950 scale-95"
-                      : "bg-cyan-500 hover:bg-cyan-400 text-zinc-950"
+                      ? "bg-zinc-200 text-zinc-950"
+                      : "bg-zinc-100 hover:bg-white text-zinc-950"
                   }`}
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <Radio className="w-3.5 h-3.5" />
                   <span>開始首次配對 (送出 L+R 並記憶)</span>
                 </button>
 
@@ -1116,7 +1152,7 @@ export const HardwareSettings: React.FC<Props> = ({
                     )
                   }
                   disabled={activeCommand !== null || !isStep1Ready}
-                  className="px-3 py-2 rounded-xl text-xs font-medium bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   <Power className="w-3 h-3 text-rose-400" />
                   <span>緊急訊號歸零</span>
@@ -1126,11 +1162,28 @@ export const HardwareSettings: React.FC<Props> = ({
           )}
         </div>
       </div>
+      </div>
+
+      {/* 3. Unified Bottom Footer Bar */}
+      <div className="h-9 px-6 border-t border-white/[0.06] bg-zinc-950/90 backdrop-blur-sm flex items-center justify-between text-[11px] font-mono text-zinc-400 select-none shrink-0 z-20">
+        <div className="flex items-center gap-3">
+          <span>● 序列埠: {selectedPort || "未選取 USB 裝置"}</span>
+          <span className="text-zinc-700">|</span>
+          <span>通訊鮑率: {selectedBaudrate} bps</span>
+          <span className="text-zinc-700">|</span>
+          <span>已發送: {status.packets_sent.toLocaleString()} 封包</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span>虛擬手把: {status.is_connected ? `60Hz 串流中 (${status.tx_fps} Hz)` : "已停止"}</span>
+          <span className="text-zinc-700">|</span>
+          <span>Switch: {isSwitchConnected ? "1P 已連線" : isSwitchPairing ? "配對中..." : "離線"}</span>
+        </div>
+      </div>
 
       {/* Floating Bottom-Right Toast Notifications (No layout shift / jitter) */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none">
+      <div className="fixed bottom-12 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">
         {errorMessage && (
-          <div className="pointer-events-auto p-3.5 rounded-2xl bg-zinc-900/95 border border-rose-500/40 shadow-2xl backdrop-blur-md flex items-start gap-3 text-xs text-rose-200 animate-in fade-in slide-in-from-bottom-3 duration-200">
+          <div className="pointer-events-auto p-3.5 rounded-xl bg-zinc-900/95 border border-rose-500/30 shadow-xl backdrop-blur-md flex items-start gap-3 text-xs text-rose-200 animate-in fade-in slide-in-from-bottom-2 duration-200">
             <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
             <div className="flex-1 leading-relaxed">{errorMessage}</div>
             <button
@@ -1143,7 +1196,7 @@ export const HardwareSettings: React.FC<Props> = ({
         )}
 
         {successNotice && (
-          <div className="pointer-events-auto p-3.5 rounded-2xl bg-zinc-900/95 border border-emerald-500/40 shadow-2xl backdrop-blur-md flex items-start gap-3 text-xs text-emerald-200 animate-in fade-in slide-in-from-bottom-3 duration-200">
+          <div className="pointer-events-auto p-3.5 rounded-xl bg-zinc-900/95 border border-emerald-500/30 shadow-xl backdrop-blur-md flex items-start gap-3 text-xs text-emerald-200 animate-in fade-in slide-in-from-bottom-2 duration-200">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
             <div className="flex-1 leading-relaxed">{successNotice}</div>
             <button

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ControllerState } from "../types";
-import { Activity, Keyboard, X as CloseIcon, CircleDot, Square } from "lucide-react";
+import { Activity, Keyboard, X as CloseIcon, CircleDot, Square, Gamepad2 } from "lucide-react";
 import { KEYBOARD_GUIDE } from "../hooks/useVirtualGamepad";
 import { usePulsedButtonPress } from "../hooks/usePulsedButtonPress";
 import { useStickDrag } from "../hooks/useStickDrag";
@@ -11,6 +11,7 @@ interface Props {
   gamepadName?: string;
   isMuted?: boolean;
   esp32Connected?: boolean;
+  switchPairingState?: string;
   fps?: number;
   onTriggerButton?: (button: string, pressed: boolean) => void;
   onTriggerStick?: (stick: "left" | "right", x: number, y: number) => void;
@@ -27,8 +28,9 @@ interface Props {
 export const GamepadVisualizer: React.FC<Props> = ({
   state,
   gamepadName,
-  isMuted: _isMuted = true,
+  isMuted = false,
   esp32Connected = false,
+  switchPairingState = "disconnected",
   fps = 100,
   onTriggerButton,
   onTriggerStick,
@@ -126,7 +128,6 @@ export const GamepadVisualizer: React.FC<Props> = ({
   const isDown = [3, 4, 5].includes(dpadVal);
   const isLeft = [5, 6, 7].includes(dpadVal);
 
-
   // Check if any button is currently pressed for reactive ghost expressions
   const isAnyButtonPressed = Boolean(
     state.a ||
@@ -151,68 +152,93 @@ export const GamepadVisualizer: React.FC<Props> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950 relative">
-      {/* Top Header Bar */}
-      <div className="h-14 px-6 border-b border-zinc-800/80 flex items-center justify-between shrink-0 bg-zinc-950/60 backdrop-blur-sm z-30">
-        <div className="flex items-center gap-2 text-xs select-none">
-          <span
-            className={`w-2 h-2 rounded-full transition-colors ${
-              gamepadName
-                ? "bg-emerald-500 animate-pulse"
-                : "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]"
-            }`}
-          />
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-xs text-zinc-100">
-              {gamepadName || "本機控制模式"}
-            </span>
-            <span className="text-[11px] text-zinc-400">
+      {/* 1. Unified Top Header */}
+      <div className="h-16 px-6 border-b border-white/[0.06] flex items-center justify-between shrink-0 bg-zinc-950/80 backdrop-blur-sm z-30">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-300 shadow-xs shrink-0">
+            <Gamepad2 className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm font-semibold tracking-tight text-zinc-100">
+                即時儀表板
+              </h1>
+              <span
+                className={`px-1.5 py-0.5 rounded font-mono text-[10px] border flex items-center gap-1.5 ${
+                  gamepadName
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    : "bg-zinc-850 text-zinc-400 border-white/[0.06]"
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${gamepadName ? "bg-emerald-400" : "bg-zinc-500"}`} />
+                <span>{gamepadName ? "實體手把已就緒" : "本機控制模式"}</span>
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 truncate hidden sm:block">
               {gamepadName
-                ? "• 實體手把已就緒 (可同時混用鍵盤與點擊)"
-                : "• 鍵盤與畫面按鈕皆可直接操作 (外接手把非必須)"}
-            </span>
+                ? "實體手把已連線，可混用鍵盤、點擊與搖桿拖曳"
+                : "鍵盤與畫面按鈕皆可直接操作 (支援外接實體手把)"}
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 text-xs text-zinc-400 font-mono">
-          {/* Phase 3: Quick Macro Recording Button */}
+        {/* Action Toolbar */}
+        <div className="flex items-center gap-2 text-xs font-mono">
+          {/* Quick Macro Recording Button */}
           {recordingPhase === "recording" ? (
             <button
               type="button"
               onClick={onStopRecord}
-              className="flex items-center gap-2 px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-[0_0_15px_rgba(244,63,94,0.6)] animate-pulse transition-all cursor-pointer select-none"
+              className="flex items-center gap-2 h-8 px-3 rounded-md bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-medium text-xs transition-colors cursor-pointer select-none"
               title="點擊停止側錄並儲存巨集腳本"
             >
-              <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
               <span>
                 側錄中 {(recordingElapsedMs / 1000).toFixed(1)}s ({recordedActionsCount} 步)
               </span>
-              <Square className="w-3 h-3 fill-white ml-0.5" />
+              <Square className="w-3 h-3 fill-rose-300 ml-0.5" />
             </button>
           ) : (
             <button
               type="button"
               onClick={onStartRecord}
               disabled={recordingPhase === "countdown"}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-900 border border-rose-500/40 hover:border-rose-400 hover:bg-rose-950/30 text-rose-300 hover:text-rose-100 transition-colors shadow-xs cursor-pointer select-none"
+              className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-white/[0.08] hover:border-white/[0.14] text-rose-300 hover:text-rose-200 font-medium text-xs transition-colors shadow-xs cursor-pointer select-none"
               title="開始側錄手把與鍵盤操作 (倒數 321 後開始捕捉)"
             >
-              <CircleDot className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+              <CircleDot className="w-3.5 h-3.5 text-rose-400" />
               <span>側錄巨集</span>
             </button>
           )}
 
+          {/* Input Transmission State Toggle */}
+          <button
+            type="button"
+            onClick={onToggleMute}
+            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-md border text-xs font-medium transition-colors cursor-pointer select-none ${
+              isMuted
+                ? "bg-amber-500/15 border-amber-500/30 text-amber-300 hover:bg-amber-500/25"
+                : "bg-zinc-850 hover:bg-zinc-800 border-white/[0.08] hover:border-white/[0.14] text-zinc-300 hover:text-zinc-100"
+            }`}
+            title={isMuted ? "點擊解除暫停，開始傳送操作訊號" : "點擊暫停訊號傳送 (看門狗安全中立)"}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${isMuted ? "bg-amber-400" : "bg-emerald-400"}`} />
+            <span>{isMuted ? "訊號已暫停" : "訊號已啟用"}</span>
+          </button>
+
           {/* Keyboard Guide Toggle Button */}
           <button
             onClick={() => setShowKeyGuide(!showKeyGuide)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-700/80 hover:border-zinc-500 text-zinc-200 transition-colors shadow-xs cursor-pointer"
-            title="查看電腦鍵盤與畫面操作對照 (外接手把非必須)"
+            className="flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-white/[0.08] hover:border-white/[0.14] text-zinc-300 hover:text-zinc-100 font-medium text-xs transition-colors shadow-xs cursor-pointer"
+            title="查看電腦鍵盤與畫面操作對照"
           >
-            <Keyboard className="w-3.5 h-3.5 text-cyan-400" />
+            <Keyboard className="w-3.5 h-3.5 text-zinc-400" />
             <span>鍵盤對照表</span>
           </button>
 
-          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800">
-            <Activity className="w-3.5 h-3.5 text-zinc-400" />
+          {/* Live FPS Badge */}
+          <span className="flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-zinc-900 border border-white/[0.06] text-zinc-400 font-mono text-xs">
+            <Activity className="w-3.5 h-3.5 text-zinc-500" />
             <span>{fps} Hz</span>
           </span>
         </div>
@@ -221,42 +247,38 @@ export const GamepadVisualizer: React.FC<Props> = ({
       {/* Keyboard Guide Modal Overlay */}
       {showKeyGuide && (
         <div className="absolute inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-in fade-in duration-150">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-zinc-100 font-semibold text-sm">
-                <Keyboard className="w-4 h-4 text-cyan-400" />
-                <span>電腦鍵盤操作對照表 (外接手把非必須)</span>
+          <div className="bg-zinc-900 border border-white/[0.1] rounded-xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+              <div className="flex items-center gap-2 text-zinc-100 font-semibold text-xs tracking-tight">
+                <Keyboard className="w-4 h-4 text-zinc-400" />
+                <span>電腦鍵盤操作對照表</span>
               </div>
               <button
                 onClick={() => setShowKeyGuide(false)}
-                className="p-1 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                className="p-1 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer"
               >
                 <CloseIcon className="w-4 h-4" />
               </button>
             </div>
 
             <div className="p-4 overflow-y-auto space-y-3 text-xs">
-              <div className="p-2.5 rounded-lg bg-cyan-950/40 border border-cyan-800/40 text-cyan-200 text-[11px] leading-relaxed">
-                💡 <strong>外接手把非必須</strong>：Ghost-Pad 支援純電腦操作！您可以直接敲擊鍵盤（WASD 類比搖桿、L/K/I/J 確認取消）或直接用滑鼠點擊畫面按鈕與拖曳搖桿，皆能即時驅動 Switch。
+              <div className="p-3 rounded-lg bg-zinc-800/40 border border-white/[0.06] text-zinc-300 text-[11px] leading-relaxed">
+                <span className="font-medium text-zinc-100">外接手把非必須</span>：Ghost-Pad 支援純電腦操作！您可以直接敲擊鍵盤（WASD 類比搖桿、L/K/I/J 確認取消）或直接用滑鼠點擊畫面按鈕與拖曳搖桿，皆能即時驅動 Switch。
               </div>
-
-              <p className="text-zinc-400 leading-relaxed text-[11px]">
-                支援三路並行：實體手把、電腦鍵盤、螢幕點擊拖曳皆可隨時混用！
-              </p>
 
               <div className="grid grid-cols-2 gap-2">
                 {KEYBOARD_GUIDE.map((item) => (
                   <div
                     key={item.key}
-                    className="p-2 rounded-lg bg-zinc-950/60 border border-zinc-800 flex items-center justify-between"
+                    className="p-2 rounded-md bg-zinc-950/60 border border-white/[0.06] flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded font-mono font-bold bg-zinc-800 text-cyan-300 border border-zinc-700 text-[11px]">
+                      <span className="px-2 py-0.5 rounded font-mono font-medium bg-zinc-800 text-zinc-200 border border-white/[0.08] text-[11px]">
                         {item.key}
                       </span>
                       <span className="text-zinc-400 text-[11px]">{item.label}</span>
                     </div>
-                    <span className="font-bold text-zinc-200 text-xs px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800">
+                    <span className="font-mono font-medium text-zinc-300 text-xs px-1.5 py-0.5 rounded bg-zinc-900 border border-white/[0.06]">
                       {item.button}
                     </span>
                   </div>
@@ -264,10 +286,10 @@ export const GamepadVisualizer: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="p-3 bg-zinc-950 border-t border-zinc-800 flex justify-end">
+            <div className="p-3.5 bg-zinc-950/40 border-t border-white/[0.06] flex justify-end">
               <button
                 onClick={() => setShowKeyGuide(false)}
-                className="px-4 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-100 font-medium transition-colors"
+                className="px-3.5 py-1.5 rounded-md bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-medium transition-colors cursor-pointer shadow-xs"
               >
                 關閉
               </button>
@@ -292,62 +314,28 @@ export const GamepadVisualizer: React.FC<Props> = ({
             }}
             className="relative select-none flex items-center justify-center shrink-0 transition-transform duration-100 ease-out"
           >
-          {/* SVG Cute Ghost Silhouette with Raised Little Hands (Boo! 👻) & Kawaii Face */}
+          {/* SVG Cute Ghost Silhouette with Raised Little Hands & Minimalist Face */}
           <svg
             viewBox="0 0 620 390"
-            className={`absolute inset-0 w-full h-full pointer-events-none transition-all duration-500 ease-out ${
-              isGhostAwake
-                ? "drop-shadow-[0_0_35px_rgba(255,255,255,0.22)] drop-shadow-[0_22px_45px_rgba(0,0,0,0.65)]"
-                : "drop-shadow-[0_22px_50px_rgba(0,0,0,0.85)]"
-            }`}
+            className="absolute inset-0 w-full h-full pointer-events-none transition-all duration-500 ease-out drop-shadow-[0_12px_28px_rgba(0,0,0,0.6)]"
           >
             <defs>
-              {/* Frosted Translucent Ghost Sheet Gradient (休眠/未啟用時的半透明暗色幽靈質感) */}
+              {/* Frosted Translucent Ghost Sheet Gradient */}
               <linearGradient id="cuteGhostGradTranslucent" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#353544" stopOpacity="0.55" />
-                <stop offset="30%" stopColor="#242432" stopOpacity="0.60" />
-                <stop offset="70%" stopColor="#171720" stopOpacity="0.68" />
-                <stop offset="100%" stopColor="#0d0d14" stopOpacity="0.75" />
+                <stop offset="0%" stopColor="#27272a" stopOpacity="0.55" />
+                <stop offset="30%" stopColor="#1c1c1f" stopOpacity="0.60" />
+                <stop offset="70%" stopColor="#141416" stopOpacity="0.68" />
+                <stop offset="100%" stopColor="#09090b" stopOpacity="0.75" />
               </linearGradient>
 
-              {/* Luminous Pure White Ghost Sheet Gradient (啟用時的白色底為主色) */}
+              {/* Luminous Off-White Ghost Sheet Gradient */}
               <linearGradient id="cuteGhostGradWhite" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-                <stop offset="30%" stopColor="#fcfcfd" stopOpacity="1" />
-                <stop offset="70%" stopColor="#f4f4f7" stopOpacity="0.99" />
-                <stop offset="100%" stopColor="#e4e4e9" stopOpacity="0.98" />
+                <stop offset="30%" stopColor="#fafafa" stopOpacity="1" />
+                <stop offset="70%" stopColor="#f4f4f5" stopOpacity="0.99" />
+                <stop offset="100%" stopColor="#e4e4e7" stopOpacity="0.98" />
               </linearGradient>
-
-              {/* Hand Aura Gradients */}
-              <radialGradient id="handGlowGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.35" />
-                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
-              </radialGradient>
             </defs>
-
-            {/* Reactive Left Hand Glow Aura */}
-            {isLeftHandActive && (
-              <ellipse
-                cx={isGhostAwake ? "110" : "118"}
-                cy={isGhostAwake ? "42" : "88"}
-                rx="85"
-                ry="45"
-                fill="url(#handGlowGrad)"
-                className="transition-all duration-700 ease-out"
-              />
-            )}
-
-            {/* Reactive Right Hand Glow Aura */}
-            {isRightHandActive && (
-              <ellipse
-                cx={isGhostAwake ? "515" : "508"}
-                cy={isGhostAwake ? "54" : "96"}
-                rx="85"
-                ry="45"
-                fill="url(#handGlowGrad)"
-                className="transition-all duration-700 ease-out"
-              />
-            )}
 
             {/* Cute Ghost Silhouette with Animated Drooping Hands (Sleeping) vs Raised Hands (Awake) */}
             <path
@@ -357,10 +345,10 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   : "M 310, 38 C 352, 38, 385, 52, 408, 78 C 424, 94, 444, 108, 470, 118 C 496, 128, 522, 136, 546, 126 C 564, 118, 574, 105, 568, 132 C 562, 158, 558, 180, 556, 205 C 550, 242, 556, 285, 550, 345 C 530, 328, 514, 362, 494, 346 C 474, 328, 458, 362, 438, 346 C 418, 328, 402, 362, 374, 346 C 346, 328, 330, 362, 308, 346 C 286, 362, 270, 328, 242, 346 C 214, 362, 198, 328, 178, 346 C 158, 362, 142, 328, 122, 346 C 102, 362, 86, 328, 66, 345 C 58, 285, 64, 242, 54, 205 C 50, 180, 44, 158, 48, 132 C 54, 105, 66, 118, 86, 126 C 110, 136, 136, 128, 162, 118 C 188, 108, 200, 94, 212, 78 C 230, 48, 264, 38, 310, 38 Z"
               }
               fill={isGhostAwake ? "url(#cuteGhostGradWhite)" : "url(#cuteGhostGradTranslucent)"}
-              stroke={isGhostAwake ? "rgba(203, 213, 225, 0.95)" : "rgba(255, 255, 255, 0.25)"}
-              strokeWidth={isGhostAwake ? "2.4" : "2.2"}
+              stroke={isGhostAwake ? "rgba(212, 212, 216, 0.8)" : "rgba(255, 255, 255, 0.16)"}
+              strokeWidth={isGhostAwake ? "2" : "1.5"}
               style={{
-                transition: "d 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.5s ease-out, stroke 0.5s ease-out, stroke-width 0.5s ease-out",
+                transition: "d 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.5s ease-out, stroke 0.5s ease-out",
               }}
             />
 
@@ -372,8 +360,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   : "M 162, 118 C 150, 142 136, 180 128, 230"
               }
               fill="none"
-              stroke={isGhostAwake ? "rgba(100, 116, 139, 0.35)" : "rgba(255, 255, 255, 0.14)"}
-              strokeWidth="1.2"
+              stroke={isGhostAwake ? "rgba(113, 113, 122, 0.3)" : "rgba(255, 255, 255, 0.08)"}
+              strokeWidth="1"
               strokeDasharray="4 2"
               style={{ transition: "d 0.7s ease-out, stroke 0.5s ease-out" }}
             />
@@ -384,84 +372,64 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   : "M 470, 118 C 478, 145 484, 185 490, 235"
               }
               fill="none"
-              stroke={isGhostAwake ? "rgba(100, 116, 139, 0.35)" : "rgba(255, 255, 255, 0.14)"}
-              strokeWidth="1.2"
+              stroke={isGhostAwake ? "rgba(113, 113, 122, 0.3)" : "rgba(255, 255, 255, 0.08)"}
+              strokeWidth="1"
               strokeDasharray="4 2"
               style={{ transition: "d 0.7s ease-out, stroke 0.5s ease-out" }}
             />
-            <path
-              d="M 310, 38 C 310, 120 310, 240 310, 346"
-              fill="none"
-              stroke={isGhostAwake ? "rgba(100, 116, 139, 0.2)" : "rgba(255, 255, 255, 0.05)"}
-              strokeWidth="1"
-              className="transition-colors duration-500"
-            />
 
-            {/* DITTO GHOST EXPRESSION (休眠睡覺 vs 啟用醒來) */}
+            {/* Ghost Expression */}
             {!isGhostAwake ? (
-              /* SLEEPING FACE (休眠狀態：閉眼安詳睡覺，伴隨浮動 zZ) */
+              /* Sleeping Face */
               <g className="transition-opacity duration-300">
-                {/* Sleeping Closed Eyes (⌒   ⌒) */}
                 <path
                   d="M 275, 89 Q 282, 82 289, 89"
-                  fill="none"
-                  stroke="#a1a1aa"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 331, 89 Q 338, 82 345, 89"
-                  fill="none"
-                  stroke="#a1a1aa"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-
-                {/* Peaceful Relaxed Sleep Mouth */}
-                <path
-                  d="M 306, 96 Q 310, 98 314, 96"
                   fill="none"
                   stroke="#71717a"
                   strokeWidth="2"
                   strokeLinecap="round"
                 />
-
-                {/* Floating Sleep 'z' 'Z' Indicator */}
-                <g className="select-none pointer-events-none opacity-50">
-                  <text x="350" y="74" fill="#a1a1aa" fontSize="11" fontFamily="monospace" fontWeight="bold">z</text>
-                  <text x="359" y="63" fill="#71717a" fontSize="14" fontFamily="monospace" fontWeight="bold">Z</text>
+                <path
+                  d="M 331, 89 Q 338, 82 345, 89"
+                  fill="none"
+                  stroke="#71717a"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 306, 96 Q 310, 98 314, 96"
+                  fill="none"
+                  stroke="#52525b"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <g className="select-none pointer-events-none opacity-40">
+                  <text x="350" y="74" fill="#71717a" fontSize="10" fontFamily="monospace" fontWeight="bold">z</text>
+                  <text x="359" y="63" fill="#52525b" fontSize="13" fontFamily="monospace" fontWeight="bold">Z</text>
                 </g>
               </g>
             ) : (
-              /* AWAKE FACE (啟用狀態：黑瞳圓眼醒來、神采奕奕，伴隨腮紅與動態笑容) */
+              /* Awake Face */
               <g className="transition-opacity duration-300">
-                {/* Rosy Cheeks */}
-                <ellipse cx="268" cy="95" rx="5.5" ry="3.5" fill="#fb7185" opacity="0.35" />
-                <ellipse cx="352" cy="95" rx="5.5" ry="3.5" fill="#fb7185" opacity="0.35" />
+                <circle cx="282" cy="88" r="3.8" fill="#18181b" />
+                <circle cx="338" cy="88" r="3.8" fill="#18181b" />
+                <circle cx="283.5" cy="86.5" r="1.2" fill="#ffffff" />
+                <circle cx="339.5" cy="86.5" r="1.2" fill="#ffffff" />
 
-                {/* Awake Beady Eyes (•   •) with Sparkle Catchlights */}
-                <circle cx="282" cy="88" r="4.2" fill="#18181b" />
-                <circle cx="338" cy="88" r="4.2" fill="#18181b" />
-                <circle cx="283.5" cy="86.5" r="1.4" fill="#ffffff" />
-                <circle cx="339.5" cy="86.5" r="1.4" fill="#ffffff" />
-
-                {/* Awake Smile (Ditto Minimalist Line Mouth) */}
                 {isAnyButtonPressed ? (
-                  /* Quirky Wavy Smile when pressing buttons */
                   <path
-                    d="M 300, 94 Q 305, 98.5 310, 94 Q 315, 98.5 320, 94"
+                    d="M 300, 94 Q 305, 98 310, 94 Q 315, 98 320, 94"
                     fill="none"
-                    stroke="#0891b2"
-                    strokeWidth="2.5"
+                    stroke="#27272a"
+                    strokeWidth="2"
                     strokeLinecap="round"
                   />
                 ) : (
-                  /* Classic Happy Awake Ditto Smile */
                   <path
-                    d="M 302, 95 Q 310, 101.5 318, 95"
+                    d="M 302, 95 Q 310, 100.5 318, 95"
                     fill="none"
-                    stroke="#18181b"
-                    strokeWidth="2.4"
+                    stroke="#27272a"
+                    strokeWidth="2"
                     strokeLinecap="round"
                   />
                 )}
@@ -469,41 +437,39 @@ export const GamepadVisualizer: React.FC<Props> = ({
             )}
           </svg>
 
-          {/* Asymmetric Ghost Hands (Boo! 👻 with ZL, L, R, ZR) - Drooping during sleep, raised when awake */}
+          {/* Asymmetric Ghost Hands (ZL, L, R, ZR) */}
           <div className="absolute top-[12px] left-[36px] right-[36px] flex justify-between items-start z-30 pointer-events-auto">
             {/* Left Ghost Hand */}
             <div
-              className={`flex items-center gap-2 p-1.5 rounded-2xl transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] pointer-events-auto ${
+              className={`flex items-center gap-1.5 p-1 rounded-lg transition-all duration-500 ease-out pointer-events-auto border ${
                 isGhostAwake
-                  ? "translate-y-0 rotate-[-2deg] translate-x-0 opacity-100 scale-100"
-                  : "translate-y-[40px] rotate-[-12deg] -translate-x-1 opacity-90 scale-[0.98]"
+                  ? "translate-y-0 rotate-[-2deg] translate-x-0 opacity-100"
+                  : "translate-y-[40px] rotate-[-12deg] -translate-x-1 opacity-90"
               } ${
                 isLeftHandActive
-                  ? "bg-cyan-500/15 ring-2 ring-cyan-400/60 shadow-[0_0_25px_rgba(34,211,238,0.35)]"
-                  : isGhostAwake
-                  ? "bg-white/40 border border-zinc-300/60 shadow-xs backdrop-blur-[2px]"
-                  : "bg-zinc-900/40 border border-white/5"
+                  ? "bg-zinc-800/90 border-white/[0.2]"
+                  : "bg-zinc-900/80 border-zinc-700/60 shadow-md"
               }`}
             >
               <button
                 {...bindButton("zl")}
-                className={`w-[74px] py-2.5 text-center rounded-xl text-xs font-black tracking-wider border-2 transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                className={`w-[72px] py-2 text-center rounded-md text-xs font-mono font-bold tracking-wider border transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
                   state.zl
-                    ? "bg-white text-zinc-950 border-white shadow-[0_0_18px_rgba(255,255,255,0.8)] scale-95"
-                    : "bg-zinc-800/90 text-zinc-100 border-zinc-600 hover:border-zinc-400 shadow-md ring-1 ring-white/10"
+                    ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-[0.98]"
+                    : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border-white/[0.1] shadow-xs"
                 }`}
-                title="ZL 按鍵 (左板機鍵 - 鍵盤: U 或 1)"
+                title="ZL 按鍵 (左板機鍵)"
               >
                 ZL
               </button>
               <button
                 {...bindButton("l")}
-                className={`w-[66px] py-2.5 text-center rounded-xl text-xs font-black tracking-wider border-2 transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                className={`w-[64px] py-2 text-center rounded-md text-xs font-mono font-bold tracking-wider border transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
                   state.l
-                    ? "bg-white text-zinc-950 border-white shadow-[0_0_18px_rgba(255,255,255,0.8)] scale-95"
-                    : "bg-zinc-800/90 text-zinc-100 border-zinc-600 hover:border-zinc-400 shadow-md ring-1 ring-white/10"
+                    ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-[0.98]"
+                    : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border-white/[0.1] shadow-xs"
                 }`}
-                title="L 按鍵 (左肩鍵 - 鍵盤: Q)"
+                title="L 按鍵 (左肩鍵)"
               >
                 L
               </button>
@@ -511,57 +477,55 @@ export const GamepadVisualizer: React.FC<Props> = ({
 
             {/* Right Ghost Hand */}
             <div
-              className={`flex items-center gap-2 p-1.5 rounded-2xl transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] pointer-events-auto ${
+              className={`flex items-center gap-1.5 p-1 rounded-lg transition-all duration-500 ease-out pointer-events-auto border ${
                 isGhostAwake
-                  ? "mt-2.5 translate-y-0 rotate-[3deg] translate-x-0 opacity-100 scale-100"
-                  : "mt-2.5 translate-y-[42px] rotate-[12deg] translate-x-1 opacity-90 scale-[0.98]"
+                  ? "mt-2.5 translate-y-0 rotate-[3deg] translate-x-0 opacity-100"
+                  : "mt-2.5 translate-y-[42px] rotate-[12deg] translate-x-1 opacity-90"
               } ${
                 isRightHandActive
-                  ? "bg-cyan-500/15 ring-2 ring-cyan-400/60 shadow-[0_0_25px_rgba(34,211,238,0.35)]"
-                  : isGhostAwake
-                  ? "bg-white/40 border border-zinc-300/60 shadow-xs backdrop-blur-[2px]"
-                  : "bg-zinc-900/40 border border-white/5"
+                  ? "bg-zinc-800/90 border-white/[0.2]"
+                  : "bg-zinc-900/80 border-zinc-700/60 shadow-md"
               }`}
             >
               <button
                 {...bindButton("r")}
-                className={`w-[66px] py-2.5 text-center rounded-xl text-xs font-black tracking-wider border-2 transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                className={`w-[64px] py-2 text-center rounded-md text-xs font-mono font-bold tracking-wider border transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
                   state.r
-                    ? "bg-white text-zinc-950 border-white shadow-[0_0_18px_rgba(255,255,255,0.8)] scale-95"
-                    : "bg-zinc-800/90 text-zinc-100 border-zinc-600 hover:border-zinc-400 shadow-md ring-1 ring-white/10"
+                    ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-[0.98]"
+                    : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border-white/[0.1] shadow-xs"
                 }`}
-                title="R 按鍵 (右肩鍵 - 鍵盤: E)"
+                title="R 按鍵 (右肩鍵)"
               >
                 R
               </button>
               <button
                 {...bindButton("zr")}
-                className={`w-[74px] py-2.5 text-center rounded-xl text-xs font-black tracking-wider border-2 transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                className={`w-[72px] py-2 text-center rounded-md text-xs font-mono font-bold tracking-wider border transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
                   state.zr
-                    ? "bg-white text-zinc-950 border-white shadow-[0_0_18px_rgba(255,255,255,0.8)] scale-95"
-                    : "bg-zinc-800/90 text-zinc-100 border-zinc-600 hover:border-zinc-400 shadow-md ring-1 ring-white/10"
+                    ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-[0.98]"
+                    : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border-white/[0.1] shadow-xs"
                 }`}
-                title="ZR 按鍵 (右板機鍵 - 鍵盤: O 或 2)"
+                title="ZR 按鍵 (右板機鍵)"
               >
                 ZR
               </button>
             </div>
           </div>
 
-          {/* Main Controls Grid Embedded in the Ghost Torso - Spacious & Large */}
+          {/* Main Controls Grid Embedded in the Ghost Torso */}
           <div className="w-full h-full pt-[82px] pb-[25px] px-[45px] grid grid-cols-3 items-center z-10 pointer-events-none">
-            {/* Left Flank: Stick (L3) & D-Pad - Large & Concentric */}
+            {/* Left Flank: Stick (L3) & D-Pad */}
             <div className="flex flex-col items-center justify-around h-full py-1">
-              {/* Left Thumbstick (L3) - Draggable & Clickable */}
+              {/* Left Thumbstick (L3) */}
               <div
                 ref={leftStickBaseRef}
                 onPointerDown={(e) => startStickDrag("left", leftStickBaseRef, leftKnobRef, setIsDraggingLeft, e)}
-                className={`relative w-24 h-24 rounded-full bg-zinc-950 border-2 transition-colors duration-150 select-none shadow-inner flex items-center justify-center touch-none cursor-grab active:cursor-grabbing pointer-events-auto ${
+                className={`relative w-24 h-24 rounded-full bg-zinc-950 border transition-all duration-150 select-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] flex items-center justify-center touch-none cursor-grab active:cursor-grabbing pointer-events-auto ${
                   isDraggingLeft
-                    ? "border-cyan-400 ring-4 ring-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.35)]"
-                    : "border-zinc-700/80 ring-1 ring-white/10 hover:border-zinc-500"
+                    ? "border-white/[0.3] ring-2 ring-white/[0.1]"
+                    : "border-white/[0.08] hover:border-white/[0.16]"
                 }`}
-                title="左類比搖桿 (按住可任意拖曳移動上下左右，輕點為 L3 下壓)"
+                title="左類比搖桿 (可拖曳移動，輕點為 L3)"
               >
                 {/* Subtle Direction Guide Markers */}
                 <span className="absolute top-1 text-[8px] font-mono text-zinc-600 select-none pointer-events-none">▲</span>
@@ -571,14 +535,14 @@ export const GamepadVisualizer: React.FC<Props> = ({
 
                 <div
                   ref={leftKnobRef}
-                  className={`w-14 h-14 rounded-full border-2 flex items-center justify-center text-xs font-black select-none shadow-xl pointer-events-none ${
+                  className={`w-14 h-14 rounded-full border flex items-center justify-center text-xs font-mono font-bold select-none shadow-md pointer-events-none ${
                     isDraggingLeft ? "transition-none" : "transition-transform duration-100 ease-out"
                   } ${
                     state.l_stick_click
-                      ? "bg-white text-zinc-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-95"
+                      ? "bg-zinc-100 text-zinc-950 border-white scale-95 shadow-xs"
                       : isDraggingLeft || (state.left_stick_x !== 128 || state.left_stick_y !== 128)
-                      ? "bg-gradient-to-br from-cyan-600 via-zinc-800 to-zinc-950 text-cyan-200 border-cyan-400 shadow-[0_0_14px_rgba(34,211,238,0.5)]"
-                      : "bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 text-zinc-100 border-zinc-500"
+                      ? "bg-zinc-200 text-zinc-950 border-white shadow-xs"
+                      : "bg-zinc-800 text-zinc-300 border-white/[0.1] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]"
                   }`}
                   style={
                     isDraggingLeft
@@ -590,61 +554,61 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* D-Pad (Classic Cross - Larger & Distinct) */}
+              {/* D-Pad (Classic Cross) */}
               <div className="relative w-26 h-26 flex items-center justify-center select-none pointer-events-auto">
-                <div className="absolute w-9 h-26 bg-zinc-950 border-2 border-zinc-600 rounded-md shadow-lg ring-1 ring-white/10 pointer-events-none" />
-                <div className="absolute w-26 h-9 bg-zinc-950 border-2 border-zinc-600 rounded-md shadow-lg ring-1 ring-white/10 pointer-events-none" />
+                <div className="absolute w-9 h-26 bg-zinc-950 border border-white/[0.08] rounded-md shadow-md pointer-events-none" />
+                <div className="absolute w-26 h-9 bg-zinc-950 border border-white/[0.08] rounded-md shadow-md pointer-events-none" />
 
                 <button
                   {...bindButton("dpad_up")}
-                  className={`absolute top-0 w-9 h-9 rounded-t flex items-center justify-center text-sm font-black transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
-                    isUp ? "bg-white text-zinc-950 shadow-md" : "text-zinc-200 hover:text-white hover:bg-zinc-800/80"
+                  className={`absolute top-0 w-9 h-9 rounded-t-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                    isUp ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                   }`}
-                  title="十字鍵 上 (D-Pad Up - 鍵盤: ↑)"
+                  title="十字鍵 上"
                 >
                   ▲
                 </button>
                 <button
                   {...bindButton("dpad_down")}
-                  className={`absolute bottom-0 w-9 h-9 rounded-b flex items-center justify-center text-sm font-black transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
-                    isDown ? "bg-white text-zinc-950 shadow-md" : "text-zinc-200 hover:text-white hover:bg-zinc-800/80"
+                  className={`absolute bottom-0 w-9 h-9 rounded-b-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                    isDown ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                   }`}
-                  title="十字鍵 下 (D-Pad Down - 鍵盤: ↓)"
+                  title="十字鍵 下"
                 >
                   ▼
                 </button>
                 <button
                   {...bindButton("dpad_left")}
-                  className={`absolute left-0 w-9 h-9 rounded-l flex items-center justify-center text-sm font-black transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
-                    isLeft ? "bg-white text-zinc-950 shadow-md" : "text-zinc-200 hover:text-white hover:bg-zinc-800/80"
+                  className={`absolute left-0 w-9 h-9 rounded-l-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                    isLeft ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                   }`}
-                  title="十字鍵 左 (D-Pad Left - 鍵盤: ←)"
+                  title="十字鍵 左"
                 >
                   ◀
                 </button>
                 <button
                   {...bindButton("dpad_right")}
-                  className={`absolute right-0 w-9 h-9 rounded-r flex items-center justify-center text-sm font-black transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
-                    isRight ? "bg-white text-zinc-950 shadow-md" : "text-zinc-200 hover:text-white hover:bg-zinc-800/80"
+                  className={`absolute right-0 w-9 h-9 rounded-r-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                    isRight ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                   }`}
-                  title="十字鍵 右 (D-Pad Right - 鍵盤: →)"
+                  title="十字鍵 右"
                 >
                   ▶
                 </button>
-                <div className="w-5 h-5 rounded-full bg-zinc-900 border border-zinc-650 z-10 pointer-events-none" />
+                <div className="w-5 h-5 rounded-full bg-zinc-900 border border-white/[0.06] z-10 pointer-events-none" />
               </div>
             </div>
 
-            {/* Center Column: System Controls below the Kawaii Face */}
+            {/* Center Column: System Controls */}
             <div className="flex flex-col items-center justify-around h-full py-1">
-              {/* Minus (-) & Plus (+) Buttons - Larger & Distinct */}
+              {/* Minus (-) & Plus (+) Buttons */}
               <div className="flex items-center gap-10">
                 <button
                   {...bindButton("minus")}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-base font-black border-2 transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.minus
-                      ? "bg-white text-zinc-950 border-white shadow-[0_0_12px_rgba(255,255,255,0.7)]"
-                      : "bg-zinc-800/90 text-zinc-100 border-zinc-600 hover:border-zinc-400 shadow-md ring-1 ring-white/10"
+                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
+                      : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
                   }`}
                   title="Minus 按鍵 (減號)"
                 >
@@ -652,10 +616,10 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 </button>
                 <button
                   {...bindButton("plus")}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-base font-black border-2 transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.plus
-                      ? "bg-white text-zinc-950 border-white shadow-[0_0_12px_rgba(255,255,255,0.7)]"
-                      : "bg-zinc-800/90 text-zinc-100 border-zinc-600 hover:border-zinc-400 shadow-md ring-1 ring-white/10"
+                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
+                      : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
                   }`}
                   title="Plus 按鍵 (加號)"
                 >
@@ -663,39 +627,39 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 </button>
               </div>
 
-              {/* Ethereal Floating Ghost Badge */}
+              {/* Minimalist Ghost-Pad Badge */}
               <button
                 type="button"
                 onClick={onToggleEsp32 || onToggleMute}
-                className={`px-4 py-1 rounded-full text-[11px] font-mono tracking-widest border-2 shadow-md flex items-center gap-2 select-none transition-all cursor-pointer pointer-events-auto active:scale-95 ${
+                className={`px-3 py-1 rounded-full text-[10px] font-mono tracking-wider border shadow-xs flex items-center gap-1.5 select-none transition-all cursor-pointer pointer-events-auto active:scale-95 ${
                   isGhostAwake
-                    ? "text-zinc-100 border-cyan-500/70 bg-zinc-950 shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:border-cyan-400"
-                    : "text-zinc-400 border-zinc-600 bg-zinc-950/95 hover:border-zinc-500 hover:text-zinc-200"
+                    ? "text-zinc-200 border-emerald-500/30 bg-zinc-900 hover:border-emerald-500/50"
+                    : "text-zinc-500 border-white/[0.08] bg-zinc-950/80 hover:border-white/[0.14] hover:text-zinc-300"
                 }`}
                 title={
                   isGhostAwake
-                    ? "ESP32 服務運作中 (Ghost 已醒來，點擊停止)"
-                    : "ESP32 待命中 (Ghost 休眠中，點擊啟動)"
+                    ? "ESP32 服務運作中 (點擊停止)"
+                    : "ESP32 待命中 (點擊啟動)"
                 }
               >
                 <span
-                  className={`w-2 h-2 rounded-full transition-colors ${
+                  className={`w-1.5 h-1.5 rounded-full transition-colors ${
                     isGhostAwake
-                      ? "bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.9)]"
+                      ? "bg-emerald-400"
                       : "bg-zinc-600"
                   }`}
                 />
                 <span>GHOST-PAD</span>
               </button>
 
-              {/* Capture & Home - Larger & Distinct */}
+              {/* Capture & Home */}
               <div className="flex items-center gap-10 pb-1">
                 <button
                   {...bindButton("capture")}
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold border-2 transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold border transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.capture
-                      ? "bg-white text-zinc-950 border-white shadow-[0_0_12px_rgba(255,255,255,0.7)]"
-                      : "bg-zinc-800/90 text-zinc-200 border-zinc-600 hover:border-zinc-400 shadow-md ring-1 ring-white/10"
+                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
+                      : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
                   }`}
                   title="Capture 按鍵 (截圖)"
                 >
@@ -703,10 +667,10 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 </button>
                 <button
                   {...bindButton("home")}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-base border-2 transition-colors relative cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.home
-                      ? "bg-cyan-400 text-zinc-950 border-cyan-300 shadow-[0_0_16px_rgba(6,182,212,0.9)]"
-                      : "bg-zinc-800/90 text-zinc-200 border-zinc-600 ring-1 ring-cyan-500/40 hover:border-zinc-400 shadow-md"
+                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
+                      : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
                   }`}
                   title="Home 按鍵 (主畫面)"
                 >
@@ -715,62 +679,62 @@ export const GamepadVisualizer: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* Right Flank: ABXY & Right Stick (R3) - Larger & Concentric */}
+            {/* Right Flank: ABXY & Right Stick (R3) */}
             <div className="flex flex-col items-center justify-around h-full py-1">
-              {/* ABXY Diamond - Prominent Large Buttons */}
+              {/* ABXY Diamond */}
               <div className="relative w-26 h-26 flex items-center justify-center select-none">
                 <button
                   {...bindButton("x")}
-                  className={`absolute top-0 w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-black transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`absolute top-0 w-9 h-9 rounded-full border flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.x
-                      ? "bg-white text-zinc-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-95"
-                      : "bg-zinc-800/90 text-zinc-100 border-zinc-550 hover:border-zinc-400 shadow-md ring-1 ring-white/10"
+                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
+                      : "bg-zinc-900 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-md"
                   }`}
                 >
                   X
                 </button>
                 <button
                   {...bindButton("b")}
-                  className={`absolute bottom-0 w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-black transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`absolute bottom-0 w-9 h-9 rounded-full border flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.b
-                      ? "bg-white text-zinc-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-95"
-                      : "bg-zinc-800/90 text-zinc-100 border-zinc-550 hover:border-zinc-400 shadow-md ring-1 ring-white/10"
+                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
+                      : "bg-zinc-900 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-md"
                   }`}
                 >
                   B
                 </button>
                 <button
                   {...bindButton("y")}
-                  className={`absolute left-0 w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-black transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`absolute left-0 w-9 h-9 rounded-full border flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.y
-                      ? "bg-white text-zinc-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-95"
-                      : "bg-zinc-800/90 text-zinc-100 border-zinc-550 hover:border-zinc-400 shadow-md ring-1 ring-white/10"
+                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
+                      : "bg-zinc-900 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-md"
                   }`}
                 >
                   Y
                 </button>
                 <button
                   {...bindButton("a")}
-                  className={`absolute right-0 w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-black transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`absolute right-0 w-9 h-9 rounded-full border flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.a
-                      ? "bg-white text-zinc-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-95"
-                      : "bg-zinc-800/90 text-zinc-100 border-zinc-550 hover:border-zinc-400 shadow-md ring-1 ring-white/10"
+                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
+                      : "bg-zinc-900 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-md"
                   }`}
                 >
                   A
                 </button>
               </div>
 
-              {/* Right Thumbstick (R3) - Draggable & Clickable */}
+              {/* Right Thumbstick (R3) */}
               <div
                 ref={rightStickBaseRef}
                 onPointerDown={(e) => startStickDrag("right", rightStickBaseRef, rightKnobRef, setIsDraggingRight, e)}
-                className={`relative w-24 h-24 rounded-full bg-zinc-950 border-2 transition-colors duration-150 select-none shadow-inner flex items-center justify-center touch-none cursor-grab active:cursor-grabbing pointer-events-auto ${
+                className={`relative w-24 h-24 rounded-full bg-zinc-950 border transition-all duration-150 select-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] flex items-center justify-center touch-none cursor-grab active:cursor-grabbing pointer-events-auto ${
                   isDraggingRight
-                    ? "border-cyan-400 ring-4 ring-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.35)]"
-                    : "border-zinc-700/80 ring-1 ring-white/10 hover:border-zinc-500"
+                    ? "border-white/[0.3] ring-2 ring-white/[0.1]"
+                    : "border-white/[0.08] hover:border-white/[0.16]"
                 }`}
-                title="右類比搖桿 (按住可任意拖曳移動上下左右，輕點為 R3 下壓)"
+                title="右類比搖桿 (可拖曳移動，輕點為 R3)"
               >
                 {/* Subtle Direction Guide Markers */}
                 <span className="absolute top-1 text-[8px] font-mono text-zinc-600 select-none pointer-events-none">▲</span>
@@ -780,14 +744,14 @@ export const GamepadVisualizer: React.FC<Props> = ({
 
                 <div
                   ref={rightKnobRef}
-                  className={`w-14 h-14 rounded-full border-2 flex items-center justify-center text-xs font-black select-none shadow-xl pointer-events-none ${
+                  className={`w-14 h-14 rounded-full border flex items-center justify-center text-xs font-mono font-bold select-none shadow-md pointer-events-none ${
                     isDraggingRight ? "transition-none" : "transition-transform duration-100 ease-out"
                   } ${
                     state.r_stick_click
-                      ? "bg-white text-zinc-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-95"
+                      ? "bg-zinc-100 text-zinc-950 border-white scale-95 shadow-xs"
                       : isDraggingRight || (state.right_stick_x !== 128 || state.right_stick_y !== 128)
-                      ? "bg-gradient-to-br from-cyan-600 via-zinc-800 to-zinc-950 text-cyan-200 border-cyan-400 shadow-[0_0_14px_rgba(34,211,238,0.5)]"
-                      : "bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 text-zinc-100 border-zinc-500"
+                      ? "bg-zinc-200 text-zinc-950 border-white shadow-xs"
+                      : "bg-zinc-800 text-zinc-300 border-white/[0.1] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]"
                   }`}
                   style={
                     isDraggingRight
@@ -803,9 +767,26 @@ export const GamepadVisualizer: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Real-Time Live Input Timeline Stream (Reverse Taiko / DAW Musical Stave) */}
+        {/* Real-Time Live Input Timeline Stream */}
         <div className="w-full shrink-0 pt-1 pb-1">
           <InputTimelineStream state={state} />
+        </div>
+      </div>
+
+      {/* 3. Unified Bottom Footer Bar */}
+      <div className="h-9 px-6 border-t border-white/[0.06] bg-zinc-950/90 backdrop-blur-sm flex items-center justify-between text-[11px] font-mono text-zinc-400 select-none shrink-0 z-20">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5">
+            <span className={`w-1.5 h-1.5 rounded-full ${gamepadName ? "bg-emerald-400" : "bg-zinc-500"}`} />
+            <span>手把: {gamepadName || "未連接 (電腦模式)"}</span>
+          </span>
+          <span className="text-zinc-700">|</span>
+          <span>傳輸: {isMuted ? "暫停中" : "即時傳送"}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span>ESP32: {esp32Connected ? "60Hz 串流中" : "未啟用"}</span>
+          <span className="text-zinc-700">|</span>
+          <span>Switch: {switchPairingState === "connected" ? "1P 已連線" : switchPairingState === "pairing" ? "配對中..." : "離線"}</span>
         </div>
       </div>
     </div>
