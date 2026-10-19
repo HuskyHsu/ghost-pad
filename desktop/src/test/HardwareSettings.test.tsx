@@ -263,12 +263,14 @@ describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
     fireEvent.click(flasherToggle);
 
     await waitFor(() => {
-      expect(screen.getByText("開始燒錄 PRO-UART0.bin")).toBeInTheDocument();
+      expect(screen.getByText("開始燒錄 PRO-UART0.bin").closest("button")).not.toBeDisabled();
     });
 
     const flashBtn = screen.getByText("開始燒錄 PRO-UART0.bin");
     fireEvent.click(flashBtn);
 
-    expect(screen.getByText("正在燒錄韌體中...")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("正在燒錄韌體中...")).toBeInTheDocument();
+    });
   });
 });

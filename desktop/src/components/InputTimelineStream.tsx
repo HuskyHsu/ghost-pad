@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ControllerState } from "../types";
 import { Film, Trash2, Zap, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   state: ControllerState;
@@ -92,6 +93,9 @@ export const getButtonStates = (s: ControllerState) => {
 export const InputTimelineStream: React.FC<Props> = ({ state }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const { t } = useTranslation("dashboard");
+  const tRef = useRef(t);
+  tRef.current = t;
 
   // Time window duration in seconds (default: 30s)
   const [duration, setDuration] = useState<number>(30);
@@ -417,9 +421,10 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
       ctx.font = "bold 9px system-ui, -apple-system, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("軌道", SIDEBAR_W / 2, RULER_TOP_H / 2);
+      ctx.fillText(tRef.current("timeline.tracks_header", "軌道"), SIDEBAR_W / 2, RULER_TOP_H / 2);
 
       // Draw lane badges inside sidebar with crisp dividers
+      const laneKeys = ["lane_abxy", "lane_dpad", "lane_stick", "lane_shoulder", "lane_system"];
       for (let i = 0; i < numLanes; i++) {
         const yTop = RULER_TOP_H + i * laneHeight;
         const yBottom = yTop + laneHeight;
@@ -445,7 +450,8 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
         ctx.font = "bold 9px system-ui, -apple-system, sans-serif";
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(LANES[i].name, dotX + 7, yCenter);
+        const laneName = tRef.current(`timeline.${laneKeys[i]}`, LANES[i].name);
+        ctx.fillText(laneName, dotX + 7, yCenter);
       }
 
       // 6. Draw Strike Line (Playhead Line - flush to left border of tracks)
@@ -529,14 +535,14 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
           <div className="w-5 h-5 rounded-md bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-zinc-300">
             <Film className="w-3 h-3" />
           </div>
-          <span className="text-xs font-medium text-zinc-200">即時操作時序流 (Live Stream)</span>
+          <span className="text-xs font-medium text-zinc-200">{t("timeline.title")}</span>
         </div>
 
         <div className="flex items-center gap-2 text-xs">
           {/* Operation count badge */}
           <span className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 bg-zinc-950/60 px-2.5 py-1 rounded-md border border-white/[0.06]">
             <Zap className="w-3 h-3 text-amber-400" />
-            <span>操作次數: <span className="text-zinc-100 font-bold">{operationCount}</span></span>
+            <span>{t("timeline.op_count", { count: operationCount })}</span>
           </span>
 
           {/* Time Duration Window Selector */}
@@ -548,17 +554,17 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
               });
             }}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-800 hover:bg-zinc-750 border border-white/[0.08] text-zinc-200 text-[11px] transition-colors font-mono cursor-pointer"
-            title="點擊切換時間軸總長度 (10s / 15s / 30s / 60s)"
+            title={t("timeline.duration_tooltip")}
           >
             <Clock className="w-3 h-3 text-zinc-400" />
-            <span>總長度 {duration}s</span>
+            <span>{t("timeline.duration_badge", { duration })}</span>
           </button>
 
           {/* Clear history button */}
           <button
             onClick={handleClear}
             className="p-1 rounded-md text-zinc-500 hover:text-rose-400 hover:bg-zinc-800 transition-colors cursor-pointer"
-            title="清空歷史紀錄"
+            title={t("timeline.clear_tooltip")}
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>

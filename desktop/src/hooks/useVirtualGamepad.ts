@@ -41,6 +41,7 @@ export const KEYBOARD_MAP: Record<string, string> = {
 };
 
 export interface KeyGuideItem {
+  id: string;
   key: string;
   button: string;
   label: string;
@@ -48,22 +49,22 @@ export interface KeyGuideItem {
 }
 
 export const KEYBOARD_GUIDE: KeyGuideItem[] = [
-  { key: "W / A / S / D", button: "L-Stick", label: "左類比搖桿", desc: "推動左類比搖桿上下左右" },
-  { key: "↑ / ↓ / ← / →", button: "▲▼◀▶", label: "D-Pad 十字鍵", desc: "十字方向鍵上下左右" },
-  { key: "L", button: "A", label: "A 鍵", desc: "確認 / 東側鍵" },
-  { key: "K", button: "B", label: "B 鍵", desc: "取消 / 南側鍵" },
-  { key: "I", button: "X", label: "X 鍵", desc: "選單 / 北側鍵" },
-  { key: "J", button: "Y", label: "Y 鍵", desc: "功能 / 西側鍵" },
-  { key: "Q", button: "L", label: "L 鍵", desc: "左肩鍵" },
-  { key: "E", button: "R", label: "R 鍵", desc: "右肩鍵" },
-  { key: "U / 1", button: "ZL", label: "ZL 鍵", desc: "左板機鍵" },
-  { key: "O / 2", button: "ZR", label: "ZR 鍵", desc: "右板機鍵" },
-  { key: "M / -", button: "−", label: "Minus 鍵", desc: "減號 / Select" },
-  { key: "P / =", button: "+", label: "Plus 鍵", desc: "加號 / Start" },
-  { key: "H", button: "⌂", label: "Home 鍵", desc: "主畫面鍵" },
-  { key: "N", button: "◉", label: "Capture 鍵", desc: "截圖鍵" },
-  { key: "F", button: "L3", label: "L3 鍵", desc: "左類比下壓" },
-  { key: "G", button: "R3", label: "R3 鍵", desc: "右類比下壓" },
+  { id: "l_stick", key: "W / A / S / D", button: "L-Stick", label: "左類比搖桿", desc: "推動左類比搖桿上下左右" },
+  { id: "dpad", key: "↑ / ↓ / ← / →", button: "▲▼◀▶", label: "D-Pad 十字鍵", desc: "十字方向鍵上下左右" },
+  { id: "btn_a", key: "L", button: "A", label: "A 鍵", desc: "確認 / 東側鍵" },
+  { id: "btn_b", key: "K", button: "B", label: "B 鍵", desc: "取消 / 南側鍵" },
+  { id: "btn_x", key: "I", button: "X", label: "X 鍵", desc: "選單 / 北側鍵" },
+  { id: "btn_y", key: "J", button: "Y", label: "Y 鍵", desc: "功能 / 西側鍵" },
+  { id: "btn_l", key: "Q", button: "L", label: "L 鍵", desc: "左肩鍵" },
+  { id: "btn_r", key: "E", button: "R", label: "R 鍵", desc: "右肩鍵" },
+  { id: "btn_zl", key: "U / 1", button: "ZL", label: "ZL 鍵", desc: "左板機鍵" },
+  { id: "btn_zr", key: "O / 2", button: "ZR", label: "ZR 鍵", desc: "右板機鍵" },
+  { id: "btn_minus", key: "M / -", button: "−", label: "Minus 鍵", desc: "減號 / Select" },
+  { id: "btn_plus", key: "P / =", button: "+", label: "Plus 鍵", desc: "加號 / Start" },
+  { id: "btn_home", key: "H", button: "⌂", label: "Home 鍵", desc: "主畫面鍵" },
+  { id: "btn_capture", key: "N", button: "◉", label: "Capture 鍵", desc: "截圖鍵" },
+  { id: "btn_l3", key: "F", button: "L3", label: "L3 鍵", desc: "左類比下壓" },
+  { id: "btn_r3", key: "G", button: "R3", label: "R3 鍵", desc: "右類比下壓" },
 ];
 
 export function computeDpadVal(up: boolean, down: boolean, left: boolean, right: boolean): number {

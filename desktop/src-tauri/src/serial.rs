@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use serialport::{ClearBuffer, SerialPort, SerialPortType};
 use tauri::{AppHandle, Emitter};
 
+use crate::error::AppError;
 use crate::gamepad::GamepadManager;
 use crate::protocol::ControllerState;
 
@@ -161,7 +162,13 @@ impl SerialManager {
         let mut port = serialport::new(port_name, baudrate)
             .timeout(Duration::from_millis(200))
             .open()
-            .map_err(|e| format!("無法開啟序列埠 {}: {}", port_name, e))?;
+            .map_err(|e| {
+                AppError::SerialOpenFailed {
+                    port: port_name.to_string(),
+                    reason: e.to_string(),
+                }
+                .to_json_string()
+            })?;
 
         // Release DTR/RTS so ESP32 auto-reset circuits leave EN high, then let it stabilize
         let _ = port.write_data_terminal_ready(false);
@@ -172,13 +179,14 @@ impl SerialManager {
         // Mandatory 3-step handshake with ESP32 (0xFF, 0x33, 0xCC).
         // Only genuine PRO-UART0 (UARTSwitchCon) firmware is allowed to start streaming.
         if let Err(e) = Self::handshake_with_retry(&mut *port) {
-            eprintln!("[Serial Error] 韌體交握失敗，拒絕啟動虛擬手把: {}", e);
-            return Err(format!(
-                "ESP32 韌體驗證失敗：{}。請確認已燒錄 PRO-UART0.bin、序列埠與鮑率 ({}) 正確。",
-                e, baudrate
-            ));
+            eprintln!("[Serial Error] Firmware handshake failed, rejecting virtual gamepad start: {}", e);
+            return Err(AppError::FirmwareVerifyFailed {
+                baudrate,
+                reason: e,
+            }
+            .to_json_string());
         }
-        println!("[Serial Info] ESP32 PRO-UART0 協議握手成功！");
+        println!("[Serial Info] ESP32 PRO-UART0 protocol handshake successful!");
 
         {
             let mut s = self.status.write().unwrap();
@@ -339,9 +347,9 @@ impl SerialManager {
                 }
                 let current_stat = status_arc.read().unwrap().clone();
                 let _ = app_handle.emit("serial-status-changed", &current_stat);
-                println!("[Serial] 序列埠 {} 已安全中立釋放並關閉", port_name_string);
+                println!("[Serial] Serial port {} released safely and closed", port_name_string);
             })
-            .map_err(|e| format!("無法啟動序列發送線程: {}", e))?;
+            .map_err(|e| AppError::ThreadSpawnFailed { reason: e.to_string() }.to_json_string())?;
 
         *self.worker_handle.lock().unwrap() = Some(handle);
         Ok(())
@@ -379,12 +387,17 @@ impl SerialManager {
                 "wake_reconnect" | "reconnect" | "wake" => SpecialCommand::WakeReconnect,
                 "emergency_neutral" | "neutral" => SpecialCommand::EmergencyNeutral,
                 "clear_bonds" | "reset_bonds" => SpecialCommand::ClearBonds,
-                _ => return Err(format!("未知的指令: {}", cmd)),
+                _ => {
+                    return Err(AppError::UnknownSerialCommand {
+                        command: cmd.to_string(),
+                    }
+                    .to_json_string())
+                }
             };
             tx.send(special).map_err(|e| e.to_string())?;
             Ok(())
         } else {
-            Err("序列通訊未開啟，請先點擊「開啟虛擬手把」".to_string())
+            Err(AppError::SerialNotOpen.to_json_string())
         }
     }
 
@@ -451,7 +464,13 @@ impl SerialManager {
             .open()
         {
             Ok(p) => p,
-            Err(e) => return Err(format!("無法開啟序列埠 {}: {}", port_name, e)),
+            Err(e) => {
+                return Err(AppError::SerialOpenFailed {
+                    port: port_name.to_string(),
+                    reason: e.to_string(),
+                }
+                .to_json_string())
+            }
         };
 
         let _ = port.write_data_terminal_ready(false);

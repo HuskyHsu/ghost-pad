@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { ControllerState } from "../types";
 import { MacroAction, MacroButtonName, RecordingPhase } from "../types/macro";
 import { getStickDirection } from "../components/InputTimelineStream";
+import i18n from "../i18n";
 
 const BUTTON_KEYS: MacroButtonName[] = [
   "a",
@@ -137,7 +138,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
         button: btn,
         durationMs: dur,
         delayAfterMs: 40,
-        note: `按壓 ${btn.toUpperCase()}`,
+        note: i18n.t("macro:notes.press_button", { btn: btn.toUpperCase(), defaultValue: `按壓 ${btn.toUpperCase()}` }),
         _startedAt: startTime,
         _endedAt: now,
       });
@@ -155,7 +156,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
         stickY: y,
         durationMs: Math.max(40, Math.round(now - startedAt)),
         delayAfterMs: 40,
-        note: `推動左搖桿`,
+        note: i18n.t("macro:notes.push_l_stick", { defaultValue: "推動左搖桿" }),
         _startedAt: startedAt,
         _endedAt: now,
       });
@@ -173,7 +174,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
         stickY: y,
         durationMs: Math.max(40, Math.round(now - startedAt)),
         delayAfterMs: 40,
-        note: `推動右搖桿`,
+        note: i18n.t("macro:notes.push_r_stick", { defaultValue: "推動右搖桿" }),
         _startedAt: startedAt,
         _endedAt: now,
       });
@@ -189,7 +190,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
         dpad: direction,
         durationMs: Math.max(40, Math.round(now - startedAt)),
         delayAfterMs: 40,
-        note: `十字鍵`,
+        note: i18n.t("macro:notes.push_dpad", { defaultValue: "十字鍵" }),
         _startedAt: startedAt,
         _endedAt: now,
       });
@@ -225,9 +226,24 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
             type: "wait",
             durationMs: gap,
             delayAfterMs: 0,
-            note: "等待暫停",
+            note: i18n.t("macro:notes.wait", { defaultValue: "等待暫停" }),
           });
         }
+      }
+    }
+
+    // Preserve trailing idle blank wait if user waited before stopping
+    if (sorted.length > 0) {
+      const lastEnded = Math.max(...sorted.map((s) => s._endedAt));
+      const trailingGap = Math.round(now - lastEnded);
+      if (trailingGap >= 40) {
+        finalActions.push({
+          id: `act-wait-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          type: "wait",
+          durationMs: trailingGap,
+          delayAfterMs: 0,
+          note: i18n.t("macro:notes.wait", { defaultValue: "等待暫停" }),
+        });
       }
     }
 
@@ -267,7 +283,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
             button: btn,
             durationMs: duration,
             delayAfterMs: 40,
-            note: `按壓 ${btn.toUpperCase()}`,
+            note: i18n.t("macro:notes.press_button", { btn: btn.toUpperCase(), defaultValue: `按壓 ${btn.toUpperCase()}` }),
             _startedAt: startTime,
             _endedAt: now,
           });
@@ -296,7 +312,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
             stickY: y,
             durationMs: Math.max(30, Math.round(now - startedAt)),
             delayAfterMs: 40,
-            note: `左搖桿推動`,
+            note: i18n.t("macro:notes.push_l_stick", { defaultValue: "推動左搖桿" }),
             _startedAt: startedAt,
             _endedAt: now,
           });
@@ -334,7 +350,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
             stickY: y,
             durationMs: Math.max(30, Math.round(now - startedAt)),
             delayAfterMs: 40,
-            note: `右搖桿推動`,
+            note: i18n.t("macro:notes.push_r_stick", { defaultValue: "推動右搖桿" }),
             _startedAt: startedAt,
             _endedAt: now,
           });
@@ -369,7 +385,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
             dpad: direction,
             durationMs: Math.max(30, Math.round(now - startedAt)),
             delayAfterMs: 40,
-            note: `十字鍵`,
+            note: i18n.t("macro:notes.push_dpad", { defaultValue: "十字鍵" }),
             _startedAt: startedAt,
             _endedAt: now,
           });

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { MacroScript } from "../../types/macro";
 import { getScriptTotalDurationMs, exportMacroAsJson } from "../../utils/macroStorage";
 import {
@@ -29,6 +30,7 @@ export const MacroLibraryView: React.FC<Props> = ({
   onImportJson,
   onExportAll,
 }) => {
+  const { t } = useTranslation("macro");
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
@@ -53,14 +55,14 @@ export const MacroLibraryView: React.FC<Props> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-sm font-semibold tracking-tight text-zinc-100">
-                巨集腳本庫
+                {t("library_title", "巨集腳本庫")}
               </h1>
               <span className="px-1.5 py-0.5 rounded font-mono text-[10px] bg-zinc-850 text-zinc-400 border border-white/[0.06]">
-                {scripts.length} 筆腳本
+                {t("script_count", { count: scripts.length, defaultValue: `${scripts.length} 筆腳本` })}
               </span>
             </div>
             <p className="text-xs text-zinc-400 truncate hidden sm:block">
-              點選任一腳本即可進入多軌五線譜詳細編輯；支援即時側錄、循環播放與 JSON 備份
+              {t("library_subtitle", "點選任一腳本即可進入多軌五線譜詳細編輯：支援即時側錄、循環播放與 JSON 備份")}
             </p>
           </div>
         </div>
@@ -71,10 +73,10 @@ export const MacroLibraryView: React.FC<Props> = ({
             type="button"
             onClick={onImportJson}
             className="flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium bg-zinc-850 hover:bg-zinc-800 text-zinc-200 border border-white/[0.08] hover:border-white/[0.14] transition-colors cursor-pointer shadow-xs"
-            title="匯入 JSON 腳本檔案"
+            title={t("import_json_tooltip", "匯入 JSON 腳本檔案")}
           >
             <Upload className="w-3.5 h-3.5 text-zinc-400" />
-            <span>匯入腳本</span>
+            <span>{t("import_json", "匯入腳本")}</span>
           </button>
 
           <button
@@ -82,10 +84,10 @@ export const MacroLibraryView: React.FC<Props> = ({
             onClick={onExportAll}
             disabled={scripts.length === 0}
             className="flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium bg-zinc-850 hover:bg-zinc-800 text-zinc-200 border border-white/[0.08] hover:border-white/[0.14] transition-colors cursor-pointer disabled:opacity-40 shadow-xs"
-            title="打包備份全部腳本為 JSON"
+            title={t("backup_all_tooltip", "打包備份全部腳本為 JSON")}
           >
             <Download className="w-3.5 h-3.5 text-zinc-400" />
-            <span>備份全部</span>
+            <span>{t("backup_all", "備份全部")}</span>
           </button>
         </div>
       </div>
@@ -100,7 +102,7 @@ export const MacroLibraryView: React.FC<Props> = ({
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="搜尋巨集名稱或備註..."
+          placeholder={t("search_placeholder", "搜尋巨集名稱或備註...")}
           className="w-full pl-9 pr-4 py-2 rounded-md bg-zinc-900/80 border border-white/[0.08] text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-white/[0.22] transition-colors"
         />
       </div>
@@ -118,7 +120,7 @@ export const MacroLibraryView: React.FC<Props> = ({
             >
               {/* Left: Icon, Name & Description */}
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="w-7 h-7 rounded-md bg-zinc-850 border border-white/[0.06] flex items-center justify-center text-zinc-400 group-hover:text-zinc-200 transition-colors shrink-0">
+                <div className="w-7 h-7 rounded-md bg-zinc-855 border border-white/[0.06] flex items-center justify-center text-zinc-400 group-hover:text-zinc-200 transition-colors shrink-0">
                   <FileCode2 className="w-3.5 h-3.5" />
                 </div>
 
@@ -149,7 +151,7 @@ export const MacroLibraryView: React.FC<Props> = ({
                     {(totalMs / 1000).toFixed(1)}s
                   </span>
                   <span className="text-zinc-700">•</span>
-                  <span>{script.actions.length} 步</span>
+                  <span>{t("step_count", { count: script.actions.length, defaultValue: `${script.actions.length} 步` })}</span>
                 </div>
 
                 {/* Quick Actions (export, duplicate, delete) */}
@@ -161,7 +163,7 @@ export const MacroLibraryView: React.FC<Props> = ({
                       exportMacroAsJson(script);
                     }}
                     className="p-1 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer transition-colors"
-                    title="匯出此腳本"
+                    title={t("export_json_tooltip", "匯出單一 JSON 腳本檔案")}
                   >
                     <Download className="w-3.5 h-3.5" />
                   </button>
@@ -172,7 +174,7 @@ export const MacroLibraryView: React.FC<Props> = ({
                       onDuplicateScript(script);
                     }}
                     className="p-1 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer transition-colors"
-                    title="複製一份副本"
+                    title={t("duplicate_tooltip", "複製一份新腳本")}
                   >
                     <Copy className="w-3.5 h-3.5" />
                   </button>
@@ -183,7 +185,7 @@ export const MacroLibraryView: React.FC<Props> = ({
                       onDeleteScript(script.id);
                     }}
                     className="p-1 rounded-md text-zinc-500 hover:text-rose-400 hover:bg-zinc-800 cursor-pointer transition-colors"
-                    title="刪除腳本"
+                    title={t("delete_tooltip", "刪除此腳本")}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -191,7 +193,7 @@ export const MacroLibraryView: React.FC<Props> = ({
 
                 {/* Edit Indicator */}
                 <div className="flex items-center gap-1 pl-3 border-l border-white/[0.06] text-xs font-medium text-zinc-400 group-hover:text-zinc-200">
-                  <span>編輯</span>
+                  <span>{t("edit", "編輯")}</span>
                   <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>
@@ -207,9 +209,11 @@ export const MacroLibraryView: React.FC<Props> = ({
             <FileCode2 className="w-6 h-6" />
           </div>
           <div className="space-y-1 max-w-sm">
-            <h3 className="text-xs font-medium text-zinc-200">巨集腳本庫目前為空</h3>
+            <h3 className="text-xs font-medium text-zinc-200">
+              {t("empty_library", "巨集腳本庫目前為空")}
+            </h3>
             <p className="text-xs text-zinc-500 leading-relaxed">
-              您可以前往「即時儀表板」點擊「側錄巨集」開始 3-2-1 錄製手把行為，或透過上方按鈕匯入 JSON 腳本檔案。
+              {t("empty_library_desc", "您可以前往「即時儀表板」點擊「側錄巨集」開始 3-2-1 錄製手把行為，或透過上方按鈕匯入 JSON 腳本檔案。")}
             </p>
           </div>
           <button
@@ -218,7 +222,7 @@ export const MacroLibraryView: React.FC<Props> = ({
             className="flex items-center gap-2 px-4 py-2 rounded-md text-xs font-medium bg-zinc-100 hover:bg-white text-zinc-950 shadow-xs transition-all cursor-pointer"
           >
             <Upload className="w-3.5 h-3.5" />
-            <span>匯入巨集腳本 (JSON)</span>
+            <span>{t("import_json_empty_btn", "匯入巨集腳本 (JSON)")}</span>
           </button>
         </div>
       )}
@@ -227,12 +231,12 @@ export const MacroLibraryView: React.FC<Props> = ({
       {/* 3. Unified Bottom Footer Bar */}
       <div className="h-9 px-6 border-t border-white/[0.06] bg-zinc-950/90 backdrop-blur-sm flex items-center justify-between text-[11px] font-mono text-zinc-400 select-none shrink-0 z-20">
         <div className="flex items-center gap-3">
-          <span>● 巨集庫共 {scripts.length} 個腳本 (點選編輯進入多軌五線譜)</span>
+          <span>{t("footer.scripts_total", { count: scripts.length, defaultValue: `● 巨集庫共 ${scripts.length} 個腳本 (點選編輯進入多軌五線譜)` })}</span>
         </div>
         <div className="flex items-center gap-3">
-          <span>格式: PRO-UART0 JSON v2</span>
+          <span>{t("footer.format", "格式: PRO-UART0 JSON v2")}</span>
           <span className="text-zinc-700">|</span>
-          <span>Switch 輸出: 1P Pro Controller</span>
+          <span>{t("footer.switch_output", "Switch 輸出: 1P Pro Controller")}</span>
         </div>
       </div>
     </div>

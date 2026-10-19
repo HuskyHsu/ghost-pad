@@ -5,6 +5,7 @@ import { KEYBOARD_GUIDE } from "../hooks/useVirtualGamepad";
 import { usePulsedButtonPress } from "../hooks/usePulsedButtonPress";
 import { useStickDrag } from "../hooks/useStickDrag";
 import { InputTimelineStream } from "./InputTimelineStream";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   state: ControllerState;
@@ -42,6 +43,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
   // Ghost only wakes up when ESP32 virtual controller service is started
   const isGhostAwake = Boolean(esp32Connected);
   const [showKeyGuide, setShowKeyGuide] = useState(false);
+  const { t } = useTranslation(["dashboard", "common"]);
 
   // Responsive stage scaling state
   const stageContainerRef = useRef<HTMLDivElement>(null);
@@ -158,7 +160,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-sm font-semibold tracking-tight text-zinc-100">
-                即時儀表板
+                {t("live_controls.title")}
               </h1>
               <span
                 className={`px-1.5 py-0.5 rounded font-mono text-[10px] border flex items-center gap-1.5 ${
@@ -168,13 +170,13 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 }`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${gamepadName ? "bg-emerald-400" : "bg-zinc-500"}`} />
-                <span>{gamepadName || "本機控制模式"}</span>
+                <span>{gamepadName || t("live_controls.local_mode")}</span>
               </span>
             </div>
             <p className="text-xs text-zinc-400 truncate hidden sm:block">
               {gamepadName
-                ? "實體手把已連線，可混用鍵盤、點擊與搖桿拖曳"
-                : "鍵盤與畫面按鈕皆可直接操作 (支援外接實體手把)"}
+                ? t("live_controls.gamepad_mixed")
+                : t("live_controls.local_mode_desc")}
             </p>
           </div>
         </div>
@@ -187,11 +189,11 @@ export const GamepadVisualizer: React.FC<Props> = ({
               type="button"
               onClick={onStopRecord}
               className="flex items-center gap-2 h-8 px-3 rounded-md bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-medium text-xs transition-colors cursor-pointer select-none"
-              title="點擊停止側錄並儲存巨集腳本"
+              title={t("live_controls.rec_tooltip_stop")}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
               <span>
-                側錄中 {(recordingElapsedMs / 1000).toFixed(1)}s ({recordedActionsCount} 步)
+                {t("live_controls.recording")} {(recordingElapsedMs / 1000).toFixed(1)}s ({recordedActionsCount})
               </span>
               <Square className="w-3 h-3 fill-rose-300 ml-0.5" />
             </button>
@@ -201,10 +203,10 @@ export const GamepadVisualizer: React.FC<Props> = ({
               onClick={onStartRecord}
               disabled={recordingPhase === "countdown"}
               className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-white/[0.08] hover:border-white/[0.14] text-rose-300 hover:text-rose-200 font-medium text-xs transition-colors shadow-xs cursor-pointer select-none"
-              title="開始側錄手把與鍵盤操作 (倒數 321 後開始捕捉)"
+              title={t("live_controls.rec_tooltip_start")}
             >
               <CircleDot className="w-3.5 h-3.5 text-rose-400" />
-              <span>側錄巨集</span>
+              <span>{t("live_controls.record_macro")}</span>
             </button>
           )}
 
@@ -212,10 +214,10 @@ export const GamepadVisualizer: React.FC<Props> = ({
           <button
             onClick={() => setShowKeyGuide(!showKeyGuide)}
             className="flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-white/[0.08] hover:border-white/[0.14] text-zinc-300 hover:text-zinc-100 font-medium text-xs transition-colors shadow-xs cursor-pointer"
-            title="查看電腦鍵盤與畫面操作對照"
+            title={t("live_controls.help_tooltip")}
           >
             <Keyboard className="w-3.5 h-3.5 text-zinc-400" />
-            <span>鍵盤對照表</span>
+            <span>{t("sidebar.keyboard_title")}</span>
           </button>
         </div>
       </div>
@@ -227,11 +229,12 @@ export const GamepadVisualizer: React.FC<Props> = ({
             <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
               <div className="flex items-center gap-2 text-zinc-100 font-semibold text-xs tracking-tight">
                 <Keyboard className="w-4 h-4 text-zinc-400" />
-                <span>電腦鍵盤操作對照表</span>
+                <span>{t("sidebar.keyboard_modal_title", "電腦鍵盤操作對照表")}</span>
               </div>
               <button
                 onClick={() => setShowKeyGuide(false)}
                 className="p-1 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                title={t("actions.close", { ns: "common", defaultValue: "關閉" })}
               >
                 <CloseIcon className="w-4 h-4" />
               </button>
@@ -239,7 +242,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
 
             <div className="p-4 overflow-y-auto space-y-3 text-xs">
               <div className="p-3 rounded-lg bg-zinc-800/40 border border-white/[0.06] text-zinc-300 text-[11px] leading-relaxed">
-                <span className="font-medium text-zinc-100">外接手把非必須</span>：Ghost-Pad 支援純電腦操作！您可以直接敲擊鍵盤（WASD 類比搖桿、L/K/I/J 確認取消）或直接用滑鼠點擊畫面按鈕與拖曳搖桿，皆能即時驅動 Switch。
+                <span className="font-medium text-zinc-100">{t("sidebar.note_title", "外接手把非必須")}</span>：{t("sidebar.note_desc", "Ghost-Pad 支援純電腦操作！您可以直接敲擊鍵盤（WASD 類比搖桿、L/K/I/J 確認取消）或直接用滑鼠點擊畫面按鈕與拖曳搖桿，皆能即時驅動 Switch。")}
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -252,7 +255,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                       <span className="px-2 py-0.5 rounded font-mono font-medium bg-zinc-800 text-zinc-200 border border-white/[0.08] text-[11px]">
                         {item.key}
                       </span>
-                      <span className="text-zinc-400 text-[11px]">{item.label}</span>
+                      <span className="text-zinc-400 text-[11px]">{t(`guide_keys.${item.id}`, item.label)}</span>
                     </div>
                     <span className="font-mono font-medium text-zinc-300 text-xs px-1.5 py-0.5 rounded bg-zinc-900 border border-white/[0.06]">
                       {item.button}
@@ -267,7 +270,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 onClick={() => setShowKeyGuide(false)}
                 className="px-3.5 py-1.5 rounded-md bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-medium transition-colors cursor-pointer shadow-xs"
               >
-                關閉
+                {t("actions.close", { ns: "common", defaultValue: "關閉" })}
               </button>
             </div>
           </div>
@@ -434,7 +437,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                     ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-[0.98]"
                     : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border-white/[0.1] shadow-xs"
                 }`}
-                title="ZL 按鍵 (左板機鍵)"
+                title={t("buttons.zl", "ZL 按鍵 (左板機鍵)")}
               >
                 ZL
               </button>
@@ -445,7 +448,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                     ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-[0.98]"
                     : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border-white/[0.1] shadow-xs"
                 }`}
-                title="L 按鍵 (左肩鍵)"
+                title={t("buttons.l", "L 按鍵 (左肩鍵)")}
               >
                 L
               </button>
@@ -470,7 +473,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                     ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-[0.98]"
                     : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border-white/[0.1] shadow-xs"
                 }`}
-                title="R 按鍵 (右肩鍵)"
+                title={t("buttons.r", "R 按鍵 (右肩鍵)")}
               >
                 R
               </button>
@@ -481,7 +484,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                     ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-[0.98]"
                     : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border-white/[0.1] shadow-xs"
                 }`}
-                title="ZR 按鍵 (右板機鍵)"
+                title={t("buttons.zr", "ZR 按鍵 (右板機鍵)")}
               >
                 ZR
               </button>
@@ -501,7 +504,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                     ? "border-white/[0.3] ring-2 ring-white/[0.1]"
                     : "border-white/[0.08] hover:border-white/[0.16]"
                 }`}
-                title="左類比搖桿 (可拖曳移動，輕點為 L3)"
+                title={t("buttons.l_stick", "左類比搖桿 (可拖曳移動，輕點為 L3)")}
               >
                 {/* Subtle Direction Guide Markers */}
                 <span className="absolute top-1 text-[8px] font-mono text-zinc-600 select-none pointer-events-none">▲</span>
@@ -540,7 +543,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   className={`absolute top-0 w-9 h-9 rounded-t-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     isUp ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                   }`}
-                  title="十字鍵 上"
+                  title={t("buttons.dpad_up", "十字鍵 上")}
                 >
                   ▲
                 </button>
@@ -549,7 +552,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   className={`absolute bottom-0 w-9 h-9 rounded-b-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     isDown ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                   }`}
-                  title="十字鍵 下"
+                  title={t("buttons.dpad_down", "十字鍵 下")}
                 >
                   ▼
                 </button>
@@ -558,7 +561,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   className={`absolute left-0 w-9 h-9 rounded-l-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     isLeft ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                   }`}
-                  title="十字鍵 左"
+                  title={t("buttons.dpad_left", "十字鍵 左")}
                 >
                   ◀
                 </button>
@@ -567,7 +570,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   className={`absolute right-0 w-9 h-9 rounded-r-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     isRight ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                   }`}
-                  title="十字鍵 右"
+                  title={t("buttons.dpad_right", "十字鍵 右")}
                 >
                   ▶
                 </button>
@@ -586,7 +589,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                       ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
                       : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
                   }`}
-                  title="Minus 按鍵 (減號)"
+                  title={t("buttons.minus", "Minus 按鍵 (減號)")}
                 >
                   −
                 </button>
@@ -597,7 +600,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                       ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
                       : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
                   }`}
-                  title="Plus 按鍵 (加號)"
+                  title={t("buttons.plus", "Plus 按鍵 (加號)")}
                 >
                   +
                 </button>
@@ -614,8 +617,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 }`}
                 title={
                   isGhostAwake
-                    ? "ESP32 服務運作中 (點擊停止)"
-                    : "ESP32 待命中 (點擊啟動)"
+                    ? t("live_controls.esp32_active_stop", "ESP32 服務運作中 (點擊停止)")
+                    : t("live_controls.esp32_idle_start", "ESP32 待命中 (點擊啟動)")
                 }
               >
                 <span
@@ -637,7 +640,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                       ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
                       : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
                   }`}
-                  title="Capture 按鍵 (截圖)"
+                  title={t("buttons.capture", "Capture 按鍵 (截圖)")}
                 >
                   ◉
                 </button>
@@ -648,7 +651,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                       ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
                       : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
                   }`}
-                  title="Home 按鍵 (主畫面)"
+                  title={t("buttons.home", "Home 按鍵 (主畫面)")}
                 >
                   ⌂
                 </button>
@@ -710,7 +713,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
                     ? "border-white/[0.3] ring-2 ring-white/[0.1]"
                     : "border-white/[0.08] hover:border-white/[0.16]"
                 }`}
-                title="右類比搖桿 (可拖曳移動，輕點為 R3)"
+                title={t("buttons.r_stick", "右類比搖桿 (可拖曳移動，輕點為 R3)")}
               >
                 {/* Subtle Direction Guide Markers */}
                 <span className="absolute top-1 text-[8px] font-mono text-zinc-600 select-none pointer-events-none">▲</span>

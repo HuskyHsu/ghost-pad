@@ -1,0 +1,154 @@
+{
+  "title": "ESP32 Hardware & Serial Console",
+  "subtitle": "Connect sequentially: Hardware Device ➔ Virtual Gamepad Service ➔ Switch Console",
+  "status_cards": {
+    "esp32_status": "ESP32 Status",
+    "serial_stream": "Serial Stream",
+    "switch_pairing": "Switch Pairing",
+    "active_60hz": "● 60Hz Streaming",
+    "service_stopped": "○ Stopped",
+    "switch_paired_1p": "✓ Locked 1P",
+    "switch_pairing_wait": "Pairing...",
+    "switch_offline": "Switch Offline",
+    "hardware_ready": "✓ Ready",
+    "hardware_needed": "✕ Needs Hardware"
+  },
+  "header": {
+    "switch_1p_connected": "Switch 1P Connected",
+    "streaming": "Gamepad Streaming",
+    "ready": "Hardware Ready",
+    "pending": "Connect Hardware",
+    "rescan_ports_tooltip": "Rescan USB serial ports",
+    "rescan_ports": "Rescan Devices"
+  },
+  "stepper": {
+    "step0_label": "Hardware & Firmware",
+    "step0_no_usb": "No USB Detected",
+    "step0_ready": "ESP32 Device Ready",
+    "step0_checking": "Checking Firmware...",
+    "step1_label": "Virtual Gamepad Service",
+    "step1_streaming": "60Hz Streaming ({{fps}} Hz)",
+    "step1_stopped": "Service Stopped",
+    "step2_label": "Switch Console Connection",
+    "step2_connected": "Switch Connected (1P)",
+    "step2_pairing": "Auto-Pairing...",
+    "step2_offline": "Switch Offline"
+  },
+  "step0": {
+    "title": "Step 0: Verify USB Connection & ESP32 Firmware",
+    "desc": "Auto-detects ESP32 chips (CH340/CP210x) and verifies PRO-UART0 handshake",
+    "ready": "✓ Ready",
+    "needed": "✕ Needs Hardware",
+    "flasher_tool": "Firmware Flasher",
+    "no_device_title": "No ESP32 USB Device Detected",
+    "no_device_desc": "Please connect ESP32 to computer via USB data cable, then click \"Rescan Devices\".",
+    "select_port_label": "Select ESP32 Serial Port",
+    "available_ports": "{{count}} USB serial ports available",
+    "chip_recognized": "CH340 / CP2102",
+    "chip_standard": "Standard USB Chip",
+    "probe_tooltip": "Retry PRO-UART0 firmware handshake",
+    "probe_ok": "PRO-UART0 ✓",
+    "probe_checking": "Checking…",
+    "probe_retry": "Unverified · Retry",
+    "flasher": {
+      "title": "ESP32 1-Click Firmware Flasher (PRO-UART0.bin)",
+      "subtitle": "Switch Pro Controller Emulation Firmware",
+      "progress": "Flashing Progress",
+      "flashing": "Flashing Firmware...",
+      "start": "Flash PRO-UART0.bin",
+      "tip": "For new boards or firmware reset, click here to write official firmware to chip."
+    }
+  },
+  "step1": {
+    "locked_title": "Step 1 Locked",
+    "locked_no_usb": "Please connect an ESP32 USB device first",
+    "locked_checking": "Verifying ESP32 firmware…",
+    "locked_unverified": "ESP32 firmware did not pass PRO-UART0 handshake. Please verify correct firmware.",
+    "title": "Step 1: Virtual Gamepad Service (60Hz Streaming)",
+    "desc": "Establishes PC ➔ ESP32 serial communication and maintains heartbeat alive",
+    "status_streaming": "● 60Hz Streaming",
+    "status_stopped": "○ Service Stopped",
+    "baudrate_label": "Baudrate",
+    "recommended_suffix": "(Recommended)",
+    "telemetry_rate": "Rate:",
+    "telemetry_sent": "Sent:",
+    "btn_start": "Start Virtual Gamepad",
+    "btn_stop": "Stop Virtual Gamepad",
+    "heartbeat_notice": "60Hz heartbeat enabled: prevents Switch idle sleep with 200ms watchdog auto-neutral."
+  },
+  "step2": {
+    "locked_title": "Step 2 Locked",
+    "locked_desc": "Please start Step 1 Virtual Gamepad first. Switch pairing requires active serial streaming.",
+    "title": "Step 2: Switch Auto-Pairing & Connection",
+    "desc": "Pair manually once to remember host, subsequent starts will automatically reconnect 1P",
+    "status_locked_1p": "✓ Locked 1P",
+    "status_can_pair": "Ready to send pair commands",
+    "paired_box": {
+      "title": "Paired Console Remembered (Auto-Pair Ready)",
+      "badge": "Auto-Pair Active",
+      "desc": "Switch console remembered. When starting virtual gamepad, A-button wake signal is sent automatically for instant connection.",
+      "btn_reconnect": "Manual Auto-Reconnect (A Wake)",
+      "btn_clear": "Change Console (Clear Pairing)",
+      "btn_neutral": "Emergency Signal Reset"
+    },
+    "unpaired_box": {
+      "title": "First-time Pairing Flow (No Console Remembered)",
+      "badge": "Manual Pairing Needed",
+      "step1": "1. On Switch home screen, go to Controllers ➔ Change Grip/Order.",
+      "step2": "2. Click button below to send L + R handshake pulse for 1P assignment.",
+      "step3": "3. Once paired, console will be remembered for future auto-connection!",
+      "btn_start_pair": "Start Pairing (Send L+R & Save)",
+      "btn_neutral": "Emergency Signal Reset"
+    }
+  },
+  "footer": {
+    "port": "● Port: {{port}}",
+    "no_port": "No USB Device Selected",
+    "baudrate": "Baudrate: {{baud}} bps",
+    "sent_packets": "Sent: {{count}} Packets",
+    "bridge_streaming": "Virtual Pad: 60Hz Streaming ({{fps}} Hz)",
+    "bridge_stopped": "Virtual Pad: Stopped",
+    "switch_status": "Switch: {{status}}",
+    "switch_connected": "1P Connected",
+    "switch_pairing": "Pairing...",
+    "switch_offline": "Offline"
+  },
+  "buttons": {
+    "start_bridge": "Start Bridge",
+    "stop_bridge": "Stop Bridge",
+    "rescan_ports": "Rescan",
+    "pair_lr": "First Pair (L+R)",
+    "wake_reconnect": "Wake / Reconnect (A)",
+    "safe_neutral": "Neutral Reset",
+    "reset_bonds": "Clear Bonds",
+    "burn_firmware": "Flash PRO-UART0.bin"
+  },
+  "ports": {
+    "select_port": "Select ESP32 serial port...",
+    "no_ports_found": "No serial devices detected",
+    "recommended": "(Recommended)"
+  },
+  "feedback": {
+    "paired_success": "L+R pairing sent! Switch recognized 1P and memory has been saved for future auto-connect.",
+    "wake_success": "Wake pulse sent! Switch should reconnect as 1P shortly.",
+    "neutral_success": "Neutral safety packet sent. All inputs reset to center.",
+    "reset_success": "ESP32 Bluetooth bonds reset and local auto-pairing cleared.",
+    "need_step1_first": "Please start Step 1 Virtual Gamepad Service before sending commands!",
+    "service_stopped": "Virtual gamepad service stopped. All inputs reset to center.",
+    "select_port_first": "Please select ESP32 serial port in Step 0 first",
+    "service_started_auto": "Virtual gamepad service started! Paired console found, auto-reconnecting...",
+    "auto_wake_sent": "Wake reconnect pulse sent! Switch should reconnect as 1P.",
+    "service_started_manual": "Virtual gamepad service started! Please proceed to Step 2 for first-time pairing.",
+    "flash_select_port": "Please connect ESP32 and select serial port first",
+    "flash_complete": "PRO-UART0.bin flashed successfully! Re-verifying handshake protocol..."
+  },
+  "gamepad_card": {
+    "title": "Physical Gamepad Manager",
+    "subtitle": "Supports 8BitDo, Switch Pro, Joy-Con, Xbox Gamepads",
+    "connected_pads": "Connected Devices",
+    "no_pads": "No physical gamepads connected",
+    "micro_guide": "8BitDo Micro Guide",
+    "status_active": "Active",
+    "status_muted": "Muted"
+  }
+}

@@ -16,6 +16,8 @@ import {
   Radio,
   X,
 } from "lucide-react";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   activeTab: "dashboard" | "macro" | "hardware";
@@ -51,9 +53,10 @@ export const Sidebar: React.FC<Props> = ({
   onSendSerialCommand,
 }) => {
   const [showGuide, setShowGuide] = useState(false);
+  const { t } = useTranslation("common");
 
   return (
-    <aside className="w-64 xl:w-72 bg-zinc-950 border-r border-white/[0.06] flex flex-col h-full select-none shrink-0">
+    <aside className="w-72 xl:w-80 bg-zinc-950 border-r border-white/[0.06] flex flex-col h-full select-none shrink-0">
       {/* Top App Header */}
       <div className="h-14 px-4 border-b border-white/[0.06] flex items-center justify-between">
         <div className="flex items-center gap-2.5">
@@ -65,12 +68,15 @@ export const Sidebar: React.FC<Props> = ({
             <div className="text-[10px] text-zinc-500 font-mono">Switch Bridge Pro</div>
           </div>
         </div>
+
+        {/* Language Switcher */}
+        <LanguageSwitcher />
       </div>
 
       {/* Main Navigation */}
       <div className="p-3 space-y-1">
         <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-medium">
-          導航
+          {t("nav.section")}
         </div>
         <button
           onClick={() => onTabChange("dashboard")}
@@ -82,7 +88,7 @@ export const Sidebar: React.FC<Props> = ({
         >
           <div className="flex items-center gap-2.5">
             <Activity className="w-3.5 h-3.5 text-zinc-400" />
-            <span>即時儀表板</span>
+            <span>{t("sidebar_nav.dashboard")}</span>
           </div>
           {activeTab === "dashboard" && <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />}
         </button>
@@ -97,7 +103,7 @@ export const Sidebar: React.FC<Props> = ({
         >
           <div className="flex items-center gap-2.5">
             <FileCode2 className="w-3.5 h-3.5 text-zinc-400" />
-            <span>巨集腳本庫</span>
+            <span>{t("sidebar_nav.macro")}</span>
           </div>
           {activeTab === "macro" && <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />}
         </button>
@@ -112,7 +118,7 @@ export const Sidebar: React.FC<Props> = ({
         >
           <div className="flex items-center gap-2.5">
             <Cpu className="w-3.5 h-3.5 text-zinc-400" />
-            <span>ESP32 與韌體</span>
+            <span>{t("sidebar_nav.hardware")}</span>
           </div>
           {activeTab === "hardware" && <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />}
         </button>
@@ -122,19 +128,19 @@ export const Sidebar: React.FC<Props> = ({
       <div className="p-3 border-t border-white/[0.06] flex-1 overflow-y-auto space-y-2 scrollbar-none [&::-webkit-scrollbar]:hidden">
         <div className="flex items-center justify-between px-2 py-1">
           <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-medium">
-            輸入手把 ({gamepads.length})
+            {t("sidebar.input_gamepads", { count: gamepads.length })}
           </span>
           <div className="flex items-center gap-1">
             <button
               onClick={onRefreshGamepads}
-              title="重新掃描設備"
+              title={t("sidebar.rescan_devices")}
               className="w-5 h-5 rounded-md flex items-center justify-center text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent hover:border-white/[0.06] transition-colors"
             >
               <RefreshCw className="w-3 h-3" />
             </button>
             <button
               onClick={() => setShowGuide(!showGuide)}
-              title="官方手把配對說明 (Pro / Joy-Con)"
+              title={t("sidebar.pairing_guide_title")}
               className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors cursor-pointer border ${
                 showGuide
                   ? "text-zinc-200 bg-zinc-800 border-white/[0.1]"
@@ -151,10 +157,10 @@ export const Sidebar: React.FC<Props> = ({
           {gamepads.length === 0 ? (
             <div className="py-4 px-3 text-center rounded-lg bg-zinc-900/40 border border-white/[0.06] text-zinc-400 text-xs">
               <Gamepad2 className="w-4 h-4 mx-auto mb-1 text-zinc-600" />
-              <div className="text-[11px] font-medium text-zinc-300">未連線外接手把 (選用)</div>
+              <div className="text-[11px] font-medium text-zinc-300">{t("sidebar.no_gamepad_title")}</div>
               <div className="text-[10px] text-zinc-500 mt-1 leading-relaxed">
-                可隨時連線藍牙實體手把<br />
-                <span className="text-zinc-500">電腦鍵盤與畫面按鈕亦可直接操作</span>
+                {t("sidebar.no_gamepad_desc1")}<br />
+                <span className="text-zinc-500">{t("sidebar.no_gamepad_desc2")}</span>
               </div>
             </div>
           ) : (
@@ -183,7 +189,7 @@ export const Sidebar: React.FC<Props> = ({
                 {g.is_active && (
                   <span className="px-1.5 py-0.5 rounded-md bg-zinc-800 border border-white/[0.08] text-[9px] font-medium text-zinc-300 flex items-center gap-1 shrink-0 font-mono">
                     <Check className="w-2.5 h-2.5 text-zinc-300" />
-                    主控
+                    {t("sidebar.gamepad_master")}
                   </span>
                 )}
               </div>
@@ -210,10 +216,10 @@ export const Sidebar: React.FC<Props> = ({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <span className="text-[11px] font-medium text-zinc-200 truncate">
-                    Ghost-Pad 轉發
+                    {t("sidebar.bridge_title")}
                   </span>
                   <span
-                    className={`text-[9px] px-1.5 py-0.2 rounded font-mono shrink-0 border ${
+                    className={`text-[9px] px-1.5 py-0.2 rounded font-mono shrink-0 border whitespace-nowrap ${
                       esp32Connected
                         ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                         : isStep0Ready
@@ -221,15 +227,19 @@ export const Sidebar: React.FC<Props> = ({
                         : "bg-zinc-900 text-zinc-600 border-white/[0.03]"
                     }`}
                   >
-                    {esp32Connected ? "轉發中" : isStep0Ready ? "待命中" : "未就緒"}
+                    {esp32Connected
+                      ? t("sidebar.bridge_status_streaming")
+                      : isStep0Ready
+                      ? t("sidebar.bridge_status_ready")
+                      : t("sidebar.bridge_status_not_ready")}
                   </span>
                 </div>
                 <div className="text-[10px] text-zinc-500 font-mono mt-0.5 truncate">
                   {esp32Connected
-                    ? `60Hz • ${serialStatus?.tx_fps || 60} FPS`
+                    ? t("sidebar.bridge_desc_streaming", { fps: serialStatus?.tx_fps || 60 })
                     : isStep0Ready
-                    ? "ESP32 就緒，可啟動轉發"
-                    : "尚未連接或驗證 ESP32"}
+                    ? t("sidebar.bridge_desc_ready")
+                    : t("sidebar.bridge_desc_not_ready")}
                 </div>
               </div>
             </div>
@@ -243,10 +253,10 @@ export const Sidebar: React.FC<Props> = ({
               onClick={onToggleVirtualController}
               title={
                 esp32Connected
-                  ? "點擊停止虛擬手把服務"
+                  ? t("sidebar.toggle_stop_bridge")
                   : isStep0Ready
-                  ? "點擊開啟虛擬手把服務"
-                  : "ESP32 尚未就緒，請至「ESP32 與韌體」分頁完成連線"
+                  ? t("sidebar.toggle_start_bridge")
+                  : t("sidebar.toggle_not_ready")
               }
               className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out border ${
                 !isStep0Ready && !esp32Connected
@@ -269,11 +279,11 @@ export const Sidebar: React.FC<Props> = ({
             <div className="pt-2 border-t border-white/[0.06] space-y-2">
               {/* Signal Transmission Toggle */}
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-zinc-400">訊號即時傳輸</span>
+                <span className="text-zinc-400">{t("sidebar.signal_streaming")}</span>
                 <button
                   type="button"
                   onClick={onToggleMute}
-                  title={isMuted ? "點擊解除暫停，開始傳送操作" : "點擊暫停訊號傳送 (看門狗安全中立)"}
+                  title={isMuted ? t("sidebar.unmute_tooltip") : t("sidebar.mute_tooltip")}
                   className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium border transition-colors cursor-pointer ${
                     isMuted
                       ? "bg-amber-500/10 text-amber-300 border-amber-500/20 hover:bg-amber-500/20"
@@ -281,12 +291,12 @@ export const Sidebar: React.FC<Props> = ({
                   }`}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${isMuted ? "bg-amber-400" : "bg-emerald-400"}`} />
-                  {isMuted ? "已暫停 (點擊啟用)" : "已啟用"}
+                  {isMuted ? t("sidebar.signal_paused") : t("sidebar.signal_active")}
                 </button>
               </div>
 
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-zinc-400">Switch 狀態</span>
+                <span className="text-zinc-400">{t("sidebar.switch_status")}</span>
                 <span
                   className={`font-mono font-medium ${
                     switchPairingState === "connected"
@@ -297,10 +307,10 @@ export const Sidebar: React.FC<Props> = ({
                   }`}
                 >
                   {switchPairingState === "connected"
-                    ? "1P 已連線"
+                    ? t("sidebar.switch_connected_1p")
                     : switchPairingState === "pairing"
-                    ? "配對中..."
-                    : "待配對"}
+                    ? t("sidebar.switch_pairing")
+                    : t("sidebar.switch_standby")}
                 </span>
               </div>
 
@@ -310,7 +320,7 @@ export const Sidebar: React.FC<Props> = ({
                   className="w-full py-1.5 px-2 rounded-md bg-zinc-800 hover:bg-zinc-750 border border-white/[0.08] text-amber-300 text-[10px] font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                 >
                   <Zap className="w-3 h-3 text-amber-400" />
-                  <span>手動喚醒重連 (A鍵)</span>
+                  <span>{t("sidebar.wake_reconnect_btn")}</span>
                 </button>
               ) : (
                 <button
@@ -318,7 +328,7 @@ export const Sidebar: React.FC<Props> = ({
                   className="w-full py-1.5 px-2 rounded-md bg-zinc-800 hover:bg-zinc-750 border border-white/[0.08] text-zinc-200 text-[10px] font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                 >
                   <Radio className="w-3 h-3 text-zinc-400" />
-                  <span>首次配對 (送出 L+R)</span>
+                  <span>{t("sidebar.pair_lr_btn")}</span>
                 </button>
               )}
             </div>
@@ -329,36 +339,42 @@ export const Sidebar: React.FC<Props> = ({
       {/* Pipeline Status (Bottom Section) */}
       <div className="p-3 border-t border-white/[0.06] bg-zinc-950/80 space-y-2">
         <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-medium px-1">
-          硬體橋接鏈路
+          {t("sidebar.hardware_bridge_pipeline")}
         </div>
         <div className="p-2.5 rounded-lg bg-zinc-900/40 border border-white/[0.06] space-y-2 text-[11px]">
           {/* Step 1: Pad -> Mac */}
-          <div className="flex items-center justify-between text-zinc-300">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between text-zinc-300 gap-2">
+            <div className="flex items-center gap-1.5 shrink-0">
               <Bluetooth className="w-3.5 h-3.5 text-zinc-500" />
-              <span className="text-xs">手把 ➔ 電腦</span>
+              <span className="text-xs">{t("sidebar.pipeline_step1")}</span>
             </div>
             <span
-              className={`font-mono text-[10px] ${
+              className={`font-mono text-[10px] whitespace-nowrap shrink-0 ${
                 gamepads.some((g) => g.is_connected) ? "text-emerald-400" : "text-zinc-500"
               }`}
             >
-              {gamepads.some((g) => g.is_connected) ? "藍牙已連線" : "鍵盤/畫面 (手把選用)"}
+              {gamepads.some((g) => g.is_connected)
+                ? t("sidebar.pipeline_step1_bt")
+                : t("sidebar.pipeline_step1_local")}
             </span>
           </div>
 
           {/* Step 2: Mac -> ESP32 */}
-          <div className="flex items-center justify-between text-zinc-300">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between text-zinc-300 gap-2">
+            <div className="flex items-center gap-1.5 shrink-0">
               <Laptop className="w-3.5 h-3.5 text-zinc-500" />
-              <span className="text-xs">電腦 ➔ ESP32</span>
+              <span className="text-xs">{t("sidebar.pipeline_step2")}</span>
             </div>
             <span
-              className={`font-mono text-[10px] ${
+              className={`font-mono text-[10px] whitespace-nowrap shrink-0 ${
                 esp32Connected ? "text-emerald-400" : "text-zinc-500"
               }`}
             >
-              {esp32Connected ? "60Hz 串流中" : isStep0Ready ? "USB 已就緒" : "未接 USB"}
+              {esp32Connected
+                ? t("sidebar.pipeline_step2_active")
+                : isStep0Ready
+                ? t("sidebar.pipeline_step2_ready")
+                : t("sidebar.pipeline_step2_disconnected")}
             </span>
           </div>
 
@@ -366,7 +382,7 @@ export const Sidebar: React.FC<Props> = ({
           <div className="flex items-center justify-between text-zinc-300">
             <div className="flex items-center gap-2">
               <Tv className="w-3.5 h-3.5 text-zinc-500" />
-              <span className="text-xs">ESP32 ➔ Switch</span>
+              <span className="text-xs">{t("sidebar.pipeline_step3")}</span>
             </div>
             <span
               className={`font-mono text-[10px] ${
@@ -378,10 +394,10 @@ export const Sidebar: React.FC<Props> = ({
               }`}
             >
               {switchPairingState === "connected"
-                ? "1P 已連線"
+                ? t("sidebar.pipeline_step3_connected")
                 : switchPairingState === "pairing"
-                ? "配對握手中"
-                : "尚未連線"}
+                ? t("sidebar.pipeline_step3_pairing")
+                : t("sidebar.pipeline_step3_disconnected")}
             </span>
           </div>
         </div>
@@ -401,12 +417,12 @@ export const Sidebar: React.FC<Props> = ({
             <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
               <div className="flex items-center gap-2 text-zinc-100 font-semibold text-xs tracking-tight">
                 <Bluetooth className="w-4 h-4 text-zinc-400" />
-                <span>官方手把藍牙配對指引</span>
+                <span>{t("sidebar.guide_title")}</span>
               </div>
               <button
                 onClick={() => setShowGuide(false)}
                 className="p-1 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                title="關閉"
+                title={t("actions.close")}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -417,28 +433,28 @@ export const Sidebar: React.FC<Props> = ({
               {/* Switch Pro Controller */}
               <div className="p-3 rounded-lg bg-zinc-950/70 border border-white/[0.06] space-y-1.5">
                 <div className="font-medium text-zinc-200 text-xs flex items-center gap-2">
-                  <span>Switch Pro 控制器</span>
+                  <span>{t("sidebar.guide_switch_pro_title")}</span>
                 </div>
                 <ol className="list-decimal list-inside space-y-1 text-zinc-400 text-xs leading-relaxed">
-                  <li>按住頂部 USB-C 接口旁的「圓形同步鍵 (Sync)」3 秒至指示燈流動。</li>
-                  <li>於電腦「系統設定 ➔ 藍牙」搜尋並點選配對。</li>
+                  <li>{t("sidebar.guide_pro_step1")}</li>
+                  <li>{t("sidebar.guide_pro_step2")}</li>
                 </ol>
               </div>
 
               {/* Joy-Con */}
               <div className="p-3 rounded-lg bg-zinc-950/70 border border-white/[0.06] space-y-1.5">
                 <div className="font-medium text-zinc-200 text-xs flex items-center gap-2">
-                  <span>Joy-Con (L / R)</span>
+                  <span>{t("sidebar.guide_joycon_title")}</span>
                 </div>
                 <ol className="list-decimal list-inside space-y-1 text-zinc-400 text-xs leading-relaxed">
-                  <li>按住滑軌側邊的「圓形同步鍵 (Sync)」3 秒至指示燈流動。</li>
-                  <li>於電腦「系統設定 ➔ 藍牙」搜尋並點選配對。</li>
+                  <li>{t("sidebar.guide_joycon_step1")}</li>
+                  <li>{t("sidebar.guide_joycon_step2")}</li>
                 </ol>
               </div>
 
               {/* Note */}
               <div className="p-3 rounded-lg bg-zinc-800/40 border border-white/[0.06] text-zinc-300 text-[11px] leading-relaxed">
-                <span className="font-medium text-zinc-200">外接手把非必須</span>：Ghost-Pad 支援純電腦操作！敲擊鍵盤或用滑鼠點擊畫面按鈕，皆可完整控制 Switch。
+                <span className="font-medium text-zinc-200">{t("sidebar.guide_note_title")}</span>：{t("sidebar.guide_note_desc")}
               </div>
             </div>
 
@@ -448,7 +464,7 @@ export const Sidebar: React.FC<Props> = ({
                 onClick={() => setShowGuide(false)}
                 className="px-3.5 py-1.5 rounded-md bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-medium transition-colors cursor-pointer shadow-xs"
               >
-                我知道了
+                {t("sidebar.guide_got_it")}
               </button>
             </div>
           </div>

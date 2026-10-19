@@ -22,10 +22,12 @@ import { useVirtualGamepad } from "./hooks/useVirtualGamepad";
 import { useMacroRecorder } from "./hooks/useMacroRecorder";
 import { useMacroPlayer } from "./hooks/useMacroPlayer";
 import { isTauriAvailable } from "./utils/tauri";
+import { useTranslation } from "react-i18next";
 
 const PAIRING_STORAGE_KEY = "ghostpad_switch_paired";
 
 export function App() {
+  const { t } = useTranslation("common");
   const [activeTab, setActiveTab] = useState<"dashboard" | "macro" | "hardware">("dashboard");
   const [controllerState, setControllerState] = useState<ControllerState>(DEFAULT_CONTROLLER_STATE);
   const [gamepads, setGamepads] = useState<GamepadInfo[]>([]);
@@ -237,7 +239,7 @@ export function App() {
     const dup: MacroScript = {
       ...script,
       id: `macro-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-      name: `${script.name} (副本)`,
+      name: `${script.name} (${t("actions.copy_suffix", "副本")})`,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       isPreset: false,

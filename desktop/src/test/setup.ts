@@ -1,5 +1,9 @@
 import "@testing-library/jest-dom";
 import { vi } from "vitest";
+import i18n from "../i18n";
+
+// Ensure tests default to zh-TW to match existing UI assertions
+i18n.changeLanguage("zh-TW");
 
 // Mock Tauri API core
 vi.mock("@tauri-apps/api/core", () => ({

@@ -1,0 +1,154 @@
+{
+  "title": "ESP32 ハードウェア＆通信コンソール",
+  "subtitle": "「ハードウェア」➔「仮想パッドサービス」➔「Switch 接続」の順序で接続",
+  "status_cards": {
+    "esp32_status": "ESP32 状態",
+    "serial_stream": "シリアル通信",
+    "switch_pairing": "Switch ペアリング",
+    "active_60hz": "● 60Hz 配信中",
+    "service_stopped": "○ 停止中",
+    "switch_paired_1p": "✓ 1P 接続済み",
+    "switch_pairing_wait": "ペアリング待機",
+    "switch_offline": "Switch 未接続",
+    "hardware_ready": "✓ 準備完了",
+    "hardware_needed": "✕ ハードウェア未接続"
+  },
+  "header": {
+    "switch_1p_connected": "Switch 1P 接続済み",
+    "streaming": "仮想パッド配信中",
+    "ready": "ハードウェア準備完了",
+    "pending": "ハードウェア未接続",
+    "rescan_ports_tooltip": "USB シリアルポートを再スキャン",
+    "rescan_ports": "デバイスを再スキャン"
+  },
+  "stepper": {
+    "step0_label": "ハードウェアとファームウェア",
+    "step0_no_usb": "USB 未検出",
+    "step0_ready": "ESP32 準備完了",
+    "step0_checking": "ファームウェア確認中...",
+    "step1_label": "仮想パッドサービス",
+    "step1_streaming": "60Hz 配信中 ({{fps}} Hz)",
+    "step1_stopped": "サービス停止中",
+    "step2_label": "Switch 本体接続",
+    "step2_connected": "Switch 接続済み (1P)",
+    "step2_pairing": "自動ペアリング中...",
+    "step2_offline": "Switch 未接続"
+  },
+  "step0": {
+    "title": "ステップ 0：USB 接続と ESP32 ファームウェアの確認",
+    "desc": "ESP32 チップ (CH340/CP210x) を自動認識し、PRO-UART0 ハンドシェイクを検証",
+    "ready": "✓ 準備完了",
+    "needed": "✕ ハードウェア未接続",
+    "flasher_tool": "ファームウェア書き込みツール",
+    "no_device_title": "ESP32 USB デバイスが検出されません",
+    "no_device_desc": "ESP32 をデータ通信対応の USB ケーブルで接続し、「デバイスを再スキャン」をクリックしてください。",
+    "select_port_label": "ESP32 シリアルポートを選択",
+    "available_ports": "{{count}} 個の利用可能な USB ポート",
+    "chip_recognized": "CH340 / CP2102",
+    "chip_standard": "標準 USB チップ",
+    "probe_tooltip": "PRO-UART0 ファームウェアのハンドシェイクを再テスト",
+    "probe_ok": "PRO-UART0 ✓",
+    "probe_checking": "確認中…",
+    "probe_retry": "未確認 · 再試行",
+    "flasher": {
+      "title": "ESP32 ファームウェア簡単書き込み (PRO-UART0.bin)",
+      "subtitle": "Switch 純正 Pro コントローラー互換ファームウェア",
+      "progress": "書き込み進捗",
+      "flashing": "ファームウェア書き込み中...",
+      "start": "PRO-UART0.bin を書き込む",
+      "tip": "新しい基板やリセット時は、ここから公式ファームウェアを書き込みます。"
+    }
+  },
+  "step1": {
+    "locked_title": "ステップ 1 ロック中",
+    "locked_no_usb": "先に ESP32 USB デバイスを接続してください",
+    "locked_checking": "ESP32 ファームウェアを確認中…",
+    "locked_unverified": "PRO-UART0 ハンドシェイク未通過。適切なファームウェアをご確認ください",
+    "title": "ステップ 1：仮想パッドサービスの起動 (60Hz 配信)",
+    "desc": "PC ➔ ESP32 シリアル通信を開設し、切断防止のハートビートを維持します",
+    "status_streaming": "● 60Hz 配信中",
+    "status_stopped": "○ サービス停止中",
+    "baudrate_label": "通信ボーレート (Baudrate)",
+    "recommended_suffix": "(推奨)",
+    "telemetry_rate": "周波数:",
+    "telemetry_sent": "送信済み:",
+    "btn_start": "仮想パッド開始",
+    "btn_stop": "仮想パッド停止",
+    "heartbeat_notice": "60Hz ハートビート常時稼働中：Switch のスリープ遮断を防止し、200ms 切断ウォッチドッグで暴走を防止します。"
+  },
+  "step2": {
+    "locked_title": "ステップ 2 ロック中",
+    "locked_desc": "先に「ステップ 1：仮想パッド開始」を実行してください。シリアル通信開設後にペアリングが可能です。",
+    "title": "ステップ 2：Switch 自動ペアリング＆接続",
+    "desc": "初回に手動ペアリングして記憶すれば、次回以降は自動で 1P に再接続されます",
+    "status_locked_1p": "✓ 1P 接続済み",
+    "status_can_pair": "ペアリングコマンド送信可能",
+    "paired_box": {
+      "title": "ペアリング済み本体を記憶中 (自動接続準備完了)",
+      "badge": "Auto-Pair Active",
+      "desc": "記憶された Switch 本体へ、仮想パッド起動時に自動で A ボタン復帰パケットを送信して瞬時に接続します。",
+      "btn_reconnect": "手動で自動再接続 (Aボタン復帰)",
+      "btn_clear": "本体切り替え（記憶を消去）",
+      "btn_neutral": "緊急ニュートラルリセット"
+    },
+    "unpaired_box": {
+      "title": "初回ペアリング手順（本体未記憶）",
+      "badge": "手動ペアリングが必要",
+      "step1": "1. Switch ホーム画面から「コントローラー」➔「持ちかた／順番をかえる」を開きます。",
+      "step2": "2. 下のボタンを押して L + R パケットを送信し、1P として認識させます。",
+      "step3": "3. ペアリング成功後は自動記憶され、次回から自動接続されます！",
+      "btn_start_pair": "初回ペアリング開始 (L+R を送信して記憶)",
+      "btn_neutral": "緊急ニュートラルリセット"
+    }
+  },
+  "footer": {
+    "port": "● ポート: {{port}}",
+    "no_port": "USB デバイス未選択",
+    "baudrate": "ボーレート: {{baud}} bps",
+    "sent_packets": "送信数: {{count}} パケット",
+    "bridge_streaming": "仮想パッド: 60Hz 配信中 ({{fps}} Hz)",
+    "bridge_stopped": "仮想パッド: 停止中",
+    "switch_status": "Switch: {{status}}",
+    "switch_connected": "1P 接続済み",
+    "switch_pairing": "ペアリング中...",
+    "switch_offline": "未接続"
+  },
+  "buttons": {
+    "start_bridge": "仮想パッド開始",
+    "stop_bridge": "仮想パッド停止",
+    "rescan_ports": "再スキャン",
+    "pair_lr": "初回ペアリング (L+R)",
+    "wake_reconnect": "復帰再接続 (Aボタン)",
+    "safe_neutral": "ニュートラル",
+    "reset_bonds": "ペアリング解除",
+    "burn_firmware": "PRO-UART0.bin 書き込み"
+  },
+  "ports": {
+    "select_port": "ESP32 シリアルポートを選択...",
+    "no_ports_found": "シリアルデバイスが見つかりません",
+    "recommended": "(推奨)"
+  },
+  "feedback": {
+    "paired_success": "L+R 初回ペアリングパケットを送信しました！次回以降は自動で接続されます。",
+    "wake_success": "復帰再接続パケットを送信しました。Switch が 1P として再接続されます。",
+    "neutral_success": "安全ニュートラルパケットを送信しました。すべての入力をリセットしました。",
+    "reset_success": "ESP32 のペアリング情報をリセットしました。",
+    "need_step1_first": "先にステップ 1「仮想パッドサービス」を起動してください！",
+    "service_stopped": "仮想パッドサービスを停止しました。すべての入力をリセットしました。",
+    "select_port_first": "先にステップ 0 で ESP32 シリアルポートを選択してください",
+    "service_started_auto": "仮想パッドサービスを開始しました！記憶された本体へ自動復帰中...",
+    "auto_wake_sent": "復帰再接続パケットを自動送信しました。Switch が 1P として再接続されます。",
+    "service_started_manual": "仮想パッドサービスを開始しました！ステップ 2 で初回ペアリングを行ってください。",
+    "flash_select_port": "先に ESP32 を接続し、ポートを選択してください",
+    "flash_complete": "PRO-UART0.bin の書き込みが完了しました！ハンドシェイクを再確認中..."
+  },
+  "gamepad_card": {
+    "title": "ゲームパッド管理",
+    "subtitle": "8BitDo、Switch Pro、Joy-Con、Xbox コントローラー対応",
+    "connected_pads": "接続済みデバイス",
+    "no_pads": "ゲームパッドが接続されていません",
+    "micro_guide": "8BitDo Micro 設定ガイド",
+    "status_active": "入力有効",
+    "status_muted": "一時停止"
+  }
+}

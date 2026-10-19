@@ -1,3 +1,4 @@
+pub mod error;
 pub mod gamepad;
 pub mod protocol;
 pub mod serial;
@@ -6,6 +7,7 @@ use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, State};
 
+use crate::error::AppError;
 use crate::gamepad::{GamepadInfo, GamepadManager};
 use crate::protocol::ControllerState;
 use crate::serial::{SerialManager, SerialPortDetail, SerialStatus};
@@ -88,7 +90,7 @@ async fn connect_serial(
         serial_mgr.connect(&port_name, baudrate, gamepad_mgr, app)
     })
     .await
-    .map_err(|e| format!("連線工作執行失敗: {}", e))?
+    .map_err(|e| AppError::TaskExecutionFailed { reason: e.to_string() }.to_json_string())?
 }
 
 #[tauri::command]
@@ -119,7 +121,7 @@ async fn probe_firmware(
     }
     tauri::async_runtime::spawn_blocking(move || SerialManager::probe_firmware(&port_name, baudrate))
         .await
-        .map_err(|e| format!("韌體檢測工作執行失敗: {}", e))?
+        .map_err(|e| AppError::TaskExecutionFailed { reason: e.to_string() }.to_json_string())?
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

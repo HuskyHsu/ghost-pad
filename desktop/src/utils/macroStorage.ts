@@ -1,4 +1,5 @@
 import { MacroScript, MacroAction } from "../types/macro";
+import i18n from "../i18n";
 
 const STORAGE_KEY = "ghostpad_macros_v1";
 
@@ -174,6 +175,39 @@ export function cleanMicroWaitActions(actions: MacroAction[], minThresholdMs = 8
   return result;
 }
 
+// Count how many adjacent consecutive wait actions exist
+export function countConsecutiveWaitMerges(actions: MacroAction[]): number {
+  let count = 0;
+  for (let i = 0; i < actions.length - 1; i++) {
+    if (actions[i].type === "wait" && actions[i + 1].type === "wait") {
+      count++;
+    }
+  }
+  return count;
+}
+
+// Safely merge consecutive wait actions into a single wait with summed duration
+export function mergeConsecutiveWaitActions(actions: MacroAction[]): MacroAction[] {
+  if (actions.length === 0) return [];
+  const result: MacroAction[] = [];
+
+  for (let i = 0; i < actions.length; i++) {
+    const curr = actions[i];
+    if (curr.type === "wait" && result.length > 0 && result[result.length - 1].type === "wait") {
+      const prev = result[result.length - 1];
+      result[result.length - 1] = {
+        ...prev,
+        durationMs: (prev.durationMs || 0) + (curr.durationMs || 0),
+        note: prev.note || curr.note || i18n.t("macro:notes.wait", { defaultValue: "等待暫停" }),
+      };
+    } else {
+      result.push({ ...curr });
+    }
+  }
+
+  return result;
+}
+
 // Convert embedded delayAfterMs into independent 'wait' actions if >= minThresholdMs (default 80ms)
 export function splitDelaysToWaitActions(actions: MacroAction[], minThresholdMs = 80): MacroAction[] {
   const result: MacroAction[] = [];
@@ -197,7 +231,7 @@ export function splitDelaysToWaitActions(actions: MacroAction[], minThresholdMs 
         type: "wait",
         durationMs: delay,
         delayAfterMs: 0,
-        note: "等待暫停",
+        note: i18n.t("macro:notes.wait", { defaultValue: "等待暫停" }),
       });
     } else {
       // Keep small debounce/release gaps as action's intrinsic delay to avoid cluttering timeline
@@ -228,9 +262,9 @@ function sanitizeMacro(data: any): MacroScript {
 
   return {
     id: `macro-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-    name: String(data.name || "匯入之腳本"),
+    name: String(data.name || i18n.t("macro:imported_script_default_name", { defaultValue: "匯入之腳本" })),
     description: String(data.description || ""),
-    tags: Array.isArray(data.tags) ? data.tags.map(String) : ["已匯入"],
+    tags: Array.isArray(data.tags) ? data.tags.map(String) : [i18n.t("macro:imported_tag", { defaultValue: "已匯入" })],
     createdAt: typeof data.createdAt === "number" ? data.createdAt : Date.now(),
     updatedAt: Date.now(),
     actions: splitDelaysToWaitActions(rawActions),

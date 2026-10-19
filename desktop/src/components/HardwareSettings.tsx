@@ -22,6 +22,8 @@ import {
 import { SerialPortDetail, SerialStatus, isEsp32Chip } from "../types";
 import { isTauriAvailable } from "../utils/tauri";
 
+import { useTranslation } from "react-i18next";
+
 interface Props {
   onConnectionChange?: (connected: boolean) => void;
   onPairingChange?: (pairingState: string) => void;
@@ -36,6 +38,7 @@ export const HardwareSettings: React.FC<Props> = ({
   onPairingChange,
   onStep0Change,
 }) => {
+  const { t } = useTranslation("hardware");
   const [ports, setPorts] = useState<SerialPortDetail[]>([]);
   const [selectedPort, setSelectedPort] = useState<string>("");
   const [selectedBaudrate, setSelectedBaudrate] = useState<number>(19200);
@@ -311,7 +314,7 @@ export const HardwareSettings: React.FC<Props> = ({
   // Dispatch Quick Action Commands
   const handleSendCommand = async (cmd: string, successLabel: string) => {
     if (!status.is_connected) {
-      setErrorMessage("請先啟動步驟 1「虛擬手把服務」，才能發送配對或控制指令！");
+      setErrorMessage(t("feedback.need_step1_first", "請先啟動步驟 1「虛擬手把服務」，才能發送配對或控制指令！"));
       return;
     }
 
@@ -376,10 +379,10 @@ export const HardwareSettings: React.FC<Props> = ({
       }));
       onConnectionChange?.(false);
       onPairingChange?.("disconnected");
-      setSuccessNotice("虛擬手把服務已停止，所有按鍵訊號安全歸零。");
+      setSuccessNotice(t("feedback.service_stopped", "虛擬手把服務已停止，所有按鍵訊號安全歸零。"));
     } else {
       if (!selectedPort) {
-        setErrorMessage("請先於步驟 0 選取 ESP32 序列埠");
+        setErrorMessage(t("feedback.select_port_first", "請先於步驟 0 選取 ESP32 序列埠"));
         return;
       }
 
@@ -410,7 +413,7 @@ export const HardwareSettings: React.FC<Props> = ({
       onPairingChange?.(hasPairedSwitch ? "pairing" : "disconnected");
 
       if (hasPairedSwitch) {
-        setSuccessNotice("虛擬手把服務已啟動！偵測到已配對主機，正自動發起喚醒配對...");
+        setSuccessNotice(t("feedback.service_started_auto", "虛擬手把服務已啟動！偵測到已配對主機，正自動發起喚醒配對..."));
         if (wakeTimerRef.current !== null) {
           clearTimeout(wakeTimerRef.current);
         }
@@ -418,11 +421,11 @@ export const HardwareSettings: React.FC<Props> = ({
           if (!isMountedRef.current) return;
           handleSendCommand(
             "wake_reconnect",
-            "已自動送出喚醒重連脈衝！Switch 應已自動回連為 1P。"
+            t("feedback.auto_wake_sent", "已自動送出喚醒重連脈衝！Switch 應已自動回連為 1P。")
           );
         }, 450);
       } else {
-        setSuccessNotice("虛擬手把服務已啟動！請於步驟 2 進行首次配對。");
+        setSuccessNotice(t("feedback.service_started_manual", "虛擬手把服務已啟動！請於步驟 2 進行首次配對。"));
       }
     }
   };
@@ -431,7 +434,7 @@ export const HardwareSettings: React.FC<Props> = ({
   const handleFirstTimePair = async () => {
     await handleSendCommand(
       "pair_lr",
-      "已發送 L+R 首次配對握手！Switch 確認為 1P 後已自動儲存記憶，下次將自動配對。"
+      t("feedback.paired_success", "已發送 L+R 首次配對握手！Switch 確認為 1P 後已自動儲存記憶，下次將自動配對。")
     );
     try {
       localStorage.setItem(PAIRING_STORAGE_KEY, "true");
@@ -443,7 +446,7 @@ export const HardwareSettings: React.FC<Props> = ({
   const handleClearMemory = async () => {
     await handleSendCommand(
       "clear_bonds",
-      "已重置 ESP32 藍牙記憶並清除本機自動配對設定，可更換主機重新配對。"
+      t("feedback.reset_success", "已重置 ESP32 藍牙記憶並清除本機自動配對設定，可更換主機重新配對。")
     );
     try {
       localStorage.removeItem(PAIRING_STORAGE_KEY);
@@ -455,7 +458,7 @@ export const HardwareSettings: React.FC<Props> = ({
   const handleFlashFirmware = async () => {
     if (isFlashing) return;
     if (!selectedPort) {
-      setErrorMessage("請先接上 ESP32 並選取燒錄序列埠");
+      setErrorMessage(t("feedback.flash_select_port", "請先接上 ESP32 並選取燒錄序列埠"));
       return;
     }
 
@@ -487,7 +490,7 @@ export const HardwareSettings: React.FC<Props> = ({
 
     if (!isMountedRef.current) return;
     setIsFlashing(false);
-    setSuccessNotice("PRO-UART0.bin 韌體燒錄完成！正在重新驗證交握協議...");
+    setSuccessNotice(t("feedback.flash_complete", "PRO-UART0.bin 韌體燒錄完成！正在重新驗證交握協議..."));
     await probeFirmware(selectedPort, selectedBaudrate);
   };
 
@@ -528,7 +531,7 @@ export const HardwareSettings: React.FC<Props> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-sm font-semibold tracking-tight text-zinc-100">
-                ESP32 硬體與連線控制台
+                {t("title", "ESP32 硬體與連線控制台")}
               </h1>
               <span
                 className={`px-1.5 py-0.5 rounded font-mono text-[10px] border flex items-center gap-1.5 ${
@@ -554,17 +557,17 @@ export const HardwareSettings: React.FC<Props> = ({
                 />
                 <span>
                   {isSwitchConnected
-                    ? "Switch 1P 已連線"
+                    ? t("header.switch_1p_connected", "Switch 1P 已連線")
                     : status.is_connected
-                    ? "虛擬手把串流中"
+                    ? t("header.streaming", "虛擬手把串流中")
                     : isStep0Ready
-                    ? "硬體就緒"
-                    : "待接妥硬體"}
+                    ? t("header.ready", "硬體就緒")
+                    : t("header.pending", "待接妥硬體")}
                 </span>
               </span>
             </div>
             <p className="text-xs text-zinc-400 truncate hidden sm:block">
-              依序連接「硬體裝置」➔「虛擬手把服務」➔「Switch 主機連線」
+              {t("subtitle", "依序連接「硬體裝置」➔「虛擬手把服務」➔「Switch 主機連線」")}
             </p>
           </div>
         </div>
@@ -572,11 +575,11 @@ export const HardwareSettings: React.FC<Props> = ({
         <button
           onClick={fetchPorts}
           disabled={isLoading}
-          title="重新掃描 USB 序列埠"
+          title={t("header.rescan_ports_tooltip", "重新掃描 USB 序列埠")}
           className="flex items-center gap-2 h-8 px-3 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-white/[0.08] hover:border-white/[0.14] text-zinc-300 hover:text-zinc-100 transition-colors text-xs font-medium cursor-pointer shadow-xs disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-zinc-100" : ""}`} />
-          <span>重新掃描裝置</span>
+          <span>{t("header.rescan_ports", "重新掃描裝置")}</span>
         </button>
       </div>
 
@@ -604,7 +607,7 @@ export const HardwareSettings: React.FC<Props> = ({
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500">
-              硬體與韌體
+              {t("stepper.step0_label", "硬體與韌體")}
             </div>
             <div className="text-xs font-medium truncate flex items-center gap-1.5 mt-0.5">
               <span
@@ -614,10 +617,10 @@ export const HardwareSettings: React.FC<Props> = ({
               />
               <span className="truncate">
                 {ports.length === 0
-                  ? "未偵測到 USB"
+                  ? t("stepper.step0_no_usb", "未偵測到 USB")
                   : isStep0Ready
-                  ? "ESP32 裝置已就緒"
-                  : "韌體檢測中..."}
+                  ? t("stepper.step0_ready", "ESP32 裝置已就緒")
+                  : t("stepper.step0_checking", "韌體檢測中...")}
               </span>
             </div>
           </div>
@@ -643,7 +646,7 @@ export const HardwareSettings: React.FC<Props> = ({
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500">
-              虛擬手把服務
+              {t("stepper.step1_label", "虛擬手把服務")}
             </div>
             <div className="text-xs font-medium truncate flex items-center gap-1.5 mt-0.5">
               <span
@@ -652,7 +655,9 @@ export const HardwareSettings: React.FC<Props> = ({
                 }`}
               />
               <span className="truncate">
-                {status.is_connected ? `60Hz 串流中 (${status.tx_fps} Hz)` : "服務已停止"}
+                {status.is_connected
+                  ? t("stepper.step1_streaming", { fps: status.tx_fps, defaultValue: `60Hz 串流中 (${status.tx_fps} Hz)` })
+                  : t("stepper.step1_stopped", "服務已停止")}
               </span>
             </div>
           </div>
@@ -682,7 +687,7 @@ export const HardwareSettings: React.FC<Props> = ({
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500">
-              Switch 主機連線
+              {t("stepper.step2_label", "Switch 主機連線")}
             </div>
             <div className="text-xs font-medium truncate flex items-center gap-1.5 mt-0.5">
               <span
@@ -696,10 +701,10 @@ export const HardwareSettings: React.FC<Props> = ({
               />
               <span className="truncate">
                 {isSwitchConnected
-                  ? "Switch 已連線 (1P)"
+                  ? t("stepper.step2_connected", "Switch 已連線 (1P)")
                   : isSwitchPairing
-                  ? "自動配對中..."
-                  : "Switch 離線"}
+                  ? t("stepper.step2_pairing", "自動配對中...")
+                  : t("stepper.step2_offline", "Switch 離線")}
               </span>
             </div>
           </div>
@@ -725,10 +730,10 @@ export const HardwareSettings: React.FC<Props> = ({
               </div>
               <div>
                 <h2 className="text-xs font-semibold text-zinc-200">
-                  步驟 0：檢查 USB 連線與 ESP32 韌體
+                  {t("step0.title", "步驟 0：檢查 USB 連線與 ESP32 韌體")}
                 </h2>
                 <p className="text-[11px] text-zinc-400">
-                  自動識別 ESP32 晶片 (CH340/CP210x)，並支援 PRO-UART0 協議握手檢驗
+                  {t("step0.desc", "自動識別 ESP32 晶片 (CH340/CP210x)，並支援 PRO-UART0 協議握手檢驗")}
                 </p>
               </div>
             </div>
@@ -741,7 +746,7 @@ export const HardwareSettings: React.FC<Props> = ({
                     : "bg-rose-500/10 border-rose-500/20 text-rose-400"
                 }`}
               >
-                {isStep0Ready ? "✓ 硬體就緒" : "✕ 需接妥硬體"}
+                {isStep0Ready ? t("step0.ready", "✓ 硬體就緒") : t("step0.needed", "✕ 需接妥硬體")}
               </span>
 
               {/* Maintenance Tool Toggle */}
@@ -754,7 +759,7 @@ export const HardwareSettings: React.FC<Props> = ({
                 }`}
               >
                 <Wrench className="w-3 h-3" />
-                <span>韌體燒錄工具</span>
+                <span>{t("step0.flasher_tool", "韌體燒錄工具")}</span>
                 <ChevronDown
                   className={`w-3 h-3 transition-transform ${showFlasher ? "rotate-180" : ""}`}
                 />
@@ -767,9 +772,9 @@ export const HardwareSettings: React.FC<Props> = ({
               <div className="p-3.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-start gap-3">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <div className="font-medium">尚未偵測到 ESP32 USB 裝置</div>
+                  <div className="font-medium">{t("step0.no_device_title", "尚未偵測到 ESP32 USB 裝置")}</div>
                   <div className="text-[11px] text-rose-300/80 leading-relaxed">
-                    請將 ESP32 透過 USB 傳輸線插入電腦（確認線材具備數據傳輸功能），接妥後點擊右上角「重新掃描裝置」。
+                    {t("step0.no_device_desc", "請將 ESP32 透過 USB 傳輸線插入電腦（確認線材具備數據傳輸功能），接妥後點擊右上角「重新掃描裝置」。")}
                   </div>
                 </div>
               </div>
@@ -778,10 +783,10 @@ export const HardwareSettings: React.FC<Props> = ({
                 <div className="md:col-span-8 space-y-1">
                   <div className="flex items-center justify-between">
                     <label className="block text-[11px] font-medium text-zinc-400">
-                      選取 ESP32 序列埠
+                      {t("step0.select_port_label", "選取 ESP32 序列埠")}
                     </label>
                     <span className="text-[10px] font-mono text-zinc-400">
-                      {ports.length} 個可用 USB 序列埠
+                      {t("step0.available_ports", { count: ports.length, defaultValue: `${ports.length} 個可用 USB 序列埠` })}
                     </span>
                   </div>
                   <select
@@ -803,7 +808,7 @@ export const HardwareSettings: React.FC<Props> = ({
                     <div className="flex items-center gap-1.5 min-w-0">
                       <Cpu className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                       <span className="font-mono text-[11px] text-zinc-300 truncate">
-                        {isRecognizedUsb ? "CH340 / CP2102" : "標準 USB 晶片"}
+                        {isRecognizedUsb ? t("step0.chip_recognized", "CH340 / CP2102") : t("step0.chip_standard", "標準 USB 晶片")}
                       </span>
                     </div>
                     <button
@@ -814,7 +819,7 @@ export const HardwareSettings: React.FC<Props> = ({
                         }
                       }}
                       disabled={status.is_connected || firmwareStatus === "checking"}
-                      title="重新進行 PRO-UART0 韌體交握檢測"
+                      title={t("step0.probe_tooltip", "重新進行 PRO-UART0 韌體交握檢測")}
                       className={`text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0 transition-colors cursor-pointer disabled:cursor-default ${
                         firmwareStatus === "compatible" || status.is_connected
                           ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
@@ -824,10 +829,10 @@ export const HardwareSettings: React.FC<Props> = ({
                       }`}
                     >
                       {firmwareStatus === "compatible" || status.is_connected
-                        ? "PRO-UART0 ✓"
+                        ? t("step0.probe_ok", "PRO-UART0 ✓")
                         : firmwareStatus === "checking"
-                        ? "檢測中…"
-                        : "未驗證 · 重試"}
+                        ? t("step0.probe_checking", "檢測中…")
+                        : t("step0.probe_retry", "未驗證 · 重試")}
                     </button>
                   </div>
                 </div>
@@ -846,18 +851,18 @@ export const HardwareSettings: React.FC<Props> = ({
                   <div className="flex items-center gap-2">
                     <Wrench className="w-4 h-4 text-zinc-300" />
                     <span className="text-xs font-medium text-zinc-200">
-                      ESP32 韌體一鍵燒錄 (PRO-UART0.bin)
+                      {t("step0.flasher.title", "ESP32 韌體一鍵燒錄 (PRO-UART0.bin)")}
                     </span>
                   </div>
                   <span className="text-[10px] font-mono text-zinc-400">
-                    Switch 原廠 Pro Controller 模擬韌體
+                    {t("step0.flasher.subtitle", "Switch 原廠 Pro Controller 模擬韌體")}
                   </span>
                 </div>
 
                 {isFlashing && (
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-[10px] font-mono text-zinc-400">
-                      <span>燒錄進度</span>
+                      <span>{t("step0.flasher.progress", "燒錄進度")}</span>
                       <span>{flashProgress}%</span>
                     </div>
                     <div className="w-full h-1.5 rounded-full bg-zinc-950 overflow-hidden border border-white/[0.08]">
@@ -880,10 +885,10 @@ export const HardwareSettings: React.FC<Props> = ({
                     }`}
                   >
                     <Zap className={`w-3.5 h-3.5 ${isFlashing ? "animate-pulse" : ""}`} />
-                    <span>{isFlashing ? "正在燒錄韌體中..." : "開始燒錄 PRO-UART0.bin"}</span>
+                    <span>{isFlashing ? t("step0.flasher.flashing", "正在燒錄韌體中...") : t("step0.flasher.start", "開始燒錄 PRO-UART0.bin")}</span>
                   </button>
                   <span className="text-[11px] text-zinc-400">
-                    若全新板子或需重置韌體，點擊此處將官方模擬韌體寫入晶片。
+                    {t("step0.flasher.tip", "若全新板子或需重置韌體，點擊此處將官方模擬韌體寫入晶片。")}
                   </span>
                 </div>
 
@@ -920,14 +925,14 @@ export const HardwareSettings: React.FC<Props> = ({
                 <Lock className="w-4 h-4 text-zinc-400" />
               </div>
               <div className="text-xs font-medium text-zinc-200">
-                步驟 1 已鎖定
+                {t("step1.locked_title", "步驟 1 已鎖定")}
               </div>
               <div className="text-[11px] text-zinc-400 max-w-xs">
                 {ports.length === 0
-                  ? "請先接上 ESP32 USB 裝置"
+                  ? t("step1.locked_no_usb", "請先接上 ESP32 USB 裝置")
                   : firmwareStatus === "checking"
-                  ? "正在驗證 ESP32 韌體…"
-                  : "ESP32 韌體尚未通過 PRO-UART0 交握驗證，請確認已燒錄正確韌體後重新檢測"}
+                  ? t("step1.locked_checking", "正在驗證 ESP32 韌體…")
+                  : t("step1.locked_unverified", "ESP32 韌體尚未通過 PRO-UART0 交握驗證，請確認已燒錄正確韌體後重新檢測")}
               </div>
             </div>
           )}
@@ -945,15 +950,15 @@ export const HardwareSettings: React.FC<Props> = ({
               </div>
               <div>
                 <h2 className="text-xs font-semibold text-zinc-200">
-                  步驟 1：開關虛擬手把服務 (60Hz 串流)
+                  {t("step1.title", "步驟 1：開關虛擬手把服務 (60Hz 串流)")}
                 </h2>
                 <p className="text-[11px] text-zinc-400">
-                  建立電腦 ➔ ESP32 序列傳輸通道，維持心跳保活防止斷線
+                  {t("step1.desc", "建立電腦 ➔ ESP32 序列傳輸通道，維持心跳保活防止斷線")}
                 </p>
               </div>
             </div>
             <span className="text-[10px] font-mono text-zinc-400">
-              {status.is_connected ? "● 60Hz 串流中" : "○ 服務已暫停"}
+              {status.is_connected ? t("step1.status_streaming", "● 60Hz 串流中") : t("step1.status_stopped", "○ 服務已暫停")}
             </span>
           </div>
 
@@ -961,7 +966,7 @@ export const HardwareSettings: React.FC<Props> = ({
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
               <div className="md:col-span-4 space-y-1">
                 <label className="block text-[11px] font-medium text-zinc-400">
-                  通訊鮑率 (Baudrate)
+                  {t("step1.baudrate_label", "通訊鮑率 (Baudrate)")}
                 </label>
                 <select
                   value={selectedBaudrate}
@@ -975,7 +980,7 @@ export const HardwareSettings: React.FC<Props> = ({
                 >
                   {COMMON_BAUDRATES.map((b) => (
                     <option key={b} value={b}>
-                      {b} bps {b === 19200 ? "(推薦)" : ""}
+                      {b} bps {b === 19200 ? t("step1.recommended_suffix", "(推薦)") : ""}
                     </option>
                   ))}
                 </select>
@@ -986,12 +991,12 @@ export const HardwareSettings: React.FC<Props> = ({
                 <div className="flex items-center gap-3 p-2 rounded-lg bg-zinc-950/80 border border-white/[0.06] text-xs w-full sm:w-auto">
                   <div className="flex items-center gap-1.5 text-zinc-400">
                     <Activity className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>頻率:</span>
+                    <span>{t("step1.telemetry_rate", "頻率:")}</span>
                     <span className="font-mono text-zinc-200 font-medium">{status.tx_fps} Hz</span>
                   </div>
                   <span className="text-zinc-700">|</span>
                   <div className="text-zinc-400 text-[11px]">
-                    已送: <span className="font-mono text-zinc-200">{status.packets_sent.toLocaleString()}</span>
+                    {t("step1.telemetry_sent", "已送:")} <span className="font-mono text-zinc-200">{status.packets_sent.toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -1006,7 +1011,7 @@ export const HardwareSettings: React.FC<Props> = ({
                   }`}
                 >
                   <Power className="w-3.5 h-3.5" />
-                  <span>{status.is_connected ? "停止虛擬手把" : "開啟虛擬手把"}</span>
+                  <span>{status.is_connected ? t("step1.btn_stop", "停止虛擬手把") : t("step1.btn_start", "開啟虛擬手把")}</span>
                 </button>
               </div>
             </div>
@@ -1016,7 +1021,7 @@ export const HardwareSettings: React.FC<Props> = ({
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                 <span className="text-[11px]">
-                  60Hz 心跳常駐保活已啟用：防止 Switch 閒置休眠踢掉手把，200ms 斷訊看門狗自動歸零防暴走。
+                  {t("step1.heartbeat_notice", "60Hz 心跳常駐保活已啟用：防止 Switch 閒置休眠踢掉手把，200ms 斷訊看門狗自動歸零防暴走。")}
                 </span>
               </div>
             </div>
@@ -1034,10 +1039,10 @@ export const HardwareSettings: React.FC<Props> = ({
                 <Lock className="w-4 h-4 text-zinc-400" />
               </div>
               <div className="text-xs font-medium text-zinc-200">
-                步驟 2 已鎖定
+                {t("step2.locked_title", "步驟 2 已鎖定")}
               </div>
               <div className="text-[11px] text-zinc-400 max-w-xs">
-                請先啟動「步驟 1：開啟虛擬手把」，序列串流就緒後方可進行 Switch 配對與自動回連。
+                {t("step2.locked_desc", "請先啟動「步驟 1：開啟虛擬手把」，序列串流就緒後方可進行 Switch 配對與自動回連。")}
               </div>
             </div>
           )}
@@ -1055,15 +1060,15 @@ export const HardwareSettings: React.FC<Props> = ({
               </div>
               <div>
                 <h2 className="text-xs font-semibold text-zinc-200">
-                  步驟 2：Switch 自動配對與連線
+                  {t("step2.title", "步驟 2：Switch 自動配對與連線")}
                 </h2>
                 <p className="text-[11px] text-zinc-400">
-                  首次手動配對並記憶，後續啟動虛擬手把即自動重連 1P
+                  {t("step2.desc", "首次手動配對並記憶，後續啟動虛擬手把即自動重連 1P")}
                 </p>
               </div>
             </div>
             <span className="text-[10px] font-mono text-zinc-400">
-              {isSwitchConnected ? "✓ 已鎖定 1P" : "可發送配對指令"}
+              {isSwitchConnected ? t("step2.status_locked_1p", "✓ 已鎖定 1P") : t("step2.status_can_pair", "可發送配對指令")}
             </span>
           </div>
 
@@ -1073,15 +1078,15 @@ export const HardwareSettings: React.FC<Props> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-medium text-emerald-300">
                   <Check className="w-4 h-4 text-emerald-400" />
-                  <span>已記憶配對主機 (自動配對就緒)</span>
+                  <span>{t("step2.paired_box.title", "已記憶配對主機 (自動配對就緒)")}</span>
                 </div>
                 <span className="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-                  Auto-Pair Active
+                  {t("step2.paired_box.badge", "Auto-Pair Active")}
                 </span>
               </div>
 
               <p className="text-[11px] text-zinc-400 leading-relaxed">
-                系統已記憶配對過的 Switch 主機。開啟虛擬手把時會自動發送 A 鍵喚醒訊號完成秒連。若未自動連上，可點擊下方按鈕手動重試。
+                {t("step2.paired_box.desc", "系統已記憶配對過的 Switch 主機。開啟虛擬手把時會自動發送 A 鍵喚醒訊號完成秒連。若未自動連上，可點擊下方按鈕手動重試。")}
               </p>
 
               <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -1089,7 +1094,7 @@ export const HardwareSettings: React.FC<Props> = ({
                   onClick={() =>
                     handleSendCommand(
                       "wake_reconnect",
-                      "已手動送出喚醒重連脈衝！Switch 應已快速回連為 1P。"
+                      t("feedback.wake_success", "已手動送出喚醒重連脈衝！Switch 應已快速回連為 1P。")
                     )
                   }
                   disabled={activeCommand !== null || !isStep1Ready}
@@ -1100,7 +1105,7 @@ export const HardwareSettings: React.FC<Props> = ({
                   }`}
                 >
                   <Zap className="w-3.5 h-3.5" />
-                  <span>手動觸發自動回連 (A鍵喚醒)</span>
+                  <span>{t("step2.paired_box.btn_reconnect", "手動觸發自動回連 (A鍵喚醒)")}</span>
                 </button>
 
                 <button
@@ -1109,21 +1114,21 @@ export const HardwareSettings: React.FC<Props> = ({
                   className="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   <RotateCcw className="w-3 h-3 text-zinc-400" />
-                  <span>更換主機（清除配對記憶）</span>
+                  <span>{t("step2.paired_box.btn_clear", "更換主機（清除配對記憶）")}</span>
                 </button>
 
                 <button
                   onClick={() =>
                     handleSendCommand(
                       "emergency_neutral",
-                      "已發送中立安全封包，手把按鍵全部歸零。"
+                      t("feedback.neutral_success", "已發送中立安全封包，手把按鍵全部歸零。")
                     )
                   }
                   disabled={activeCommand !== null || !isStep1Ready}
                   className="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   <Power className="w-3 h-3 text-rose-400" />
-                  <span>緊急訊號歸零</span>
+                  <span>{t("step2.paired_box.btn_neutral", "緊急訊號歸零")}</span>
                 </button>
               </div>
             </div>
@@ -1133,17 +1138,17 @@ export const HardwareSettings: React.FC<Props> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-medium text-zinc-200">
                   <Radio className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>首次配對流程（尚未記憶主機）</span>
+                  <span>{t("step2.unpaired_box.title", "首次配對流程（尚未記憶主機）")}</span>
                 </div>
                 <span className="text-[10px] text-amber-400/90 font-mono">
-                  需要手動配對
+                  {t("step2.unpaired_box.badge", "需要手動配對")}
                 </span>
               </div>
 
               <div className="text-[11px] text-zinc-400 space-y-1 leading-relaxed">
-                <div>1. 請在 Switch 打開主畫面<strong>「控制器」➔「更改拿法 / 順序」</strong>畫面。</div>
-                <div>2. 點擊下方按鈕送出 <strong>L + R</strong> 握手脈衝，讓 Switch 自動分配為 1P。</div>
-                <div className="text-zinc-300 font-medium">3. 配對成功後將自動記憶，下次啟動直接自動連線！</div>
+                <div>{t("step2.unpaired_box.step1", "1. 請在 Switch 打開主畫面「控制器」➔「更改拿法 / 順序」畫面。")}</div>
+                <div>{t("step2.unpaired_box.step2", "2. 點擊下方按鈕送出 L + R 握手脈衝，讓 Switch 自動分配為 1P。")}</div>
+                <div className="text-zinc-300 font-medium">{t("step2.unpaired_box.step3", "3. 配對成功後將自動記憶，下次啟動直接自動連線！")}</div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -1157,21 +1162,21 @@ export const HardwareSettings: React.FC<Props> = ({
                   }`}
                 >
                   <Radio className="w-3.5 h-3.5" />
-                  <span>開始首次配對 (送出 L+R 並記憶)</span>
+                  <span>{t("step2.unpaired_box.btn_start_pair", "開始首次配對 (送出 L+R 並記憶)")}</span>
                 </button>
 
                 <button
                   onClick={() =>
                     handleSendCommand(
                       "emergency_neutral",
-                      "已發送中立安全封包，手把按鍵全部歸零。"
+                      t("feedback.neutral_success", "已發送中立安全封包，手把按鍵全部歸零。")
                     )
                   }
                   disabled={activeCommand !== null || !isStep1Ready}
                   className="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   <Power className="w-3 h-3 text-rose-400" />
-                  <span>緊急訊號歸零</span>
+                  <span>{t("step2.unpaired_box.btn_neutral", "緊急訊號歸零")}</span>
                 </button>
               </div>
             </div>
@@ -1183,16 +1188,16 @@ export const HardwareSettings: React.FC<Props> = ({
       {/* 3. Unified Bottom Footer Bar */}
       <div className="h-9 px-6 border-t border-white/[0.06] bg-zinc-950/90 backdrop-blur-sm flex items-center justify-between text-[11px] font-mono text-zinc-400 select-none shrink-0 z-20">
         <div className="flex items-center gap-3">
-          <span>● 序列埠: {selectedPort || "未選取 USB 裝置"}</span>
+          <span>{t("footer.port", { port: selectedPort || t("footer.no_port", "未選取 USB 裝置"), defaultValue: `● 序列埠: ${selectedPort || "未選取 USB 裝置"}` })}</span>
           <span className="text-zinc-700">|</span>
-          <span>通訊鮑率: {selectedBaudrate} bps</span>
+          <span>{t("footer.baudrate", { baud: selectedBaudrate, defaultValue: `通訊鮑率: ${selectedBaudrate} bps` })}</span>
           <span className="text-zinc-700">|</span>
-          <span>已發送: {status.packets_sent.toLocaleString()} 封包</span>
+          <span>{t("footer.sent_packets", { count: status.packets_sent.toLocaleString(), defaultValue: `已發送: ${status.packets_sent.toLocaleString()} 封包` })}</span>
         </div>
         <div className="flex items-center gap-3">
-          <span>虛擬手把: {status.is_connected ? `60Hz 串流中 (${status.tx_fps} Hz)` : "已停止"}</span>
+          <span>{status.is_connected ? t("footer.bridge_streaming", { fps: status.tx_fps, defaultValue: `虛擬手把: 60Hz 串流中 (${status.tx_fps} Hz)` }) : t("footer.bridge_stopped", "虛擬手把: 已停止")}</span>
           <span className="text-zinc-700">|</span>
-          <span>Switch: {isSwitchConnected ? "1P 已連線" : isSwitchPairing ? "配對中..." : "離線"}</span>
+          <span>{t("footer.switch_status", { status: isSwitchConnected ? t("footer.switch_connected", "1P 已連線") : isSwitchPairing ? t("footer.switch_pairing", "配對中...") : t("footer.switch_offline", "離線"), defaultValue: `Switch: ${isSwitchConnected ? "1P 已連線" : isSwitchPairing ? "配對中..." : "離線"}` })}</span>
         </div>
       </div>
 

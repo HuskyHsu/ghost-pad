@@ -1,0 +1,9 @@
+{
+  "SERIAL_OPEN_FAILED": "シリアルポート {{port}} を開けませんでした: {{reason}}",
+  "FIRMWARE_VERIFY_FAILED": "ESP32 ファームウェアの検証に失敗しました: {{reason}}。PRO-UART0.bin が書き込まれており、ポートとボーレート ({{baudrate}}) が正しいことを確認してください。",
+  "SERIAL_NOT_OPEN": "シリアル通信が開始されていません。「仮想パッド開始」を先にクリックしてください。",
+  "UNKNOWN_SERIAL_COMMAND": "不明なコマンド: {{command}}",
+  "TASK_EXECUTION_FAILED": "バックグラウンドタスクの実行に失敗しました: {{reason}}",
+  "THREAD_SPAWN_FAILED": "シリアル送信用スレッドを開始できませんでした: {{reason}}",
+  "INTERNAL_ERROR": "内部エラー: {{message}}"
+}

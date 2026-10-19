@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { MacroScript, MacroAction, MacroPlayerStatus } from "../../types/macro";
 import { getScriptTotalDurationMs, exportMacroAsJson } from "../../utils/macroStorage";
 import { MacroScoreSheet } from "./MacroScoreSheet";
@@ -34,6 +35,7 @@ export const MacroEditor: React.FC<Props> = ({
   onDeleteScript,
   onBackToList,
 }) => {
+  const { t } = useTranslation("macro");
   const [name, setName] = useState(script.name);
   const [description, setDescription] = useState(script.description || "");
   const [actions, setActions] = useState<MacroAction[]>(script.actions);
@@ -60,7 +62,7 @@ export const MacroEditor: React.FC<Props> = ({
   const handleSave = () => {
     const updated: MacroScript = {
       ...script,
-      name: name.trim() || "未命名巨集",
+      name: name.trim() || t("untitled_macro", "未命名巨集"),
       description: description.trim(),
       actions,
       updatedAt: Date.now(),
@@ -84,7 +86,7 @@ export const MacroEditor: React.FC<Props> = ({
               className="flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs font-medium bg-zinc-850 hover:bg-zinc-800 text-zinc-300 hover:text-white transition-colors cursor-pointer border border-white/[0.08] hover:border-white/[0.14] shrink-0 shadow-xs"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>返回清單</span>
+              <span>{t("back_to_list", "返回清單")}</span>
             </button>
           )}
 
@@ -99,11 +101,11 @@ export const MacroEditor: React.FC<Props> = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="text-sm font-semibold tracking-tight text-zinc-100 bg-transparent border-b border-transparent hover:border-white/[0.14] focus:border-white/[0.25] focus:outline-none max-w-xs sm:max-w-md px-1 py-0.5 rounded transition-colors"
-                placeholder="腳本標題..."
+                placeholder={t("title_placeholder", "腳本標題...")}
               />
               {script.isPreset && (
                 <span className="px-1.5 py-0.2 rounded font-mono text-[9px] font-medium bg-zinc-800 text-zinc-300 border border-white/[0.08]">
-                  範本
+                  {t("preset_badge", "範本")}
                 </span>
               )}
             </div>
@@ -112,7 +114,7 @@ export const MacroEditor: React.FC<Props> = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full text-xs text-zinc-400 bg-transparent border-b border-transparent hover:border-white/[0.08] focus:border-white/[0.2] focus:outline-none px-1 py-0.5 transition-colors truncate"
-              placeholder="填寫腳本備註說明或使用場合..."
+              placeholder={t("note_placeholder", "填寫腳本備註說明或使用場合...")}
             />
           </div>
         </div>
@@ -125,34 +127,34 @@ export const MacroEditor: React.FC<Props> = ({
               <span>{(currentDurationMs / 1000).toFixed(2)}s</span>
             </span>
             <span className="text-zinc-700">|</span>
-            <span className="text-[11px]">{actions.length} 步</span>
+            <span className="text-[11px]">{t("step_count", { count: actions.length, defaultValue: `${actions.length} 步` })}</span>
           </div>
 
           <button
             type="button"
             onClick={() => exportMacroAsJson({ ...script, name, description, actions })}
             className="flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs font-medium bg-zinc-850 hover:bg-zinc-800 text-zinc-300 border border-white/[0.08] hover:border-white/[0.14] transition-colors cursor-pointer shadow-xs"
-            title="匯出單一 JSON 腳本檔案"
+            title={t("export_json_tooltip", "匯出單一 JSON 腳本檔案")}
           >
             <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">匯出</span>
+            <span className="hidden sm:inline">{t("export_single_btn", "匯出")}</span>
           </button>
 
           <button
             type="button"
             onClick={() => onDuplicateScript({ ...script, name, description, tags: script.tags || [], actions })}
             className="flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs font-medium bg-zinc-850 hover:bg-zinc-800 text-zinc-300 border border-white/[0.08] hover:border-white/[0.14] transition-colors cursor-pointer shadow-xs"
-            title="複製一份新腳本"
+            title={t("duplicate_tooltip", "複製一份新腳本")}
           >
             <Copy className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">複製</span>
+            <span className="hidden sm:inline">{t("duplicate_btn", "複製")}</span>
           </button>
 
           <button
             type="button"
             onClick={() => onDeleteScript(script.id)}
             className="h-8 p-2 rounded-md text-zinc-500 hover:text-rose-400 hover:bg-zinc-800 transition-colors cursor-pointer"
-            title="刪除此腳本"
+            title={t("delete_tooltip", "刪除此腳本")}
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -167,7 +169,7 @@ export const MacroEditor: React.FC<Props> = ({
             }`}
           >
             {hasSaved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-            <span>{hasSaved ? "已儲存" : "儲存變更"}</span>
+            <span>{hasSaved ? t("saved", "已儲存") : t("save_changes", "儲存變更")}</span>
           </button>
         </div>
       </div>

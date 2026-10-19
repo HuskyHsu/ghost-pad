@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   MacroScript,
   MacroPlayerStatus,
@@ -45,6 +46,7 @@ export const MacroStudio: React.FC<Props> = ({
   onResume,
   onStop,
 }) => {
+  const { t } = useTranslation("macro");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewMode, setViewMode] = useState<"list" | "edit">("list");
 
@@ -71,7 +73,7 @@ export const MacroStudio: React.FC<Props> = ({
       if (importedList && importedList.length > 0) {
         onImportScripts(importedList);
       } else {
-        alert("無法識別此 JSON 格式，請確認是否為 Ghost-Pad 腳本檔案。");
+        alert(t("invalid_json_alert", "無法識別此 JSON 格式，請確認是否為 Ghost-Pad 腳本檔案。"));
       }
     };
     reader.readAsText(file);

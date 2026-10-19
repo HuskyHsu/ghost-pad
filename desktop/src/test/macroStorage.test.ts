@@ -5,6 +5,8 @@ import {
   trimMacroActions,
   importMacroFromJson,
   importAllMacrosFromJson,
+  countConsecutiveWaitMerges,
+  mergeConsecutiveWaitActions,
 } from "../utils/macroStorage";
 import { MacroScript, MacroAction } from "../types/macro";
 
@@ -71,5 +73,28 @@ describe("Macro Storage and Utilities", () => {
     expect(importedList).not.toBeNull();
     expect(importedList?.length).toBe(2);
     expect(importedList?.[0].name).toBe("腳本1");
+  });
+
+  it("accurately detects and merges consecutive wait actions without altering other inputs", () => {
+    const actions: MacroAction[] = [
+      { id: "1", type: "wait", durationMs: 150 },
+      { id: "2", type: "wait", durationMs: 250 },
+      { id: "3", type: "button", button: "a", durationMs: 100 },
+      { id: "4", type: "wait", durationMs: 300 },
+      { id: "5", type: "wait", durationMs: 200 },
+      { id: "6", type: "wait", durationMs: 500 },
+    ];
+
+    expect(countConsecutiveWaitMerges(actions)).toBe(3); // (1+2), (4+5), (5+6)
+
+    const merged = mergeConsecutiveWaitActions(actions);
+    expect(merged.length).toBe(3);
+    expect(merged[0].type).toBe("wait");
+    expect(merged[0].durationMs).toBe(400); // 150 + 250
+    expect(merged[1].type).toBe("button");
+    expect(merged[1].button).toBe("a");
+    expect(merged[2].type).toBe("wait");
+    expect(merged[2].durationMs).toBe(1000); // 300 + 200 + 500
+    expect(countConsecutiveWaitMerges(merged)).toBe(0);
   });
 });

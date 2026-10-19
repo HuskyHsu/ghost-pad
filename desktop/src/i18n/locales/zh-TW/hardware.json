@@ -1,0 +1,154 @@
+{
+  "title": "ESP32 硬體與連線控制台",
+  "subtitle": "依序連接「硬體裝置」➔「虛擬手把服務」➔「Switch 主機連線」",
+  "status_cards": {
+    "esp32_status": "ESP32 狀態",
+    "serial_stream": "序列串流",
+    "switch_pairing": "Switch 配對",
+    "active_60hz": "● 60Hz 串流中",
+    "service_stopped": "○ 服務已暫停",
+    "switch_paired_1p": "✓ 已鎖定 1P",
+    "switch_pairing_wait": "Switch 待配對",
+    "switch_offline": "Switch 離線",
+    "hardware_ready": "✓ 硬體就緒",
+    "hardware_needed": "✕ 需接妥硬體"
+  },
+  "header": {
+    "switch_1p_connected": "Switch 1P 已連線",
+    "streaming": "虛擬手把串流中",
+    "ready": "硬體就緒",
+    "pending": "待接妥硬體",
+    "rescan_ports_tooltip": "重新掃描 USB 序列埠",
+    "rescan_ports": "重新掃描裝置"
+  },
+  "stepper": {
+    "step0_label": "硬體與韌體",
+    "step0_no_usb": "未偵測到 USB",
+    "step0_ready": "ESP32 裝置已就緒",
+    "step0_checking": "韌體檢測中...",
+    "step1_label": "虛擬手把服務",
+    "step1_streaming": "60Hz 串流中 ({{fps}} Hz)",
+    "step1_stopped": "服務已停止",
+    "step2_label": "Switch 主機連線",
+    "step2_connected": "Switch 已連線 (1P)",
+    "step2_pairing": "自動配對中...",
+    "step2_offline": "Switch 離線"
+  },
+  "step0": {
+    "title": "步驟 0：檢查 USB 連線與 ESP32 韌體",
+    "desc": "自動識別 ESP32 晶片 (CH340/CP210x)，並支援 PRO-UART0 協議握手檢驗",
+    "ready": "✓ 硬體就緒",
+    "needed": "✕ 需接妥硬體",
+    "flasher_tool": "韌體燒錄工具",
+    "no_device_title": "尚未偵測到 ESP32 USB 裝置",
+    "no_device_desc": "請將 ESP32 透過 USB 傳輸線插入電腦（確認線材具備數據傳輸功能），接妥後點擊右上角「重新掃描裝置」。",
+    "select_port_label": "選取 ESP32 序列埠",
+    "available_ports": "{{count}} 個可用 USB 序列埠",
+    "chip_recognized": "CH340 / CP2102",
+    "chip_standard": "標準 USB 晶片",
+    "probe_tooltip": "重新進行 PRO-UART0 韌體交握檢測",
+    "probe_ok": "PRO-UART0 ✓",
+    "probe_checking": "檢測中…",
+    "probe_retry": "未驗證 · 重試",
+    "flasher": {
+      "title": "ESP32 韌體一鍵燒錄 (PRO-UART0.bin)",
+      "subtitle": "Switch 原廠 Pro Controller 模擬韌體",
+      "progress": "燒錄進度",
+      "flashing": "正在燒錄韌體中...",
+      "start": "開始燒錄 PRO-UART0.bin",
+      "tip": "若全新板子或需重置韌體，點擊此處將官方模擬韌體寫入晶片。"
+    }
+  },
+  "step1": {
+    "locked_title": "步驟 1 已鎖定",
+    "locked_no_usb": "請先接上 ESP32 USB 裝置",
+    "locked_checking": "正在驗證 ESP32 韌體…",
+    "locked_unverified": "ESP32 韌體尚未通過 PRO-UART0 交握驗證，請確認已燒錄正確韌體後重新檢測",
+    "title": "步驟 1：開關虛擬手把服務 (60Hz 串流)",
+    "desc": "建立電腦 ➔ ESP32 序列傳輸通道，維持心跳保活防止斷線",
+    "status_streaming": "● 60Hz 串流中",
+    "status_stopped": "○ 服務已暫停",
+    "baudrate_label": "通訊鮑率 (Baudrate)",
+    "recommended_suffix": "(推薦)",
+    "telemetry_rate": "頻率:",
+    "telemetry_sent": "已送:",
+    "btn_start": "開啟虛擬手把",
+    "btn_stop": "停止虛擬手把",
+    "heartbeat_notice": "60Hz 心跳常駐保活已啟用：防止 Switch 閒置休眠踢掉手把，200ms 斷訊看門狗自動歸零防暴走。"
+  },
+  "step2": {
+    "locked_title": "步驟 2 已鎖定",
+    "locked_desc": "請先啟動「步驟 1：開啟虛擬手把」，序列串流就緒後方可進行 Switch 配對與自動回連。",
+    "title": "步驟 2：Switch 自動配對與連線",
+    "desc": "首次手動配對並記憶，後續啟動虛擬手把即自動重連 1P",
+    "status_locked_1p": "✓ 已鎖定 1P",
+    "status_can_pair": "可發送配對指令",
+    "paired_box": {
+      "title": "已記憶配對主機 (自動配對就緒)",
+      "badge": "Auto-Pair Active",
+      "desc": "系統已記憶配對過的 Switch 主機。開啟虛擬手把時會自動發送 A 鍵喚醒訊號完成秒連。若未自動連上，可點擊下方按鈕手動重試。",
+      "btn_reconnect": "手動觸發自動回連 (A鍵喚醒)",
+      "btn_clear": "更換主機（清除配對記憶）",
+      "btn_neutral": "緊急訊號歸零"
+    },
+    "unpaired_box": {
+      "title": "首次配對流程（尚未記憶主機）",
+      "badge": "需要手動配對",
+      "step1": "1. 請在 Switch 打開主畫面「控制器」➔「更改拿法 / 順序」畫面。",
+      "step2": "2. 點擊下方按鈕送出 L + R 握手脈衝，讓 Switch 自動分配為 1P。",
+      "step3": "3. 配對成功後將自動記憶，下次啟動直接自動連線！",
+      "btn_start_pair": "開始首次配對 (送出 L+R 並記憶)",
+      "btn_neutral": "緊急訊號歸零"
+    }
+  },
+  "footer": {
+    "port": "● 序列埠: {{port}}",
+    "no_port": "未選取 USB 裝置",
+    "baudrate": "通訊鮑率: {{baud}} bps",
+    "sent_packets": "已發送: {{count}} 封包",
+    "bridge_streaming": "虛擬手把: 60Hz 串流中 ({{fps}} Hz)",
+    "bridge_stopped": "虛擬手把: 已停止",
+    "switch_status": "Switch: {{status}}",
+    "switch_connected": "1P 已連線",
+    "switch_pairing": "配對中...",
+    "switch_offline": "離線"
+  },
+  "buttons": {
+    "start_bridge": "開啟虛擬手把",
+    "stop_bridge": "停止虛擬手把",
+    "rescan_ports": "重新掃描",
+    "pair_lr": "首次配對 (L+R)",
+    "wake_reconnect": "喚醒重連 (A鍵)",
+    "safe_neutral": "中立安全",
+    "reset_bonds": "清除配對",
+    "burn_firmware": "一鍵燒錄 PRO-UART0.bin"
+  },
+  "ports": {
+    "select_port": "選擇 ESP32 序列埠...",
+    "no_ports_found": "未偵測到序列埠裝置",
+    "recommended": "(推薦)"
+  },
+  "feedback": {
+    "paired_success": "已發送 L+R 首次配對握手！Switch 確認為 1P 後已自動儲存記憶，下次將自動配對。",
+    "wake_success": "已送出喚醒重連脈衝！Switch 應已快速回連為 1P。",
+    "neutral_success": "已發送中立安全封包，手把按鍵全部歸零。",
+    "reset_success": "已重置 ESP32 藍牙記憶並清除本機自動配對設定，可更換主機重新配對。",
+    "need_step1_first": "請先啟動步驟 1「虛擬手把服務」，才能發送配對或控制指令！",
+    "service_stopped": "虛擬手把服務已停止，所有按鍵訊號安全歸零。",
+    "select_port_first": "請先於步驟 0 選取 ESP32 序列埠",
+    "service_started_auto": "虛擬手把服務已啟動！偵測到已配對主機，正自動發起喚醒配對...",
+    "auto_wake_sent": "已自動送出喚醒重連脈衝！Switch 應已自動回連為 1P。",
+    "service_started_manual": "虛擬手把服務已啟動！請於步驟 2 進行首次配對。",
+    "flash_select_port": "請先接上 ESP32 並選取燒錄序列埠",
+    "flash_complete": "PRO-UART0.bin 韌體燒錄完成！正在重新驗證交握協議..."
+  },
+  "gamepad_card": {
+    "title": "實體手把管理",
+    "subtitle": "支援 8BitDo、Switch Pro、Joy-Con、Xbox 手把",
+    "connected_pads": "已連線裝置",
+    "no_pads": "目前未連接實體手把",
+    "micro_guide": "8BitDo Micro 配對說明",
+    "status_active": "輸入啟用",
+    "status_muted": "已暫停"
+  }
+}

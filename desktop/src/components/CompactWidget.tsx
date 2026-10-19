@@ -2,6 +2,8 @@ import React from "react";
 import { ControllerState, GamepadInfo } from "../types";
 import { usePulsedButtonPress } from "../hooks/usePulsedButtonPress";
 import { useStickDrag } from "../hooks/useStickDrag";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   state: ControllerState;
@@ -22,6 +24,7 @@ export const CompactWidget: React.FC<Props> = ({
   onTriggerButton,
   onTriggerStick,
 }) => {
+  const { t } = useTranslation("dashboard");
   const activeGamepad = gamepads.find((g) => g.is_active);
 
   const STICK_MAX_TRAVEL = 15; // Travel radius in px for compact mode
@@ -104,7 +107,7 @@ export const CompactWidget: React.FC<Props> = ({
             }`}
           />
           <span className="font-medium text-xs text-zinc-200 truncate">
-            {isMuted ? "已暫停" : activeGamepad?.name || "等待連線"}
+            {isMuted ? t("compact.paused", "已暫停") : activeGamepad?.name || t("compact.waiting", "等待連線")}
           </span>
         </div>
 
@@ -117,9 +120,10 @@ export const CompactWidget: React.FC<Props> = ({
                 : "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
             }`}
           >
-            {isMuted ? "暫停中" : "已啟用"}
+            {isMuted ? t("compact.paused", "暫停中") : t("compact.running", "已啟用")}
           </button>
           <span className="text-[10px] font-mono text-zinc-500">{fps}Hz</span>
+          <LanguageSwitcher />
         </div>
       </div>
 
@@ -136,7 +140,7 @@ export const CompactWidget: React.FC<Props> = ({
                   ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
                   : "bg-zinc-850 text-zinc-200 border-white/[0.08] hover:border-white/[0.14]"
               }`}
-              title="ZL 板機鍵"
+              title={t("buttons.zl", "ZL 板機鍵")}
             >
               ZL
             </button>
@@ -147,7 +151,7 @@ export const CompactWidget: React.FC<Props> = ({
                   ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
                   : "bg-zinc-850 text-zinc-200 border-white/[0.08] hover:border-white/[0.14]"
               }`}
-              title="L 肩鍵"
+              title={t("buttons.l", "L 肩鍵")}
             >
               L
             </button>
@@ -172,7 +176,7 @@ export const CompactWidget: React.FC<Props> = ({
                   ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
                   : "bg-zinc-850 text-zinc-200 border-white/[0.08] hover:border-white/[0.14]"
               }`}
-              title="R 肩鍵"
+              title={t("buttons.r", "R 肩鍵")}
             >
               R
             </button>
@@ -183,7 +187,7 @@ export const CompactWidget: React.FC<Props> = ({
                   ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
                   : "bg-zinc-850 text-zinc-200 border-white/[0.08] hover:border-white/[0.14]"
               }`}
-              title="ZR 板機鍵"
+              title={t("buttons.zr", "ZR 板機鍵")}
             >
               ZR
             </button>
@@ -203,7 +207,7 @@ export const CompactWidget: React.FC<Props> = ({
                   ? "border-white/[0.3] ring-1 ring-white/[0.1]"
                   : "border-white/[0.08] hover:border-white/[0.14]"
               }`}
-              title="左類比搖桿"
+              title={t("buttons.l_stick", "左類比搖桿")}
             >
               <span className="absolute top-1 text-[7px] font-mono text-zinc-600 select-none pointer-events-none">▲</span>
               <span className="absolute bottom-1 text-[7px] font-mono text-zinc-600 select-none pointer-events-none">▼</span>
@@ -240,7 +244,7 @@ export const CompactWidget: React.FC<Props> = ({
                 className={`absolute top-0 w-7 h-7 rounded-t-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                   isUp ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                 }`}
-                title="十字鍵 上"
+                title={t("buttons.dpad_up", "十字鍵 上")}
               >
                 ▲
               </button>
@@ -249,7 +253,7 @@ export const CompactWidget: React.FC<Props> = ({
                 className={`absolute bottom-0 w-7 h-7 rounded-b-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                   isDown ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                 }`}
-                title="十字鍵 下"
+                title={t("buttons.dpad_down", "十字鍵 下")}
               >
                 ▼
               </button>
@@ -258,7 +262,7 @@ export const CompactWidget: React.FC<Props> = ({
                 className={`absolute left-0 w-7 h-7 rounded-l-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                   isLeft ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                 }`}
-                title="十字鍵 左"
+                title={t("buttons.dpad_left", "十字鍵 左")}
               >
                 ◀
               </button>
@@ -267,7 +271,7 @@ export const CompactWidget: React.FC<Props> = ({
                 className={`absolute right-0 w-7 h-7 rounded-r-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                   isRight ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
                 }`}
-                title="十字鍵 右"
+                title={t("buttons.dpad_right", "十字鍵 右")}
               >
                 ▶
               </button>
@@ -286,7 +290,7 @@ export const CompactWidget: React.FC<Props> = ({
                     ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
                     : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
                 }`}
-                title="Minus 按鍵 (減號)"
+                title={t("buttons.minus", "Minus 按鍵 (減號)")}
               >
                 −
               </button>
@@ -297,7 +301,7 @@ export const CompactWidget: React.FC<Props> = ({
                     ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
                     : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
                 }`}
-                title="Plus 按鍵 (加號)"
+                title={t("buttons.plus", "Plus 按鍵 (加號)")}
               >
                 +
               </button>
@@ -337,7 +341,7 @@ export const CompactWidget: React.FC<Props> = ({
                     ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
                     : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
                 }`}
-                title="Capture 按鍵"
+                title={t("buttons.capture", "Capture 按鍵")}
               >
                 ◉
               </button>
@@ -348,7 +352,7 @@ export const CompactWidget: React.FC<Props> = ({
                     ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
                     : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
                 }`}
-                title="Home 按鍵"
+                title={t("buttons.home", "Home 按鍵")}
               >
                 ⌂
               </button>
@@ -410,7 +414,7 @@ export const CompactWidget: React.FC<Props> = ({
                   ? "border-white/[0.3] ring-1 ring-white/[0.1]"
                   : "border-white/[0.08] hover:border-white/[0.14]"
               }`}
-              title="右類比搖桿"
+              title={t("buttons.r_stick", "右類比搖桿")}
             >
               <span className="absolute top-1 text-[7px] font-mono text-zinc-600 select-none pointer-events-none">▲</span>
               <span className="absolute bottom-1 text-[7px] font-mono text-zinc-600 select-none pointer-events-none">▼</span>
