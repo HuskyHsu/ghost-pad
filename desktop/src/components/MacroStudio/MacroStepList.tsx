@@ -115,7 +115,7 @@ export const MacroStepList: React.FC<Props> = ({
       {/* Top Bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-zinc-300">
+          <span className="text-xs font-semibold text-text-primary">
             動作時序清單 ({actions.length} 步驟)
           </span>
         </div>
@@ -124,10 +124,10 @@ export const MacroStepList: React.FC<Props> = ({
           <button
             type="button"
             onClick={handleTrim}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700/80 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-card hover:bg-surface-input text-text-secondary hover:text-text-primary border border-border-subtle hover:border-border-element transition-colors cursor-pointer shadow-xs"
             title="自動移除無效等待或過長空檔"
           >
-            <Scissors className="w-3.5 h-3.5 text-amber-400" />
+            <Scissors className="w-3.5 h-3.5 text-amber-600" />
             <span>修剪頭尾空白</span>
           </button>
         </div>
@@ -143,8 +143,8 @@ export const MacroStepList: React.FC<Props> = ({
               key={act.id}
               className={`p-3 rounded-xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
                 isActive
-                  ? "bg-violet-950/40 border-violet-500 shadow-[0_0_15px_rgba(124,58,237,0.3)] ring-1 ring-violet-400"
-                  : "bg-zinc-900/60 border-zinc-800/80 hover:border-zinc-700"
+                  ? "bg-sky-50/80 border-sky-400 ring-2 ring-sky-300 shadow-sm"
+                  : "bg-surface-card border-border-subtle hover:border-border-element shadow-xs"
               }`}
             >
               {/* Left Section: Index & Type */}
@@ -152,8 +152,8 @@ export const MacroStepList: React.FC<Props> = ({
                 <div
                   className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono font-bold ${
                     isActive
-                      ? "bg-violet-600 text-white"
-                      : "bg-zinc-800 text-zinc-400"
+                      ? "bg-slate-900 text-white"
+                      : "bg-surface-input text-text-muted border border-border-subtle"
                   }`}
                 >
                   #{index + 1}
@@ -169,7 +169,7 @@ export const MacroStepList: React.FC<Props> = ({
                       stick: e.target.value === "stick" ? act.stick || "left" : undefined,
                     })
                   }
-                  className="px-2 py-1.5 rounded-lg bg-zinc-950 border border-zinc-700 text-xs text-zinc-200 focus:outline-none focus:border-violet-500 cursor-pointer"
+                  className="px-2 py-1.5 rounded-lg bg-surface-input border border-border-element text-xs text-text-primary focus:outline-none focus:border-border-focus cursor-pointer font-medium"
                 >
                   <option value="button">按鍵動作</option>
                   <option value="stick">搖桿位移</option>
@@ -186,7 +186,7 @@ export const MacroStepList: React.FC<Props> = ({
                         button: e.target.value as MacroButtonName,
                       })
                     }
-                    className="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-700 text-xs font-semibold text-emerald-300 focus:outline-none cursor-pointer"
+                    className="px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-300 text-xs font-bold text-emerald-800 focus:outline-none cursor-pointer"
                   >
                     {AVAILABLE_BUTTONS.map((b) => (
                       <option key={b.value} value={b.value}>
@@ -203,7 +203,7 @@ export const MacroStepList: React.FC<Props> = ({
                       onChange={(e) =>
                         handleUpdateAction(index, { stick: e.target.value as any })
                       }
-                      className="px-2 py-1.5 rounded-lg bg-zinc-950 border border-zinc-700 text-xs text-cyan-300 cursor-pointer"
+                      className="px-2 py-1.5 rounded-lg bg-cyan-50 border border-cyan-300 text-xs font-semibold text-cyan-900 cursor-pointer"
                     >
                       <option value="left">左搖桿 (L)</option>
                       <option value="right">右搖桿 (R)</option>
@@ -216,8 +216,8 @@ export const MacroStepList: React.FC<Props> = ({
                         onClick={() => handleUpdateAction(index, { stickX: 128, stickY: 0 })}
                         className={`px-1.5 py-1 text-[10px] rounded border cursor-pointer ${
                           act.stickX === 128 && act.stickY === 0
-                            ? "bg-cyan-500 text-zinc-950 border-cyan-400 font-bold"
-                            : "bg-zinc-800 text-zinc-400 border-zinc-700"
+                            ? "bg-cyan-600 text-white border-cyan-700 font-bold shadow-xs"
+                            : "bg-surface-card text-text-secondary border-border-subtle hover:bg-surface-input"
                         }`}
                         title="向上推到底"
                       >
@@ -228,8 +228,8 @@ export const MacroStepList: React.FC<Props> = ({
                         onClick={() => handleUpdateAction(index, { stickX: 128, stickY: 255 })}
                         className={`px-1.5 py-1 text-[10px] rounded border cursor-pointer ${
                           act.stickX === 128 && act.stickY === 255
-                            ? "bg-cyan-500 text-zinc-950 border-cyan-400 font-bold"
-                            : "bg-zinc-800 text-zinc-400 border-zinc-700"
+                            ? "bg-cyan-600 text-white border-cyan-700 font-bold shadow-xs"
+                            : "bg-surface-card text-text-secondary border-border-subtle hover:bg-surface-input"
                         }`}
                         title="向下推到底"
                       >
@@ -240,8 +240,8 @@ export const MacroStepList: React.FC<Props> = ({
                         onClick={() => handleUpdateAction(index, { stickX: 0, stickY: 128 })}
                         className={`px-1.5 py-1 text-[10px] rounded border cursor-pointer ${
                           act.stickX === 0 && act.stickY === 128
-                            ? "bg-cyan-500 text-zinc-950 border-cyan-400 font-bold"
-                            : "bg-zinc-800 text-zinc-400 border-zinc-700"
+                            ? "bg-cyan-600 text-white border-cyan-700 font-bold shadow-xs"
+                            : "bg-surface-card text-text-secondary border-border-subtle hover:bg-surface-input"
                         }`}
                         title="向左推到底"
                       >
@@ -252,8 +252,8 @@ export const MacroStepList: React.FC<Props> = ({
                         onClick={() => handleUpdateAction(index, { stickX: 255, stickY: 128 })}
                         className={`px-1.5 py-1 text-[10px] rounded border cursor-pointer ${
                           act.stickX === 255 && act.stickY === 128
-                            ? "bg-cyan-500 text-zinc-950 border-cyan-400 font-bold"
-                            : "bg-zinc-800 text-zinc-400 border-zinc-700"
+                            ? "bg-cyan-600 text-white border-cyan-700 font-bold shadow-xs"
+                            : "bg-surface-card text-text-secondary border-border-subtle hover:bg-surface-input"
                         }`}
                         title="向右推到底"
                       >
@@ -269,7 +269,7 @@ export const MacroStepList: React.FC<Props> = ({
                     onChange={(e) =>
                       handleUpdateAction(index, { dpad: Number(e.target.value) })
                     }
-                    className="px-2 py-1.5 rounded-lg bg-zinc-950 border border-zinc-700 text-xs text-purple-300 cursor-pointer"
+                    className="px-2 py-1.5 rounded-lg bg-purple-50 border border-purple-300 text-xs font-semibold text-purple-900 cursor-pointer"
                   >
                     <option value={0}>▲ 上</option>
                     <option value={1}>↗ 右上</option>
@@ -286,7 +286,7 @@ export const MacroStepList: React.FC<Props> = ({
               {/* Middle Section: Hold Duration & Delay After */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-zinc-400">
+                  <span className="text-[10px] text-text-muted font-medium">
                     {act.type === "wait" ? "等待:" : "持續:"}
                   </span>
                   <input
@@ -300,9 +300,9 @@ export const MacroStepList: React.FC<Props> = ({
                         delayAfterMs: 0,
                       })
                     }
-                    className="w-16 px-2 py-1 rounded bg-zinc-950 border border-zinc-700 text-xs font-mono text-zinc-200 text-right focus:outline-none"
+                    className="w-16 px-2 py-1 rounded bg-surface-card border border-border-element text-xs font-mono font-bold text-text-primary text-right focus:outline-none focus:border-border-focus shadow-xs"
                   />
-                  <span className="text-[10px] text-zinc-500">ms</span>
+                  <span className="text-[10px] text-text-muted font-mono">ms</span>
                 </div>
               </div>
 
@@ -312,7 +312,7 @@ export const MacroStepList: React.FC<Props> = ({
                   type="button"
                   onClick={() => handleMoveUp(index)}
                   disabled={index === 0}
-                  className="p-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 disabled:opacity-30 cursor-pointer"
+                  className="p-1 rounded text-text-muted hover:text-text-primary hover:bg-surface-input disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer transition-colors"
                   title="上移"
                 >
                   <ChevronUp className="w-4 h-4" />
@@ -321,7 +321,7 @@ export const MacroStepList: React.FC<Props> = ({
                   type="button"
                   onClick={() => handleMoveDown(index)}
                   disabled={index === actions.length - 1}
-                  className="p-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 disabled:opacity-30 cursor-pointer"
+                  className="p-1 rounded text-text-muted hover:text-text-primary hover:bg-surface-input disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer transition-colors"
                   title="下移"
                 >
                   <ChevronDown className="w-4 h-4" />
@@ -329,7 +329,7 @@ export const MacroStepList: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={() => handleDelete(index)}
-                  className="p-1 rounded text-zinc-400 hover:text-rose-400 hover:bg-rose-950/30 transition-colors cursor-pointer"
+                  className="p-1 rounded text-text-muted hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                   title="刪除步驟"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -340,7 +340,7 @@ export const MacroStepList: React.FC<Props> = ({
         })}
 
         {actions.length === 0 && (
-          <div className="p-8 text-center text-zinc-500 border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/30">
+          <div className="p-8 text-center text-text-muted border border-dashed border-border-element rounded-2xl bg-surface-card shadow-xs">
             目前尚無動作步驟，可點擊下方按鈕新增步驟或從即時儀表板進行側錄！
           </div>
         )}
@@ -351,7 +351,7 @@ export const MacroStepList: React.FC<Props> = ({
         <button
           type="button"
           onClick={() => handleAddDefaultAction("button")}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-zinc-700 hover:border-emerald-500/80 bg-zinc-900/60 hover:bg-emerald-950/20 text-xs font-medium text-emerald-400 transition-colors cursor-pointer"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/50 hover:bg-emerald-50 text-xs font-semibold text-emerald-800 transition-colors cursor-pointer shadow-xs"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>+ 新增按鍵動作</span>
@@ -359,7 +359,7 @@ export const MacroStepList: React.FC<Props> = ({
         <button
           type="button"
           onClick={() => handleAddDefaultAction("stick")}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-zinc-700 hover:border-cyan-500/80 bg-zinc-900/60 hover:bg-cyan-950/20 text-xs font-medium text-cyan-400 transition-colors cursor-pointer"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-cyan-300 hover:border-cyan-500 bg-cyan-50/50 hover:bg-cyan-50 text-xs font-semibold text-cyan-800 transition-colors cursor-pointer shadow-xs"
         >
           <Compass className="w-3.5 h-3.5" />
           <span>+ 新增搖桿位移</span>
@@ -367,7 +367,7 @@ export const MacroStepList: React.FC<Props> = ({
         <button
           type="button"
           onClick={() => handleAddDefaultAction("wait")}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-zinc-700 hover:border-violet-500/80 bg-zinc-900/60 hover:bg-violet-950/20 text-xs font-medium text-violet-400 transition-colors cursor-pointer"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-amber-300 hover:border-amber-500 bg-amber-50/50 hover:bg-amber-50 text-xs font-semibold text-amber-900 transition-colors cursor-pointer shadow-xs"
         >
           <Clock className="w-3.5 h-3.5" />
           <span>+ 新增等待暫停</span>

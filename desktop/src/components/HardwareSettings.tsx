@@ -521,38 +521,38 @@ export const HardwareSettings: React.FC<Props> = ({
   const isSwitchPairing = status.switch_pairing_state === "pairing";
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950 select-none relative">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-window-base select-none relative">
       {/* 1. Unified Top Header */}
-      <div className="h-16 px-6 border-b border-white/[0.06] flex items-center justify-between shrink-0 bg-zinc-950/80 backdrop-blur-sm z-30">
+      <div className="h-16 px-6 border-b border-border-subtle flex items-center justify-between shrink-0 bg-window-base/80 backdrop-blur-sm z-30">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-300 shadow-xs shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-surface-card border border-border-element flex items-center justify-center text-text-primary shadow-xs shrink-0">
             <Cpu className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-sm font-semibold tracking-tight text-zinc-100">
+              <h1 className="text-sm font-semibold tracking-tight text-text-primary">
                 {t("title", "ESP32 硬體與連線控制台")}
               </h1>
               <span
                 className={`px-1.5 py-0.5 rounded font-mono text-[10px] border flex items-center gap-1.5 ${
                   isSwitchConnected
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                     : status.is_connected
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                     : isStep0Ready
-                    ? "bg-zinc-850 text-zinc-400 border-white/[0.06]"
-                    : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                    ? "bg-surface-card text-text-secondary border-border-element shadow-xs"
+                    : "bg-rose-500/10 text-rose-600 border-rose-500/20"
                 }`}
               >
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
                     isSwitchConnected
-                      ? "bg-emerald-400"
+                      ? "bg-emerald-500"
                       : status.is_connected
-                      ? "bg-emerald-400 animate-pulse"
+                      ? "bg-emerald-500 animate-pulse"
                       : isStep0Ready
-                      ? "bg-zinc-500"
-                      : "bg-rose-400"
+                      ? "bg-text-muted"
+                      : "bg-rose-500"
                   }`}
                 />
                 <span>
@@ -566,7 +566,7 @@ export const HardwareSettings: React.FC<Props> = ({
                 </span>
               </span>
             </div>
-            <p className="text-xs text-zinc-400 truncate hidden sm:block">
+            <p className="text-xs text-text-secondary truncate hidden sm:block">
               {t("subtitle", "依序連接「硬體裝置」➔「虛擬手把服務」➔「Switch 主機連線」")}
             </p>
           </div>
@@ -576,9 +576,9 @@ export const HardwareSettings: React.FC<Props> = ({
           onClick={fetchPorts}
           disabled={isLoading}
           title={t("header.rescan_ports_tooltip", "重新掃描 USB 序列埠")}
-          className="flex items-center gap-2 h-8 px-3 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-white/[0.08] hover:border-white/[0.14] text-zinc-300 hover:text-zinc-100 transition-colors text-xs font-medium cursor-pointer shadow-xs disabled:opacity-50"
+          className="flex items-center gap-2 h-8 px-3 rounded-md bg-surface-card hover:bg-interactive-hover border border-border-element text-text-primary transition-colors text-xs font-medium cursor-pointer shadow-xs disabled:opacity-50"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-zinc-100" : ""}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-text-primary" : ""}`} />
           <span>{t("header.rescan_ports", "重新掃描裝置")}</span>
         </button>
       </div>
@@ -587,32 +587,32 @@ export const HardwareSettings: React.FC<Props> = ({
       <div className="flex-1 overflow-y-auto px-6 py-5 w-full max-w-6xl mx-auto space-y-5 min-h-0">
 
       {/* Integrated Pipeline Status Stepper Bar (Replaces redundant top status cards) */}
-      <div className="p-1 rounded-xl bg-zinc-900/40 border border-white/[0.06] grid grid-cols-1 md:grid-cols-3 gap-1">
+      <div className="p-1 rounded-xl bg-surface-card border border-border-subtle shadow-xs grid grid-cols-1 md:grid-cols-3 gap-1">
         {/* Step 0 Pill */}
         <div
           className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
             isStep0Ready
-              ? "bg-zinc-900/80 border border-emerald-500/20 text-emerald-300 shadow-xs"
-              : "bg-transparent text-zinc-400 border border-transparent"
+              ? "bg-surface-input border border-emerald-500/20 text-emerald-700 shadow-xs"
+              : "bg-transparent text-text-secondary border border-transparent"
           }`}
         >
           <div
             className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-mono font-medium shrink-0 ${
               isStep0Ready
-                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                : "bg-zinc-800/80 text-zinc-500 border border-white/[0.04]"
+                ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                : "bg-surface-input text-text-muted border border-border-subtle"
             }`}
           >
             0
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500">
+            <div className="text-[10px] uppercase font-mono tracking-wider text-text-muted">
               {t("stepper.step0_label", "硬體與韌體")}
             </div>
             <div className="text-xs font-medium truncate flex items-center gap-1.5 mt-0.5">
               <span
                 className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                  isStep0Ready ? "bg-emerald-400" : "bg-zinc-600"
+                  isStep0Ready ? "bg-emerald-500" : "bg-text-disabled"
                 }`}
               />
               <span className="truncate">
@@ -624,22 +624,22 @@ export const HardwareSettings: React.FC<Props> = ({
               </span>
             </div>
           </div>
-          <ChevronRight className="w-3.5 h-3.5 text-zinc-600 hidden md:block shrink-0" />
+          <ChevronRight className="w-3.5 h-3.5 text-text-muted hidden md:block shrink-0" />
         </div>
 
         {/* Step 1 Pill */}
         <div
           className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
             status.is_connected
-              ? "bg-zinc-900/80 border border-emerald-500/20 text-emerald-300 shadow-xs"
-              : "bg-transparent text-zinc-400 border border-transparent"
+              ? "bg-surface-input border border-emerald-500/20 text-emerald-700 shadow-xs"
+              : "bg-transparent text-text-secondary border border-transparent"
           }`}
         >
           <div
             className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-mono font-medium shrink-0 ${
               status.is_connected
-                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                : "bg-zinc-800/80 text-zinc-500 border border-white/[0.04]"
+                ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                : "bg-surface-input text-text-muted border border-border-subtle"
             }`}
           >
             1
@@ -668,35 +668,35 @@ export const HardwareSettings: React.FC<Props> = ({
         <div
           className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
             isSwitchConnected
-              ? "bg-zinc-900/80 border border-emerald-500/20 text-emerald-300 shadow-xs"
+              ? "bg-surface-input border border-emerald-500/20 text-emerald-700 shadow-xs"
               : isSwitchPairing
-              ? "bg-zinc-900/80 border border-amber-500/20 text-amber-300 shadow-xs"
-              : "bg-transparent text-zinc-400 border border-transparent"
+              ? "bg-surface-input border border-amber-500/20 text-amber-700 shadow-xs"
+              : "bg-transparent text-text-secondary border border-transparent"
           }`}
         >
           <div
             className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-mono font-medium shrink-0 ${
               isSwitchConnected
-                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                 : isSwitchPairing
-                ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                : "bg-zinc-800/80 text-zinc-500 border border-white/[0.04]"
+                ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                : "bg-surface-input text-text-muted border border-border-subtle"
             }`}
           >
             2
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500">
+            <div className="text-[10px] uppercase font-mono tracking-wider text-text-muted">
               {t("stepper.step2_label", "Switch 主機連線")}
             </div>
             <div className="text-xs font-medium truncate flex items-center gap-1.5 mt-0.5">
               <span
                 className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                   isSwitchConnected
-                    ? "bg-emerald-400"
+                    ? "bg-emerald-500"
                     : isSwitchPairing
-                    ? "bg-amber-400 animate-pulse"
-                    : "bg-zinc-600"
+                    ? "bg-amber-500 animate-pulse"
+                    : "bg-text-disabled"
                 }`}
               />
               <span className="truncate">
@@ -716,23 +716,23 @@ export const HardwareSettings: React.FC<Props> = ({
         {/* ============================================================ */}
         {/* STEP 0: Check USB & Firmware Compliance                      */}
         {/* ============================================================ */}
-        <div className="bg-zinc-900/40 border border-white/[0.06] rounded-xl p-5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4 backdrop-blur-sm relative">
-          <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+        <div className="bg-surface-card border border-border-subtle rounded-xl p-5 shadow-xs space-y-4 relative">
+          <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
             <div className="flex items-center gap-2.5">
               <div
                 className={`w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-mono font-medium ${
                   isStep0Ready
-                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                    : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                    ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                    : "bg-rose-500/10 text-rose-600 border border-rose-500/20"
                 }`}
               >
                 0
               </div>
               <div>
-                <h2 className="text-xs font-semibold text-zinc-200">
+                <h2 className="text-xs font-semibold text-text-primary">
                   {t("step0.title", "步驟 0：檢查 USB 連線與 ESP32 韌體")}
                 </h2>
-                <p className="text-[11px] text-zinc-400">
+                <p className="text-[11px] text-text-secondary">
                   {t("step0.desc", "自動識別 ESP32 晶片 (CH340/CP210x)，並支援 PRO-UART0 協議握手檢驗")}
                 </p>
               </div>
@@ -742,8 +742,8 @@ export const HardwareSettings: React.FC<Props> = ({
               <span
                 className={`text-[10px] font-mono px-2 py-0.5 rounded-md border ${
                   isStep0Ready
-                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                    : "bg-rose-500/10 border-rose-500/20 text-rose-400"
+                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
+                    : "bg-rose-500/10 border-rose-500/20 text-rose-600"
                 }`}
               >
                 {isStep0Ready ? t("step0.ready", "✓ 硬體就緒") : t("step0.needed", "✕ 需接妥硬體")}
@@ -752,10 +752,10 @@ export const HardwareSettings: React.FC<Props> = ({
               {/* Maintenance Tool Toggle */}
               <button
                 onClick={() => setShowFlasher(!showFlasher)}
-                className={`px-2.5 py-1 rounded-md border text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md border text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs ${
                   showFlasher
-                    ? "bg-zinc-800 border-white/[0.14] text-zinc-200"
-                    : "bg-zinc-900/80 border-white/[0.06] text-zinc-400 hover:text-zinc-200 hover:border-white/[0.12]"
+                    ? "bg-surface-input border-border-element text-text-primary"
+                    : "bg-surface-card border-border-element text-text-secondary hover:text-text-primary hover:bg-interactive-hover"
                 }`}
               >
                 <Wrench className="w-3 h-3" />
@@ -769,11 +769,11 @@ export const HardwareSettings: React.FC<Props> = ({
 
           <div className="space-y-3">
             {ports.length === 0 ? (
-              <div className="p-3.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-start gap-3">
+              <div className="p-3.5 rounded-lg bg-feedback-error-bg border border-feedback-error-border text-xs text-feedback-error-text flex items-start gap-3">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <div className="font-medium">{t("step0.no_device_title", "尚未偵測到 ESP32 USB 裝置")}</div>
-                  <div className="text-[11px] text-rose-300/80 leading-relaxed">
+                  <div className="text-[11px] opacity-90 leading-relaxed">
                     {t("step0.no_device_desc", "請將 ESP32 透過 USB 傳輸線插入電腦（確認線材具備數據傳輸功能），接妥後點擊右上角「重新掃描裝置」。")}
                   </div>
                 </div>
@@ -782,10 +782,10 @@ export const HardwareSettings: React.FC<Props> = ({
               <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                 <div className="md:col-span-8 space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="block text-[11px] font-medium text-zinc-400">
+                    <label className="block text-[11px] font-medium text-text-secondary">
                       {t("step0.select_port_label", "選取 ESP32 序列埠")}
                     </label>
-                    <span className="text-[10px] font-mono text-zinc-400">
+                    <span className="text-[10px] font-mono text-text-muted">
                       {t("step0.available_ports", { count: ports.length, defaultValue: `${ports.length} 個可用 USB 序列埠` })}
                     </span>
                   </div>
@@ -793,7 +793,7 @@ export const HardwareSettings: React.FC<Props> = ({
                     value={selectedPort}
                     onChange={(e) => handlePortChange(e.target.value)}
                     disabled={status.is_connected}
-                    className="w-full bg-zinc-950 border border-white/[0.08] hover:border-white/[0.14] rounded-md px-3 py-2 text-xs text-zinc-200 focus:outline-hidden focus:border-white/[0.22] transition-colors font-mono cursor-pointer"
+                    className="w-full bg-surface-input border border-border-element hover:border-border-focus rounded-md px-3 py-2 text-xs text-text-primary focus:outline-hidden transition-colors font-mono cursor-pointer"
                   >
                     {ports.map((p) => (
                       <option key={p.port_name} value={p.port_name}>
@@ -804,10 +804,10 @@ export const HardwareSettings: React.FC<Props> = ({
                 </div>
 
                 <div className="md:col-span-4">
-                  <div className="p-2 rounded-lg bg-zinc-950/80 border border-white/[0.06] flex items-center justify-between text-xs">
+                  <div className="p-2 rounded-lg bg-surface-input border border-border-subtle flex items-center justify-between text-xs">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <Cpu className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                      <span className="font-mono text-[11px] text-zinc-300 truncate">
+                      <Cpu className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                      <span className="font-mono text-[11px] text-text-primary truncate">
                         {isRecognizedUsb ? t("step0.chip_recognized", "CH340 / CP2102") : t("step0.chip_standard", "標準 USB 晶片")}
                       </span>
                     </div>
@@ -822,10 +822,10 @@ export const HardwareSettings: React.FC<Props> = ({
                       title={t("step0.probe_tooltip", "重新進行 PRO-UART0 韌體交握檢測")}
                       className={`text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0 transition-colors cursor-pointer disabled:cursor-default ${
                         firmwareStatus === "compatible" || status.is_connected
-                          ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                          ? "text-emerald-700 bg-emerald-50 border-emerald-300"
                           : firmwareStatus === "checking"
-                          ? "text-zinc-400 bg-zinc-800 border-white/[0.08] animate-pulse"
-                          : "text-rose-400 bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20"
+                          ? "text-text-muted bg-surface-card border-border-element animate-pulse"
+                          : "text-rose-700 bg-rose-50 border-rose-300 hover:bg-rose-100"
                       }`}
                     >
                       {firmwareStatus === "compatible" || status.is_connected
@@ -837,7 +837,7 @@ export const HardwareSettings: React.FC<Props> = ({
                   </div>
                 </div>
                 {probeDetails && (
-                  <div className="md:col-span-12 text-[11px] text-zinc-400 font-mono px-1">
+                  <div className="md:col-span-12 text-[11px] text-text-muted font-mono px-1">
                     {probeDetails}
                   </div>
                 )}
@@ -846,28 +846,28 @@ export const HardwareSettings: React.FC<Props> = ({
 
             {/* Collapsible Firmware Flasher Drawer */}
             {showFlasher && (
-              <div className="pt-3 border-t border-white/[0.06] space-y-3">
+              <div className="pt-3 border-t border-border-subtle space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Wrench className="w-4 h-4 text-zinc-300" />
-                    <span className="text-xs font-medium text-zinc-200">
+                    <Wrench className="w-4 h-4 text-text-muted" />
+                    <span className="text-xs font-medium text-text-primary">
                       {t("step0.flasher.title", "ESP32 韌體一鍵燒錄 (PRO-UART0.bin)")}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-zinc-400">
+                  <span className="text-[10px] font-mono text-text-muted">
                     {t("step0.flasher.subtitle", "Switch 原廠 Pro Controller 模擬韌體")}
                   </span>
                 </div>
 
                 {isFlashing && (
                   <div className="space-y-1.5">
-                    <div className="flex justify-between text-[10px] font-mono text-zinc-400">
+                    <div className="flex justify-between text-[10px] font-mono text-text-muted">
                       <span>{t("step0.flasher.progress", "燒錄進度")}</span>
                       <span>{flashProgress}%</span>
                     </div>
-                    <div className="w-full h-1.5 rounded-full bg-zinc-950 overflow-hidden border border-white/[0.08]">
+                    <div className="w-full h-1.5 rounded-full bg-surface-input overflow-hidden border border-border-subtle">
                       <div
-                        className="h-full bg-zinc-100 transition-all duration-300"
+                        className="h-full bg-accent transition-all duration-300"
                         style={{ width: `${flashProgress}%` }}
                       />
                     </div>
@@ -880,20 +880,20 @@ export const HardwareSettings: React.FC<Props> = ({
                     disabled={isFlashing || !selectedPort}
                     className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 ${
                       isFlashing
-                        ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                        : "bg-zinc-100 hover:bg-white text-zinc-950"
+                        ? "bg-surface-input text-text-disabled cursor-not-allowed"
+                        : "bg-accent text-accent-foreground hover:bg-accent-hover"
                     }`}
                   >
                     <Zap className={`w-3.5 h-3.5 ${isFlashing ? "animate-pulse" : ""}`} />
                     <span>{isFlashing ? t("step0.flasher.flashing", "正在燒錄韌體中...") : t("step0.flasher.start", "開始燒錄 PRO-UART0.bin")}</span>
                   </button>
-                  <span className="text-[11px] text-zinc-400">
+                  <span className="text-[11px] text-text-secondary">
                     {t("step0.flasher.tip", "若全新板子或需重置韌體，點擊此處將官方模擬韌體寫入晶片。")}
                   </span>
                 </div>
 
                 {/* Console Log */}
-                <div className="h-28 rounded-lg bg-zinc-950 border border-white/[0.06] p-2.5 font-mono text-[10px] overflow-y-auto space-y-0.5 text-zinc-400">
+                <div className="h-28 rounded-lg bg-slate-900 border border-slate-800 p-2.5 font-mono text-[10px] overflow-y-auto space-y-0.5 text-slate-300 shadow-inner">
                   {flashLogs.map((log, index) => (
                     <div
                       key={index}
@@ -902,7 +902,7 @@ export const HardwareSettings: React.FC<Props> = ({
                           ? "text-emerald-400 font-medium"
                           : log.includes("錯誤")
                           ? "text-rose-400"
-                          : "text-zinc-400"
+                          : "text-slate-300"
                       }
                     >
                       {log}
@@ -917,17 +917,17 @@ export const HardwareSettings: React.FC<Props> = ({
         {/* ============================================================ */}
         {/* STEP 1: Toggle Virtual Controller Service                   */}
         {/* ============================================================ */}
-        <div className="bg-zinc-900/40 border border-white/[0.06] rounded-xl p-5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4 backdrop-blur-sm relative overflow-hidden">
+        <div className="bg-surface-card border border-border-subtle rounded-xl p-5 shadow-xs space-y-4 relative overflow-hidden">
           {/* Step 1 Lock Overlay if Step 0 is not ready */}
           {!isStep0Ready && (
-            <div className="absolute inset-0 bg-zinc-950/85 backdrop-blur-xs z-20 flex flex-col items-center justify-center p-4 text-center space-y-2">
-              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-400 shadow-xs">
-                <Lock className="w-4 h-4 text-zinc-400" />
+            <div className="absolute inset-0 bg-white/90 backdrop-blur-xs z-20 flex flex-col items-center justify-center p-4 text-center space-y-2">
+              <div className="w-8 h-8 rounded-lg bg-surface-card border border-border-element flex items-center justify-center text-text-muted shadow-xs">
+                <Lock className="w-4 h-4 text-text-muted" />
               </div>
-              <div className="text-xs font-medium text-zinc-200">
+              <div className="text-xs font-semibold text-text-primary">
                 {t("step1.locked_title", "步驟 1 已鎖定")}
               </div>
-              <div className="text-[11px] text-zinc-400 max-w-xs">
+              <div className="text-[11px] text-text-secondary max-w-xs">
                 {ports.length === 0
                   ? t("step1.locked_no_usb", "請先接上 ESP32 USB 裝置")
                   : firmwareStatus === "checking"
@@ -937,27 +937,27 @@ export const HardwareSettings: React.FC<Props> = ({
             </div>
           )}
 
-          <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
             <div className="flex items-center gap-2.5">
               <div
                 className={`w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-mono font-medium ${
                   status.is_connected
-                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                    : "bg-zinc-800 text-zinc-400 border border-white/[0.06]"
+                    ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                    : "bg-surface-input text-text-secondary border border-border-subtle"
                 }`}
               >
                 1
               </div>
               <div>
-                <h2 className="text-xs font-semibold text-zinc-200">
+                <h2 className="text-xs font-semibold text-text-primary">
                   {t("step1.title", "步驟 1：開關虛擬手把服務 (60Hz 串流)")}
                 </h2>
-                <p className="text-[11px] text-zinc-400">
+                <p className="text-[11px] text-text-secondary">
                   {t("step1.desc", "建立電腦 ➔ ESP32 序列傳輸通道，維持心跳保活防止斷線")}
                 </p>
               </div>
             </div>
-            <span className="text-[10px] font-mono text-zinc-400">
+            <span className="text-[10px] font-mono text-text-muted">
               {status.is_connected ? t("step1.status_streaming", "● 60Hz 串流中") : t("step1.status_stopped", "○ 服務已暫停")}
             </span>
           </div>
@@ -965,7 +965,7 @@ export const HardwareSettings: React.FC<Props> = ({
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
               <div className="md:col-span-4 space-y-1">
-                <label className="block text-[11px] font-medium text-zinc-400">
+                <label className="block text-[11px] font-medium text-text-secondary">
                   {t("step1.baudrate_label", "通訊鮑率 (Baudrate)")}
                 </label>
                 <select
@@ -976,7 +976,7 @@ export const HardwareSettings: React.FC<Props> = ({
                     if (selectedPort) probeFirmware(selectedPort, newBaud);
                   }}
                   disabled={status.is_connected || !isStep0Ready}
-                  className="w-full bg-zinc-950 border border-white/[0.08] hover:border-white/[0.14] rounded-md px-3 py-2 text-xs text-zinc-200 focus:outline-hidden focus:border-white/[0.22] transition-colors font-mono cursor-pointer disabled:opacity-50"
+                  className="w-full bg-surface-input border border-border-element hover:border-border-focus rounded-md px-3 py-2 text-xs text-text-primary focus:outline-hidden transition-colors font-mono cursor-pointer disabled:opacity-50"
                 >
                   {COMMON_BAUDRATES.map((b) => (
                     <option key={b} value={b}>
@@ -988,15 +988,15 @@ export const HardwareSettings: React.FC<Props> = ({
 
               <div className="md:col-span-8 flex flex-col sm:flex-row items-center gap-3 md:justify-end">
                 {/* Live Telemetry Pill */}
-                <div className="flex items-center gap-3 p-2 rounded-lg bg-zinc-950/80 border border-white/[0.06] text-xs w-full sm:w-auto">
-                  <div className="flex items-center gap-1.5 text-zinc-400">
-                    <Activity className="w-3.5 h-3.5 text-zinc-400" />
+                <div className="flex items-center gap-3 p-2 rounded-lg bg-surface-input border border-border-subtle text-xs w-full sm:w-auto">
+                  <div className="flex items-center gap-1.5 text-text-secondary">
+                    <Activity className="w-3.5 h-3.5 text-text-muted" />
                     <span>{t("step1.telemetry_rate", "頻率:")}</span>
-                    <span className="font-mono text-zinc-200 font-medium">{status.tx_fps} Hz</span>
+                    <span className="font-mono text-text-primary font-medium">{status.tx_fps} Hz</span>
                   </div>
-                  <span className="text-zinc-700">|</span>
-                  <div className="text-zinc-400 text-[11px]">
-                    {t("step1.telemetry_sent", "已送:")} <span className="font-mono text-zinc-200">{status.packets_sent.toLocaleString()}</span>
+                  <span className="text-border-element">|</span>
+                  <div className="text-text-secondary text-[11px]">
+                    {t("step1.telemetry_sent", "已送:")} <span className="font-mono text-text-primary font-medium">{status.packets_sent.toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -1006,8 +1006,8 @@ export const HardwareSettings: React.FC<Props> = ({
                   disabled={!isStep0Ready}
                   className={`w-full sm:w-auto px-5 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 shrink-0 ${
                     status.is_connected
-                      ? "bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-200"
-                      : "bg-zinc-100 hover:bg-white text-zinc-950"
+                      ? "bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700"
+                      : "bg-accent text-accent-foreground hover:bg-accent-hover"
                   }`}
                 >
                   <Power className="w-3.5 h-3.5" />
@@ -1017,9 +1017,9 @@ export const HardwareSettings: React.FC<Props> = ({
             </div>
 
             {/* Heartbeat info banner */}
-            <div className="p-2.5 rounded-lg bg-zinc-950/60 border border-white/[0.06] flex items-center justify-between text-xs text-zinc-400">
+            <div className="p-2.5 rounded-lg bg-surface-input border border-border-subtle flex items-center justify-between text-xs text-text-secondary">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                <ShieldCheck className="w-3.5 h-3.5 text-text-muted shrink-0" />
                 <span className="text-[11px]">
                   {t("step1.heartbeat_notice", "60Hz 心跳常駐保活已啟用：防止 Switch 閒置休眠踢掉手把，200ms 斷訊看門狗自動歸零防暴走。")}
                 </span>
@@ -1031,61 +1031,61 @@ export const HardwareSettings: React.FC<Props> = ({
         {/* ============================================================ */}
         {/* STEP 2: Switch Auto-Pairing & Reconnect                      */}
         {/* ============================================================ */}
-        <div className="bg-zinc-900/40 border border-white/[0.06] rounded-xl p-5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] space-y-4 backdrop-blur-sm relative overflow-hidden">
+        <div className="bg-surface-card border border-border-subtle rounded-xl p-5 shadow-xs space-y-4 relative overflow-hidden">
           {/* Step 2 Lock Overlay if Step 1 is not running */}
           {!isStep1Ready && (
-            <div className="absolute inset-0 bg-zinc-950/85 backdrop-blur-xs z-20 flex flex-col items-center justify-center p-4 text-center space-y-2">
-              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-400 shadow-xs">
-                <Lock className="w-4 h-4 text-zinc-400" />
+            <div className="absolute inset-0 bg-white/90 backdrop-blur-xs z-20 flex flex-col items-center justify-center p-4 text-center space-y-2">
+              <div className="w-8 h-8 rounded-lg bg-surface-card border border-border-element flex items-center justify-center text-text-muted shadow-xs">
+                <Lock className="w-4 h-4 text-text-muted" />
               </div>
-              <div className="text-xs font-medium text-zinc-200">
+              <div className="text-xs font-semibold text-text-primary">
                 {t("step2.locked_title", "步驟 2 已鎖定")}
               </div>
-              <div className="text-[11px] text-zinc-400 max-w-xs">
+              <div className="text-[11px] text-text-secondary max-w-xs">
                 {t("step2.locked_desc", "請先啟動「步驟 1：開啟虛擬手把」，序列串流就緒後方可進行 Switch 配對與自動回連。")}
               </div>
             </div>
           )}
 
-          <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
             <div className="flex items-center gap-2.5">
               <div
                 className={`w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-mono font-medium ${
                   isSwitchConnected
-                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                    : "bg-zinc-800 text-zinc-400 border border-white/[0.06]"
+                    ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                    : "bg-surface-input text-text-secondary border border-border-subtle"
                 }`}
               >
                 2
               </div>
               <div>
-                <h2 className="text-xs font-semibold text-zinc-200">
+                <h2 className="text-xs font-semibold text-text-primary">
                   {t("step2.title", "步驟 2：Switch 自動配對與連線")}
                 </h2>
-                <p className="text-[11px] text-zinc-400">
+                <p className="text-[11px] text-text-secondary">
                   {t("step2.desc", "首次手動配對並記憶，後續啟動虛擬手把即自動重連 1P")}
                 </p>
               </div>
             </div>
-            <span className="text-[10px] font-mono text-zinc-400">
+            <span className="text-[10px] font-mono text-text-muted">
               {isSwitchConnected ? t("step2.status_locked_1p", "✓ 已鎖定 1P") : t("step2.status_can_pair", "可發送配對指令")}
             </span>
           </div>
 
           {/* Branch A: Already Paired Console (Auto-reconnect workflow) */}
           {hasPairedSwitch ? (
-            <div className="p-3.5 rounded-lg bg-zinc-950/80 border border-emerald-500/20 space-y-3">
+            <div className="p-3.5 rounded-lg bg-emerald-50/70 border border-emerald-200 space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-medium text-emerald-300">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                <div className="flex items-center gap-2 text-xs font-medium text-emerald-800">
+                  <Check className="w-4 h-4 text-emerald-600" />
                   <span>{t("step2.paired_box.title", "已記憶配對主機 (自動配對就緒)")}</span>
                 </div>
-                <span className="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                <span className="text-[10px] font-mono text-emerald-700 px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-300">
                   {t("step2.paired_box.badge", "Auto-Pair Active")}
                 </span>
               </div>
 
-              <p className="text-[11px] text-zinc-400 leading-relaxed">
+              <p className="text-[11px] text-emerald-700 leading-relaxed">
                 {t("step2.paired_box.desc", "系統已記憶配對過的 Switch 主機。開啟虛擬手把時會自動發送 A 鍵喚醒訊號完成秒連。若未自動連上，可點擊下方按鈕手動重試。")}
               </p>
 
@@ -1100,8 +1100,8 @@ export const HardwareSettings: React.FC<Props> = ({
                   disabled={activeCommand !== null || !isStep1Ready}
                   className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 ${
                     activeCommand === "wake_reconnect"
-                      ? "bg-zinc-200 text-zinc-950"
-                      : "bg-zinc-100 hover:bg-white text-zinc-950"
+                      ? "bg-slate-700 text-white"
+                      : "bg-accent text-accent-foreground hover:bg-accent-hover"
                   }`}
                 >
                   <Zap className="w-3.5 h-3.5" />
@@ -1111,9 +1111,9 @@ export const HardwareSettings: React.FC<Props> = ({
                 <button
                   onClick={handleClearMemory}
                   disabled={activeCommand !== null || !isStep1Ready}
-                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-interactive-hover border border-border-element text-text-secondary transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
                 >
-                  <RotateCcw className="w-3 h-3 text-zinc-400" />
+                  <RotateCcw className="w-3 h-3 text-text-muted" />
                   <span>{t("step2.paired_box.btn_clear", "更換主機（清除配對記憶）")}</span>
                 </button>
 
@@ -1125,30 +1125,30 @@ export const HardwareSettings: React.FC<Props> = ({
                     )
                   }
                   disabled={activeCommand !== null || !isStep1Ready}
-                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-rose-50 border border-border-element text-rose-600 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
                 >
-                  <Power className="w-3 h-3 text-rose-400" />
+                  <Power className="w-3 h-3 text-rose-500" />
                   <span>{t("step2.paired_box.btn_neutral", "緊急訊號歸零")}</span>
                 </button>
               </div>
             </div>
           ) : (
             /* Branch B: First-time Pairing Workflow */
-            <div className="p-3.5 rounded-lg bg-zinc-950/80 border border-white/[0.06] space-y-3">
+            <div className="p-3.5 rounded-lg bg-surface-input border border-border-subtle space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-medium text-zinc-200">
-                  <Radio className="w-3.5 h-3.5 text-zinc-400" />
+                <div className="flex items-center gap-2 text-xs font-medium text-text-primary">
+                  <Radio className="w-3.5 h-3.5 text-text-muted" />
                   <span>{t("step2.unpaired_box.title", "首次配對流程（尚未記憶主機）")}</span>
                 </div>
-                <span className="text-[10px] text-amber-400/90 font-mono">
+                <span className="text-[10px] text-amber-600 font-mono">
                   {t("step2.unpaired_box.badge", "需要手動配對")}
                 </span>
               </div>
 
-              <div className="text-[11px] text-zinc-400 space-y-1 leading-relaxed">
+              <div className="text-[11px] text-text-secondary space-y-1 leading-relaxed">
                 <div>{t("step2.unpaired_box.step1", "1. 請在 Switch 打開主畫面「控制器」➔「更改拿法 / 順序」畫面。")}</div>
                 <div>{t("step2.unpaired_box.step2", "2. 點擊下方按鈕送出 L + R 握手脈衝，讓 Switch 自動分配為 1P。")}</div>
-                <div className="text-zinc-300 font-medium">{t("step2.unpaired_box.step3", "3. 配對成功後將自動記憶，下次啟動直接自動連線！")}</div>
+                <div className="text-text-primary font-medium">{t("step2.unpaired_box.step3", "3. 配對成功後將自動記憶，下次啟動直接自動連線！")}</div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -1157,8 +1157,8 @@ export const HardwareSettings: React.FC<Props> = ({
                   disabled={activeCommand !== null || !isStep1Ready}
                   className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 ${
                     activeCommand === "pair_lr"
-                      ? "bg-zinc-200 text-zinc-950"
-                      : "bg-zinc-100 hover:bg-white text-zinc-950"
+                      ? "bg-slate-700 text-white"
+                      : "bg-accent text-accent-foreground hover:bg-accent-hover"
                   }`}
                 >
                   <Radio className="w-3.5 h-3.5" />
@@ -1173,9 +1173,9 @@ export const HardwareSettings: React.FC<Props> = ({
                     )
                   }
                   disabled={activeCommand !== null || !isStep1Ready}
-                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-rose-50 border border-border-element text-rose-600 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
                 >
-                  <Power className="w-3 h-3 text-rose-400" />
+                  <Power className="w-3 h-3 text-rose-500" />
                   <span>{t("step2.unpaired_box.btn_neutral", "緊急訊號歸零")}</span>
                 </button>
               </div>
@@ -1186,17 +1186,17 @@ export const HardwareSettings: React.FC<Props> = ({
       </div>
 
       {/* 3. Unified Bottom Footer Bar */}
-      <div className="h-9 px-6 border-t border-white/[0.06] bg-zinc-950/90 backdrop-blur-sm flex items-center justify-between text-[11px] font-mono text-zinc-400 select-none shrink-0 z-20">
+      <div className="h-9 px-6 border-t border-border-subtle bg-surface-card flex items-center justify-between text-[11px] font-mono text-text-secondary select-none shrink-0 z-20">
         <div className="flex items-center gap-3">
           <span>{t("footer.port", { port: selectedPort || t("footer.no_port", "未選取 USB 裝置"), defaultValue: `● 序列埠: ${selectedPort || "未選取 USB 裝置"}` })}</span>
-          <span className="text-zinc-700">|</span>
+          <span className="text-border-element">|</span>
           <span>{t("footer.baudrate", { baud: selectedBaudrate, defaultValue: `通訊鮑率: ${selectedBaudrate} bps` })}</span>
-          <span className="text-zinc-700">|</span>
+          <span className="text-border-element">|</span>
           <span>{t("footer.sent_packets", { count: status.packets_sent.toLocaleString(), defaultValue: `已發送: ${status.packets_sent.toLocaleString()} 封包` })}</span>
         </div>
         <div className="flex items-center gap-3">
           <span>{status.is_connected ? t("footer.bridge_streaming", { fps: status.tx_fps, defaultValue: `虛擬手把: 60Hz 串流中 (${status.tx_fps} Hz)` }) : t("footer.bridge_stopped", "虛擬手把: 已停止")}</span>
-          <span className="text-zinc-700">|</span>
+          <span className="text-border-element">|</span>
           <span>{t("footer.switch_status", { status: isSwitchConnected ? t("footer.switch_connected", "1P 已連線") : isSwitchPairing ? t("footer.switch_pairing", "配對中...") : t("footer.switch_offline", "離線"), defaultValue: `Switch: ${isSwitchConnected ? "1P 已連線" : isSwitchPairing ? "配對中..." : "離線"}` })}</span>
         </div>
       </div>
@@ -1204,12 +1204,12 @@ export const HardwareSettings: React.FC<Props> = ({
       {/* Floating Bottom-Right Toast Notifications (No layout shift / jitter) */}
       <div className="fixed bottom-12 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">
         {errorMessage && (
-          <div className="pointer-events-auto p-3.5 rounded-xl bg-zinc-900/95 border border-rose-500/30 shadow-xl backdrop-blur-md flex items-start gap-3 text-xs text-rose-200 animate-in fade-in slide-in-from-bottom-2 duration-200">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-            <div className="flex-1 leading-relaxed">{errorMessage}</div>
+          <div className="pointer-events-auto p-3.5 rounded-xl bg-feedback-error-bg border border-feedback-error-border shadow-xl flex items-start gap-3 text-xs text-feedback-error-text animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+            <div className="flex-1 leading-relaxed font-medium">{errorMessage}</div>
             <button
               onClick={() => setErrorMessage(null)}
-              className="text-zinc-400 hover:text-zinc-100 p-0.5 rounded-md hover:bg-zinc-800 transition-colors cursor-pointer"
+              className="text-feedback-error-text opacity-70 hover:opacity-100 p-0.5 rounded-md hover:bg-rose-100 transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -1217,12 +1217,12 @@ export const HardwareSettings: React.FC<Props> = ({
         )}
 
         {successNotice && (
-          <div className="pointer-events-auto p-3.5 rounded-xl bg-zinc-900/95 border border-emerald-500/30 shadow-xl backdrop-blur-md flex items-start gap-3 text-xs text-emerald-200 animate-in fade-in slide-in-from-bottom-2 duration-200">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-            <div className="flex-1 leading-relaxed">{successNotice}</div>
+          <div className="pointer-events-auto p-3.5 rounded-xl bg-feedback-success-bg border border-feedback-success-border shadow-xl flex items-start gap-3 text-xs text-feedback-success-text animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+            <div className="flex-1 leading-relaxed font-medium">{successNotice}</div>
             <button
               onClick={() => setSuccessNotice(null)}
-              className="text-zinc-400 hover:text-zinc-100 p-0.5 rounded-md hover:bg-zinc-800 transition-colors cursor-pointer"
+              className="text-feedback-success-text opacity-70 hover:opacity-100 p-0.5 rounded-md hover:bg-emerald-100 transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>

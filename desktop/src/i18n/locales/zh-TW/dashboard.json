@@ -11,7 +11,9 @@
     "rec_tooltip_start": "開始側錄手把與鍵盤操作 (倒數 321 後開始捕捉)",
     "rec_tooltip_stop": "點擊停止側錄並儲存巨集腳本",
     "recording": "側錄中",
-    "record_macro": "側錄巨集"
+    "record_macro": "側錄巨集",
+    "stage_lights_on": "展台開燈 • 運作中",
+    "stage_lights_off": "展台關燈 • 待命中"
   },
   "buttons": {
     "capture": "Capture 按鍵 (截圖)",

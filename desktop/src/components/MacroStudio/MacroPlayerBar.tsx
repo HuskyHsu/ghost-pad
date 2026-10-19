@@ -38,7 +38,7 @@ export const MacroPlayerBar: React.FC<Props> = ({
   const isPaused = status.isPaused;
 
   return (
-    <div className="w-full bg-zinc-900/90 border-t border-white/[0.06] backdrop-blur-md px-4 py-2.5 shrink-0 select-none shadow-xl">
+    <div className="w-full bg-surface-card/95 border-t border-border-subtle backdrop-blur-md px-4 py-2.5 shrink-0 select-none shadow-md">
       {/* Control Console Row: 3 columns with fixed left and right */}
       <div className="w-full flex items-center justify-between gap-4">
         {/* Left: Playback Controls & Script Title */}
@@ -50,7 +50,7 @@ export const MacroPlayerBar: React.FC<Props> = ({
                 type="button"
                 disabled={!script || script.actions.length === 0}
                 onClick={onPlay}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium bg-zinc-100 hover:bg-white text-zinc-950 disabled:opacity-30 disabled:hover:bg-zinc-100 shadow-xs transition-colors cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs disabled:opacity-35 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed transition-colors cursor-pointer active:scale-95"
                 title={t("player.play_tooltip", "開始播放腳本")}
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
@@ -60,7 +60,7 @@ export const MacroPlayerBar: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={onResume}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 transition-colors cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors cursor-pointer active:scale-95"
                 title={t("player.resume_tooltip", "繼續播放")}
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
@@ -70,7 +70,7 @@ export const MacroPlayerBar: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={onPause}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 transition-colors cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 shadow-xs transition-colors cursor-pointer active:scale-95"
                 title={t("player.pause_tooltip", "暫停播放")}
               >
                 <Pause className="w-3.5 h-3.5" />
@@ -83,12 +83,12 @@ export const MacroPlayerBar: React.FC<Props> = ({
               type="button"
               disabled={!isPlaying}
               onClick={onStop}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium bg-zinc-800 hover:bg-rose-950/40 text-zinc-400 hover:text-rose-300 border border-white/[0.08] hover:border-rose-500/30 disabled:opacity-30 transition-colors cursor-pointer active:scale-95"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-rose-50 text-text-secondary hover:text-rose-700 border border-border-element hover:border-rose-300 disabled:opacity-35 disabled:hover:bg-surface-card disabled:hover:text-text-secondary disabled:hover:border-border-element disabled:cursor-not-allowed shadow-xs transition-colors cursor-pointer active:scale-95"
               title={t("player.stop_tooltip", "停止播放並重置手把中立 (Esc)")}
             >
               <Square className="w-3 h-3 fill-current" />
               <span className="hidden sm:inline">{t("player.stop", "停止")}</span>
-              <kbd className="hidden lg:inline-block text-[9px] px-1 py-0.2 rounded bg-black/40 text-zinc-500 font-mono">
+              <kbd className="hidden lg:inline-block text-[9px] px-1 py-0.2 rounded bg-surface-input text-text-muted font-mono border border-border-subtle">
                 Esc
               </kbd>
             </button>
@@ -96,13 +96,13 @@ export const MacroPlayerBar: React.FC<Props> = ({
 
           {/* Script Name & Status Indicator */}
           <div className="flex flex-col">
-            <div className="text-xs font-medium text-zinc-200 truncate max-w-[160px]">
+            <div className="text-xs font-medium text-text-primary truncate max-w-[160px]">
               {script ? script.name : t("player.no_selection", "未選擇腳本")}
             </div>
             <div className="flex items-center gap-1.5 text-[10px] font-mono">
               {isPlaying ? (
-                <span className="flex items-center gap-1 text-emerald-400 font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   {isPaused
                     ? t("player.paused", "已暫停")
                     : t("player.loop_status", {
@@ -112,7 +112,7 @@ export const MacroPlayerBar: React.FC<Props> = ({
                       })}
                 </span>
               ) : (
-                <span className="text-zinc-500">{t("player.standby", "待命就緒")}</span>
+                <span className="text-text-muted">{t("player.standby", "待命就緒")}</span>
               )}
             </div>
           </div>
@@ -120,7 +120,7 @@ export const MacroPlayerBar: React.FC<Props> = ({
 
         {/* Middle: Progress Bar */}
         <div className="flex-1 max-w-md min-w-[120px] mx-2 flex flex-col gap-1">
-          <div className="flex items-center justify-between text-[10px] text-zinc-400 font-mono">
+          <div className="flex items-center justify-between text-[10px] text-text-muted font-mono">
             <span>{t("player.progress", { percent: status.progressPercent, defaultValue: `進度：${status.progressPercent}%` })}</span>
             <span>
               {script
@@ -132,9 +132,9 @@ export const MacroPlayerBar: React.FC<Props> = ({
                 : "0 / 0"}
             </span>
           </div>
-          <div className="w-full h-1.5 rounded-full bg-zinc-950 border border-white/[0.06] overflow-hidden relative">
+          <div className="w-full h-1.5 rounded-full bg-surface-input border border-border-subtle overflow-hidden relative">
             <div
-              className="h-full bg-zinc-300 transition-all duration-100 ease-out"
+              className="h-full bg-accent-primary transition-all duration-100 ease-out"
               style={{ width: `${status.progressPercent}%` }}
             />
           </div>
@@ -143,14 +143,14 @@ export const MacroPlayerBar: React.FC<Props> = ({
         {/* Right: Loop Mode Controls */}
         <div className="shrink-0 flex items-center gap-2 justify-end">
           {/* Loop Mode Selector */}
-          <div className="flex items-center gap-0.5 bg-zinc-950 p-0.5 rounded-md border border-white/[0.06]">
+          <div className="flex items-center gap-0.5 bg-surface-input p-0.5 rounded-md border border-border-subtle">
             <button
               type="button"
               onClick={() => onChangeConfig({ loopMode: "once" })}
               className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                 config.loopMode === "once"
-                  ? "bg-zinc-800 text-zinc-100 border border-white/[0.08] shadow-xs"
-                  : "text-zinc-500 hover:text-zinc-300 border border-transparent"
+                  ? "bg-surface-card text-text-primary border border-border-element shadow-xs"
+                  : "text-text-muted hover:text-text-primary border border-transparent"
               }`}
               title={t("player.single_play_tooltip", "單次播放")}
             >
@@ -162,8 +162,8 @@ export const MacroPlayerBar: React.FC<Props> = ({
               onClick={() => onChangeConfig({ loopMode: "count" })}
               className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                 config.loopMode === "count"
-                  ? "bg-zinc-800 text-zinc-100 border border-white/[0.08] shadow-xs"
-                  : "text-zinc-500 hover:text-zinc-300 border border-transparent"
+                  ? "bg-surface-card text-text-primary border border-border-element shadow-xs"
+                  : "text-text-muted hover:text-text-primary border border-transparent"
               }`}
               title={t("player.loop_count_tooltip", "循環指定次數")}
             >
@@ -176,8 +176,8 @@ export const MacroPlayerBar: React.FC<Props> = ({
               onClick={() => onChangeConfig({ loopMode: "infinite" })}
               className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                 config.loopMode === "infinite"
-                  ? "bg-zinc-800 text-zinc-100 border border-white/[0.08] shadow-xs"
-                  : "text-zinc-500 hover:text-zinc-300 border border-transparent"
+                  ? "bg-surface-card text-text-primary border border-border-element shadow-xs"
+                  : "text-text-muted hover:text-text-primary border border-transparent"
               }`}
               title={t("player.loop_infinite_tooltip", "無限循環 (直到手動按下停止)")}
             >
@@ -194,12 +194,12 @@ export const MacroPlayerBar: React.FC<Props> = ({
             }}
             className={`w-20 h-[28px] flex items-center justify-between px-2 rounded-md border text-xs transition-all ${
               config.loopMode === "count"
-                ? "bg-zinc-950 border-white/[0.16] cursor-text"
-                : "bg-zinc-950/40 border-white/[0.04] opacity-40 cursor-pointer hover:opacity-70"
+                ? "bg-surface-card border-border-focus cursor-text shadow-xs"
+                : "bg-surface-input/60 border-border-subtle opacity-60 cursor-pointer hover:opacity-90"
             }`}
             title={config.loopMode === "count" ? t("player.count_tooltip_active", "可直接輸入或修改循環次數") : t("player.count_tooltip_inactive", "點擊切換為指定次數循環")}
           >
-            <span className="text-[10px] text-zinc-500 font-mono select-none">{t("player.count_label", "次數:")}</span>
+            <span className="text-[10px] text-text-muted font-mono select-none">{t("player.count_label", "次數:")}</span>
             {config.loopMode === "count" ? (
               <input
                 type="number"
@@ -209,11 +209,11 @@ export const MacroPlayerBar: React.FC<Props> = ({
                 onChange={(e) =>
                   onChangeConfig({ loopCount: Math.max(2, Number(e.target.value) || 2) })
                 }
-                className="w-8 bg-transparent text-center font-mono font-bold text-zinc-100 focus:outline-none"
+                className="w-8 bg-transparent text-center font-mono font-bold text-text-primary focus:outline-none"
                 autoFocus
               />
             ) : (
-              <span className="w-8 text-center font-mono font-medium text-zinc-500 select-none">
+              <span className="w-8 text-center font-mono font-medium text-text-muted select-none">
                 {config.loopMode === "once" ? "1" : "∞"}
               </span>
             )}

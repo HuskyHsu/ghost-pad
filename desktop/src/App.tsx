@@ -517,7 +517,7 @@ export function App() {
 
   // Full-size macOS Master-Detail layout
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100 font-sans select-none">
+    <div className="flex h-screen w-screen overflow-hidden bg-window-base text-text-primary font-sans select-none">
       {/* Left Master Sidebar */}
       <Sidebar
         activeTab={activeTab}
@@ -537,7 +537,7 @@ export function App() {
       />
 
       {/* Right Detail Content Stage */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950">
+      <main className="flex-1 flex flex-col h-full overflow-hidden bg-window-base">
         {activeTab === "dashboard" && (
           <GamepadVisualizer
             state={controllerState}

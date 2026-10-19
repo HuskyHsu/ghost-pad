@@ -87,7 +87,7 @@ export const MacroStudio: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950 select-none">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-window-base select-none">
       {/* Hidden file input for import */}
       <input
         ref={fileInputRef}

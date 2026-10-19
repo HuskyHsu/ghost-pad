@@ -75,22 +75,22 @@ export const MacroEditor: React.FC<Props> = ({
   const currentDurationMs = getScriptTotalDurationMs({ ...script, actions });
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950 select-none relative">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-window-base select-none relative">
       {/* 1. Unified Top Header */}
-      <div className="h-16 px-6 border-b border-white/[0.06] flex items-center justify-between shrink-0 bg-zinc-950/80 backdrop-blur-sm z-30">
+      <div className="h-16 px-6 border-b border-border-subtle flex items-center justify-between shrink-0 bg-surface-card/80 backdrop-blur-sm z-30">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {onBackToList && (
             <button
               type="button"
               onClick={onBackToList}
-              className="flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs font-medium bg-zinc-850 hover:bg-zinc-800 text-zinc-300 hover:text-white transition-colors cursor-pointer border border-white/[0.08] hover:border-white/[0.14] shrink-0 shadow-xs"
+              className="flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs font-medium bg-surface-card hover:bg-interactive-hover text-text-primary transition-colors cursor-pointer border border-border-subtle hover:border-border-element shrink-0 shadow-xs"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-3.5 h-3.5 text-text-muted" />
               <span>{t("back_to_list", "返回清單")}</span>
             </button>
           )}
 
-          <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-300 shadow-xs shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-surface-sidebar border border-border-subtle flex items-center justify-center text-text-secondary shadow-xs shrink-0">
             <FileCode2 className="w-4 h-4" />
           </div>
 
@@ -100,11 +100,11 @@ export const MacroEditor: React.FC<Props> = ({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="text-sm font-semibold tracking-tight text-zinc-100 bg-transparent border-b border-transparent hover:border-white/[0.14] focus:border-white/[0.25] focus:outline-none max-w-xs sm:max-w-md px-1 py-0.5 rounded transition-colors"
+                className="text-sm font-semibold tracking-tight text-text-primary bg-transparent border-b border-transparent hover:border-border-element focus:border-border-focus focus:outline-none max-w-xs sm:max-w-md px-1 py-0.5 rounded transition-colors"
                 placeholder={t("title_placeholder", "腳本標題...")}
               />
               {script.isPreset && (
-                <span className="px-1.5 py-0.2 rounded font-mono text-[9px] font-medium bg-zinc-800 text-zinc-300 border border-white/[0.08]">
+                <span className="px-1.5 py-0.2 rounded font-mono text-[9px] font-medium bg-surface-input text-text-secondary border border-border-subtle">
                   {t("preset_badge", "範本")}
                 </span>
               )}
@@ -113,7 +113,7 @@ export const MacroEditor: React.FC<Props> = ({
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full text-xs text-zinc-400 bg-transparent border-b border-transparent hover:border-white/[0.08] focus:border-white/[0.2] focus:outline-none px-1 py-0.5 transition-colors truncate"
+              className="w-full text-xs text-text-muted bg-transparent border-b border-transparent hover:border-border-subtle focus:border-border-focus focus:outline-none px-1 py-0.5 transition-colors truncate"
               placeholder={t("note_placeholder", "填寫腳本備註說明或使用場合...")}
             />
           </div>
@@ -121,39 +121,39 @@ export const MacroEditor: React.FC<Props> = ({
 
         {/* Stats & Actions */}
         <div className="flex items-center gap-2 shrink-0 font-mono text-xs">
-          <div className="hidden md:flex items-center gap-2 h-8 px-2.5 rounded-md bg-zinc-900 border border-white/[0.06] text-zinc-400">
+          <div className="hidden md:flex items-center gap-2 h-8 px-2.5 rounded-md bg-surface-input border border-border-subtle text-text-muted">
             <span className="flex items-center gap-1 text-[11px]">
-              <Clock className="w-3 h-3 text-zinc-500" />
+              <Clock className="w-3 h-3 text-text-muted" />
               <span>{(currentDurationMs / 1000).toFixed(2)}s</span>
             </span>
-            <span className="text-zinc-700">|</span>
+            <span className="text-border-element">|</span>
             <span className="text-[11px]">{t("step_count", { count: actions.length, defaultValue: `${actions.length} 步` })}</span>
           </div>
 
           <button
             type="button"
             onClick={() => exportMacroAsJson({ ...script, name, description, actions })}
-            className="flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs font-medium bg-zinc-850 hover:bg-zinc-800 text-zinc-300 border border-white/[0.08] hover:border-white/[0.14] transition-colors cursor-pointer shadow-xs"
+            className="flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs font-medium bg-surface-card hover:bg-interactive-hover text-text-primary border border-border-subtle hover:border-border-element transition-colors cursor-pointer shadow-xs"
             title={t("export_json_tooltip", "匯出單一 JSON 腳本檔案")}
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-text-muted" />
             <span className="hidden sm:inline">{t("export_single_btn", "匯出")}</span>
           </button>
 
           <button
             type="button"
             onClick={() => onDuplicateScript({ ...script, name, description, tags: script.tags || [], actions })}
-            className="flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs font-medium bg-zinc-850 hover:bg-zinc-800 text-zinc-300 border border-white/[0.08] hover:border-white/[0.14] transition-colors cursor-pointer shadow-xs"
+            className="flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs font-medium bg-surface-card hover:bg-interactive-hover text-text-primary border border-border-subtle hover:border-border-element transition-colors cursor-pointer shadow-xs"
             title={t("duplicate_tooltip", "複製一份新腳本")}
           >
-            <Copy className="w-3.5 h-3.5" />
+            <Copy className="w-3.5 h-3.5 text-text-muted" />
             <span className="hidden sm:inline">{t("duplicate_btn", "複製")}</span>
           </button>
 
           <button
             type="button"
             onClick={() => onDeleteScript(script.id)}
-            className="h-8 p-2 rounded-md text-zinc-500 hover:text-rose-400 hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="h-8 p-2 rounded-md text-text-muted hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
             title={t("delete_tooltip", "刪除此腳本")}
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -164,8 +164,8 @@ export const MacroEditor: React.FC<Props> = ({
             onClick={handleSave}
             className={`flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium transition-colors cursor-pointer ${
               hasSaved
-                ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300"
-                : "bg-zinc-100 hover:bg-white text-zinc-950 shadow-xs"
+                ? "bg-feedback-success-bg border border-feedback-success-border text-feedback-success-text"
+                : "bg-accent hover:bg-accent/90 text-accent-foreground shadow-xs"
             }`}
           >
             {hasSaved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}

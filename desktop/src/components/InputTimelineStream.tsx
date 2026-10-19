@@ -273,11 +273,11 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
         const yBottom = yTop + laneHeight;
 
         // Alternating subtle zebra striping
-        ctx.fillStyle = i % 2 === 0 ? "rgba(18, 18, 22, 0.7)" : "rgba(12, 12, 15, 0.7)";
+        ctx.fillStyle = i % 2 === 0 ? "#ffffff" : "#f8fafc";
         ctx.fillRect(0, yTop, width, laneHeight);
 
         // Track divider line (stave line)
-        ctx.strokeStyle = "rgba(63, 63, 70, 0.3)";
+        ctx.strokeStyle = "rgba(226, 232, 240, 0.9)";
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(0, yBottom);
@@ -299,7 +299,7 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
         const isMajor = sec % majorStep === 0;
 
         if (isMajor) {
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+          ctx.strokeStyle = "rgba(226, 232, 240, 0.9)";
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(x, RULER_TOP_H);
@@ -356,7 +356,7 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
 
         if (isHeld) {
           ctx.shadowColor = note.glowColor;
-          ctx.shadowBlur = 10;
+          ctx.shadowBlur = 8;
         }
 
         // Pill gradient background
@@ -373,7 +373,7 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
         ctx.fill();
 
         // Stroke border
-        ctx.strokeStyle = isHeld ? "rgba(255, 255, 255, 0.95)" : "rgba(255, 255, 255, 0.4)";
+        ctx.strokeStyle = isHeld ? "rgba(15, 23, 42, 0.35)" : "rgba(15, 23, 42, 0.12)";
         ctx.lineWidth = 1.2;
         ctx.stroke();
 
@@ -381,12 +381,12 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
         if (isHeld) {
           ctx.beginPath();
           ctx.arc(headCenter, laneY + NOTE_SIZE / 2, NOTE_SIZE / 2, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+          ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
           ctx.fill();
         }
 
         // Text Icon inside the note pill (strictly centered inside the leading head circle)
-        ctx.fillStyle = "#09090b";
+        ctx.fillStyle = "#0f172a";
         ctx.font = "900 10.5px system-ui, -apple-system, sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -407,17 +407,25 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
       // 4. Smooth Edge Fade Gradient (notes fade as they reach the exit boundary)
       const FADE_W = 40;
       const fadeGrad = ctx.createLinearGradient(width - FADE_W, 0, width, 0);
-      fadeGrad.addColorStop(0, "rgba(9, 9, 11, 0)");
-      fadeGrad.addColorStop(1, "rgba(9, 9, 11, 0.95)");
+      fadeGrad.addColorStop(0, "rgba(255, 255, 255, 0)");
+      fadeGrad.addColorStop(1, "rgba(248, 250, 252, 0.95)");
       ctx.fillStyle = fadeGrad;
       ctx.fillRect(width - FADE_W, RULER_TOP_H, FADE_W, tracksH);
 
       // 5. Track Sidebar Column (Crisp DAW track header)
-      ctx.fillStyle = "rgba(13, 13, 16, 0.97)";
+      ctx.fillStyle = "#f8fafc";
       ctx.fillRect(0, 0, SIDEBAR_W, height);
 
+      // Sidebar right divider
+      ctx.strokeStyle = "rgba(226, 232, 240, 0.9)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(SIDEBAR_W, 0);
+      ctx.lineTo(SIDEBAR_W, height);
+      ctx.stroke();
+
       // Top-left corner title
-      ctx.fillStyle = "#71717a";
+      ctx.fillStyle = "#64748b";
       ctx.font = "bold 9px system-ui, -apple-system, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -431,7 +439,7 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
         const yCenter = yTop + laneHeight / 2;
 
         // Subtle row divider in sidebar
-        ctx.strokeStyle = "rgba(63, 63, 70, 0.35)";
+        ctx.strokeStyle = "rgba(226, 232, 240, 0.75)";
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(0, yBottom);
@@ -446,7 +454,7 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
         ctx.fill();
 
         // Lane title
-        ctx.fillStyle = "#e4e4e7";
+        ctx.fillStyle = "#334155";
         ctx.font = "bold 9px system-ui, -apple-system, sans-serif";
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
@@ -455,7 +463,7 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
       }
 
       // 6. Draw Strike Line (Playhead Line - flush to left border of tracks)
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+      ctx.strokeStyle = "#0284c7";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(strikeX, RULER_TOP_H);
@@ -463,11 +471,11 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
       ctx.stroke();
 
       // 7. Draw Top and Bottom Rulers & Ticks ON TOP so 0s is perfectly centered and unclipped
-      ctx.fillStyle = "rgba(18, 18, 22, 0.92)";
+      ctx.fillStyle = "#f1f5f9";
       ctx.fillRect(SIDEBAR_W - 12, 0, width - (SIDEBAR_W - 12), RULER_TOP_H);
       ctx.fillRect(SIDEBAR_W - 12, height - RULER_BOT_H, width - (SIDEBAR_W - 12), RULER_BOT_H);
 
-      ctx.strokeStyle = "rgba(63, 63, 70, 0.4)";
+      ctx.strokeStyle = "rgba(226, 232, 240, 0.9)";
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(0, RULER_TOP_H);
@@ -482,34 +490,34 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
 
         if (isMajor) {
           // Top ruler tick & label
-          ctx.strokeStyle = "rgba(161, 161, 170, 0.7)";
+          ctx.strokeStyle = "rgba(148, 163, 184, 0.8)";
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(x, RULER_TOP_H - 5);
           ctx.lineTo(x, RULER_TOP_H);
           ctx.stroke();
 
-          ctx.fillStyle = sec === 0 ? "#22d3ee" : "#a1a1aa";
+          ctx.fillStyle = sec === 0 ? "#0284c7" : "#64748b";
           ctx.font = "bold 9px monospace";
           ctx.textAlign = sec === duration ? "right" : "center";
           ctx.textBaseline = "bottom";
           ctx.fillText(`${sec}s`, x + (sec === duration ? -3 : 0), RULER_TOP_H - 4);
 
           // Bottom ruler tick & label
-          ctx.strokeStyle = "rgba(161, 161, 170, 0.45)";
+          ctx.strokeStyle = "rgba(148, 163, 184, 0.5)";
           ctx.beginPath();
           ctx.moveTo(x, height - RULER_BOT_H);
           ctx.lineTo(x, height - RULER_BOT_H + 4);
           ctx.stroke();
 
-          ctx.fillStyle = sec === 0 ? "#22d3ee" : "#71717a";
+          ctx.fillStyle = sec === 0 ? "#0284c7" : "#64748b";
           ctx.font = "8px monospace";
           ctx.textAlign = sec === duration ? "right" : "center";
           ctx.textBaseline = "top";
           ctx.fillText(`${sec}s`, x + (sec === duration ? -3 : 0), height - RULER_BOT_H + 3);
         } else {
           // Minor 1-second tick at top & bottom
-          ctx.strokeStyle = "rgba(113, 113, 122, 0.25)";
+          ctx.strokeStyle = "rgba(203, 213, 225, 0.8)";
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(x, RULER_TOP_H - 3);
@@ -528,20 +536,20 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
   }, [duration]);
 
   return (
-    <div className="w-full rounded-xl bg-zinc-900/40 border border-white/[0.06] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] overflow-hidden flex flex-col">
+    <div className="w-full rounded-xl bg-surface-card border border-border-subtle shadow-xs overflow-hidden flex flex-col">
       {/* Stream Control Header */}
-      <div className="h-9 sm:h-10 px-3 sm:px-4 border-b border-white/[0.06] bg-zinc-900/60 flex items-center justify-between select-none">
+      <div className="h-9 sm:h-10 px-3 sm:px-4 border-b border-border-subtle bg-surface-card flex items-center justify-between select-none">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-md bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-zinc-300">
+          <div className="w-5 h-5 rounded-md bg-surface-input border border-border-subtle flex items-center justify-center text-text-primary">
             <Film className="w-3 h-3" />
           </div>
-          <span className="text-xs font-medium text-zinc-200">{t("timeline.title")}</span>
+          <span className="text-xs font-medium text-text-primary">{t("timeline.title")}</span>
         </div>
 
         <div className="flex items-center gap-2 text-xs">
           {/* Operation count badge */}
-          <span className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 bg-zinc-950/60 px-2.5 py-1 rounded-md border border-white/[0.06]">
-            <Zap className="w-3 h-3 text-amber-400" />
+          <span className="flex items-center gap-1.5 text-[11px] font-mono text-text-secondary bg-surface-input px-2.5 py-1 rounded-md border border-border-subtle">
+            <Zap className="w-3 h-3 text-amber-500" />
             <span>{t("timeline.op_count", { count: operationCount })}</span>
           </span>
 
@@ -553,17 +561,17 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
                 return DURATION_OPTIONS[(idx + 1) % DURATION_OPTIONS.length];
               });
             }}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-800 hover:bg-zinc-750 border border-white/[0.08] text-zinc-200 text-[11px] transition-colors font-mono cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-card hover:bg-interactive-hover border border-border-element text-text-primary text-[11px] transition-colors font-mono cursor-pointer shadow-xs"
             title={t("timeline.duration_tooltip")}
           >
-            <Clock className="w-3 h-3 text-zinc-400" />
+            <Clock className="w-3 h-3 text-text-muted" />
             <span>{t("timeline.duration_badge", { duration })}</span>
           </button>
 
           {/* Clear history button */}
           <button
             onClick={handleClear}
-            className="p-1 rounded-md text-zinc-500 hover:text-rose-400 hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="p-1 rounded-md text-text-muted hover:text-rose-600 hover:bg-interactive-hover transition-colors cursor-pointer"
             title={t("timeline.clear_tooltip")}
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -574,7 +582,7 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
       {/* Main Streaming Canvas Area */}
       <div
         ref={containerRef}
-        className="w-full h-32 sm:h-36 relative bg-zinc-950 overflow-hidden select-none"
+        className="w-full h-32 sm:h-36 relative bg-surface-card overflow-hidden select-none"
       >
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
       </div>

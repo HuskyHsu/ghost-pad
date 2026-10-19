@@ -2,11 +2,93 @@
 
 @theme {
   --color-zinc-850: #1c1c20;
+
+  /* Ghost-Pad Semantic Light Mode Tokens */
+  --color-window-base: var(--window-base);
+  --color-window-titlebar: var(--window-titlebar);
+  --color-surface-sidebar: var(--surface-sidebar);
+  --color-surface-card: var(--surface-card);
+  --color-surface-modal: var(--surface-modal);
+  --color-surface-input: var(--surface-input);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-element: var(--border-element);
+  --color-border-focus: var(--border-focus);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-disabled: var(--text-disabled);
+
+  --color-interactive-hover: var(--interactive-hover);
+  --color-interactive-active: var(--interactive-active);
+  --color-interactive-selected: var(--interactive-selected);
+
+  --color-accent: var(--accent-primary);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-feedback-success-bg: var(--feedback-success-bg);
+  --color-feedback-success-text: var(--feedback-success-text);
+  --color-feedback-success-border: var(--feedback-success-border);
+
+  --color-feedback-warning-bg: var(--feedback-warning-bg);
+  --color-feedback-warning-text: var(--feedback-warning-text);
+  --color-feedback-warning-border: var(--feedback-warning-border);
+
+  --color-feedback-error-bg: var(--feedback-error-bg);
+  --color-feedback-error-text: var(--feedback-error-text);
+  --color-feedback-error-border: var(--feedback-error-border);
+}
+
+:root {
+  /* Window & Structural Surfaces */
+  --window-base: #EFF1F4;
+  --window-titlebar: #F1F3F5;
+  --surface-sidebar: #F8F9FA;
+  --surface-card: #FFFFFF;
+  --surface-modal: #FFFFFF;
+  --surface-input: #F4F5F7;
+
+  /* Borders & Dividers */
+  --border-subtle: #E5E7EB;
+  --border-element: #D1D5DB;
+  --border-focus: #0F172A;
+
+  /* Typography & Icons */
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --text-disabled: #CBD5E1;
+
+  /* Interactive States */
+  --interactive-hover: #F1F3F5;
+  --interactive-active: #E2E5E9;
+  --interactive-selected: #EAEFF6;
+
+  /* Accent CTA (Obsidian Craft Ink) */
+  --accent-primary: #0F172A;
+  --accent-hover: #1E293B;
+  --accent-foreground: #FFFFFF;
+
+  /* Functional Feedback */
+  --feedback-success-bg: #ECFDF5;
+  --feedback-success-text: #065F46;
+  --feedback-success-border: #A7F3D0;
+
+  --feedback-warning-bg: #FFFBEB;
+  --feedback-warning-text: #92400E;
+  --feedback-warning-border: #FDE68A;
+
+  --feedback-error-bg: #FEF2F2;
+  --feedback-error-text: #991B1B;
+  --feedback-error-border: #FECACA;
 }
 
 @layer base {
   body {
-    @apply bg-zinc-950 text-zinc-100 antialiased select-none overflow-hidden h-screen w-screen;
+    @apply bg-window-base text-text-primary antialiased select-none overflow-hidden h-screen w-screen;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 }

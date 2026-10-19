@@ -11,7 +11,9 @@
     "rec_tooltip_start": "Record gamepad & keyboard inputs (Starts after 3-2-1 countdown)",
     "rec_tooltip_stop": "Click to stop recording and save macro script",
     "recording": "Recording",
-    "record_macro": "Record Macro"
+    "record_macro": "Record Macro",
+    "stage_lights_on": "Stage Spotlight ON • Active",
+    "stage_lights_off": "Stage Lights OFF • Standby"
   },
   "buttons": {
     "capture": "Capture Button (Screenshot)",

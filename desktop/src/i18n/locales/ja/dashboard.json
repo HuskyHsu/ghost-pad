@@ -11,7 +11,9 @@
     "rec_tooltip_start": "操作の録画を開始（3秒カウントダウン後に開始）",
     "rec_tooltip_stop": "録画を停止してマクロを保存",
     "recording": "録画中",
-    "record_macro": "マクロ録画"
+    "record_macro": "マクロ録画",
+    "stage_lights_on": "ステージ点灯中 • 稼働中",
+    "stage_lights_off": "ステージ消灯 • 待機中"
   },
   "buttons": {
     "capture": "キャプチャーボタン (画面写真)",

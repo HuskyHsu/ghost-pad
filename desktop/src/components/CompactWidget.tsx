@@ -97,16 +97,16 @@ export const CompactWidget: React.FC<Props> = ({
   );
 
   return (
-    <div className="flex flex-col h-full w-full bg-zinc-950 text-zinc-100 select-none p-3 justify-between overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-window-base text-text-primary select-none p-3 justify-between overflow-hidden">
       {/* Top HUD Status Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-white/[0.06] text-xs shrink-0">
+      <div className="flex items-center justify-between pb-2 border-b border-border-subtle text-xs shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <span
             className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-              activeGamepad && !isMuted ? "bg-emerald-400" : "bg-zinc-600"
+              activeGamepad && !isMuted ? "bg-emerald-500" : "bg-border-element"
             }`}
           />
-          <span className="font-medium text-xs text-zinc-200 truncate">
+          <span className="font-medium text-xs text-text-primary truncate">
             {isMuted ? t("compact.paused", "已暫停") : activeGamepad?.name || t("compact.waiting", "等待連線")}
           </span>
         </div>
@@ -116,29 +116,29 @@ export const CompactWidget: React.FC<Props> = ({
             onClick={onToggleMute}
             className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium border transition-colors flex items-center gap-1 ${
               isMuted
-                ? "bg-amber-500/10 border-amber-500/20 text-amber-300"
-                : "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+                ? "bg-amber-50 border-amber-300 text-amber-800"
+                : "bg-emerald-50 border-emerald-300 text-emerald-800"
             }`}
           >
             {isMuted ? t("compact.paused", "暫停中") : t("compact.running", "已啟用")}
           </button>
-          <span className="text-[10px] font-mono text-zinc-500">{fps}Hz</span>
+          <span className="text-[10px] font-mono text-text-muted">{fps}Hz</span>
           <LanguageSwitcher />
         </div>
       </div>
 
       {/* Rectangular Handheld Controller Chassis */}
-      <div className="w-full max-w-[480px] bg-zinc-900/60 border border-white/[0.08] rounded-xl p-3 shadow-xl relative overflow-hidden flex flex-col gap-3 my-auto mx-auto shrink-0 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+      <div className="w-full max-w-[480px] bg-surface-card border border-border-subtle rounded-xl p-3 shadow-md relative overflow-hidden flex flex-col gap-3 my-auto mx-auto shrink-0 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.8)]">
         {/* Top Edge: Shoulder Buttons (ZL, L, R, ZR) + Brand Header */}
-        <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] pb-2">
+        <div className="flex items-center justify-between gap-2 border-b border-border-subtle pb-2">
           {/* Left Shoulder / Triggers */}
           <div className="flex items-center gap-1.5">
             <button
               {...bindButton("zl")}
               className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold tracking-wider border transition-all cursor-pointer select-none active:scale-95 ${
                 state.zl
-                  ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
-                  : "bg-zinc-850 text-zinc-200 border-white/[0.08] hover:border-white/[0.14]"
+                  ? "bg-accent text-accent-foreground border-border-focus shadow-xs scale-95"
+                  : "bg-surface-input text-text-primary border-border-subtle hover:border-border-element hover:bg-interactive-hover shadow-xs"
               }`}
               title={t("buttons.zl", "ZL 板機鍵")}
             >
@@ -148,8 +148,8 @@ export const CompactWidget: React.FC<Props> = ({
               {...bindButton("l")}
               className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold tracking-wider border transition-all cursor-pointer select-none active:scale-95 ${
                 state.l
-                  ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
-                  : "bg-zinc-850 text-zinc-200 border-white/[0.08] hover:border-white/[0.14]"
+                  ? "bg-accent text-accent-foreground border-border-focus shadow-xs scale-95"
+                  : "bg-surface-input text-text-primary border-border-subtle hover:border-border-element hover:bg-interactive-hover shadow-xs"
               }`}
               title={t("buttons.l", "L 肩鍵")}
             >
@@ -158,10 +158,10 @@ export const CompactWidget: React.FC<Props> = ({
           </div>
 
           {/* Center Brand Badge */}
-          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-950 border border-white/[0.08] text-[9px] font-mono tracking-widest text-zinc-400 select-none pointer-events-none">
+          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-input border border-border-subtle text-[9px] font-mono tracking-widest text-text-muted select-none pointer-events-none">
             <span
               className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                isAnyButtonPressed ? "bg-emerald-400" : "bg-zinc-600"
+                isAnyButtonPressed ? "bg-emerald-500" : "bg-border-element"
               }`}
             />
             <span>GHOST-PAD</span>
@@ -173,8 +173,8 @@ export const CompactWidget: React.FC<Props> = ({
               {...bindButton("r")}
               className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold tracking-wider border transition-all cursor-pointer select-none active:scale-95 ${
                 state.r
-                  ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
-                  : "bg-zinc-850 text-zinc-200 border-white/[0.08] hover:border-white/[0.14]"
+                  ? "bg-accent text-accent-foreground border-border-focus shadow-xs scale-95"
+                  : "bg-surface-input text-text-primary border-border-subtle hover:border-border-element hover:bg-interactive-hover shadow-xs"
               }`}
               title={t("buttons.r", "R 肩鍵")}
             >
@@ -184,8 +184,8 @@ export const CompactWidget: React.FC<Props> = ({
               {...bindButton("zr")}
               className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold tracking-wider border transition-all cursor-pointer select-none active:scale-95 ${
                 state.zr
-                  ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
-                  : "bg-zinc-850 text-zinc-200 border-white/[0.08] hover:border-white/[0.14]"
+                  ? "bg-accent text-accent-foreground border-border-focus shadow-xs scale-95"
+                  : "bg-surface-input text-text-primary border-border-subtle hover:border-border-element hover:bg-interactive-hover shadow-xs"
               }`}
               title={t("buttons.zr", "ZR 板機鍵")}
             >
@@ -202,17 +202,17 @@ export const CompactWidget: React.FC<Props> = ({
             <div
               ref={leftStickBaseRef}
               onPointerDown={(e) => startStickDrag("left", leftStickBaseRef, leftKnobRef, setIsDraggingLeft, e)}
-              className={`relative w-18 h-18 rounded-full bg-zinc-950 border transition-all duration-150 select-none shadow-[inset_0_1px_3px_rgba(0,0,0,0.6)] flex items-center justify-center touch-none cursor-grab active:cursor-grabbing pointer-events-auto ${
+              className={`relative w-18 h-18 rounded-full bg-surface-input border transition-all duration-150 select-none shadow-[inset_0_1px_3px_rgba(15,23,42,0.08)] flex items-center justify-center touch-none cursor-grab active:cursor-grabbing pointer-events-auto ${
                 isDraggingLeft
-                  ? "border-white/[0.3] ring-1 ring-white/[0.1]"
-                  : "border-white/[0.08] hover:border-white/[0.14]"
+                  ? "border-border-focus ring-1 ring-border-focus/20"
+                  : "border-border-element hover:border-border-focus"
               }`}
               title={t("buttons.l_stick", "左類比搖桿")}
             >
-              <span className="absolute top-1 text-[7px] font-mono text-zinc-600 select-none pointer-events-none">▲</span>
-              <span className="absolute bottom-1 text-[7px] font-mono text-zinc-600 select-none pointer-events-none">▼</span>
-              <span className="absolute left-1.5 text-[7px] font-mono text-zinc-600 select-none pointer-events-none">◀</span>
-              <span className="absolute right-1.5 text-[7px] font-mono text-zinc-600 select-none pointer-events-none">▶</span>
+              <span className="absolute top-1 text-[7px] font-mono text-text-muted select-none pointer-events-none">▲</span>
+              <span className="absolute bottom-1 text-[7px] font-mono text-text-muted select-none pointer-events-none">▼</span>
+              <span className="absolute left-1.5 text-[7px] font-mono text-text-muted select-none pointer-events-none">◀</span>
+              <span className="absolute right-1.5 text-[7px] font-mono text-text-muted select-none pointer-events-none">▶</span>
 
               <div
                 ref={leftKnobRef}
@@ -220,10 +220,10 @@ export const CompactWidget: React.FC<Props> = ({
                   isDraggingLeft ? "transition-none" : "transition-transform duration-100 ease-out"
                 } ${
                   state.l_stick_click
-                    ? "bg-zinc-100 text-zinc-950 border-white scale-95 shadow-xs"
+                    ? "bg-accent text-accent-foreground border-border-focus scale-95 shadow-xs"
                     : isDraggingLeft || (state.left_stick_x !== 128 || state.left_stick_y !== 128)
-                    ? "bg-zinc-200 text-zinc-950 border-white shadow-xs"
-                    : "bg-zinc-800 text-zinc-300 border-white/[0.1]"
+                    ? "bg-surface-card text-text-primary border-border-focus shadow-xs"
+                    : "bg-surface-card text-text-primary border-border-subtle shadow-xs"
                 }`}
                 style={
                   isDraggingLeft
@@ -237,12 +237,12 @@ export const CompactWidget: React.FC<Props> = ({
 
             {/* D-Pad */}
             <div className="relative w-20 h-20 flex items-center justify-center select-none pointer-events-auto">
-              <div className="absolute w-7 h-20 bg-zinc-950 border border-white/[0.08] rounded-md shadow-sm pointer-events-none" />
-              <div className="absolute w-20 h-7 bg-zinc-950 border border-white/[0.08] rounded-md shadow-sm pointer-events-none" />
+              <div className="absolute w-7 h-20 bg-surface-input border border-border-element rounded-md shadow-xs pointer-events-none" />
+              <div className="absolute w-20 h-7 bg-surface-input border border-border-element rounded-md shadow-xs pointer-events-none" />
               <button
                 {...bindButton("dpad_up")}
                 className={`absolute top-0 w-7 h-7 rounded-t-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
-                  isUp ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
+                  isUp ? "bg-accent text-accent-foreground" : "text-text-secondary hover:text-text-primary hover:bg-interactive-hover"
                 }`}
                 title={t("buttons.dpad_up", "十字鍵 上")}
               >
@@ -251,7 +251,7 @@ export const CompactWidget: React.FC<Props> = ({
               <button
                 {...bindButton("dpad_down")}
                 className={`absolute bottom-0 w-7 h-7 rounded-b-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
-                  isDown ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
+                  isDown ? "bg-accent text-accent-foreground" : "text-text-secondary hover:text-text-primary hover:bg-interactive-hover"
                 }`}
                 title={t("buttons.dpad_down", "十字鍵 下")}
               >
@@ -260,7 +260,7 @@ export const CompactWidget: React.FC<Props> = ({
               <button
                 {...bindButton("dpad_left")}
                 className={`absolute left-0 w-7 h-7 rounded-l-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
-                  isLeft ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
+                  isLeft ? "bg-accent text-accent-foreground" : "text-text-secondary hover:text-text-primary hover:bg-interactive-hover"
                 }`}
                 title={t("buttons.dpad_left", "十字鍵 左")}
               >
@@ -269,13 +269,13 @@ export const CompactWidget: React.FC<Props> = ({
               <button
                 {...bindButton("dpad_right")}
                 className={`absolute right-0 w-7 h-7 rounded-r-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
-                  isRight ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
+                  isRight ? "bg-accent text-accent-foreground" : "text-text-secondary hover:text-text-primary hover:bg-interactive-hover"
                 }`}
                 title={t("buttons.dpad_right", "十字鍵 右")}
               >
                 ▶
               </button>
-              <div className="w-3.5 h-3.5 rounded-full bg-zinc-900 border border-white/[0.06] z-10 pointer-events-none" />
+              <div className="w-3.5 h-3.5 rounded-full bg-surface-card border border-border-subtle z-10 pointer-events-none" />
             </div>
           </div>
 
@@ -287,8 +287,8 @@ export const CompactWidget: React.FC<Props> = ({
                 {...bindButton("minus")}
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border transition-colors cursor-pointer select-none active:scale-95 ${
                   state.minus
-                    ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
-                    : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
+                    ? "bg-accent text-accent-foreground border-border-focus shadow-xs"
+                    : "bg-surface-input text-text-primary border-border-subtle hover:border-border-element hover:bg-interactive-hover shadow-xs"
                 }`}
                 title={t("buttons.minus", "Minus 按鍵 (減號)")}
               >
@@ -298,8 +298,8 @@ export const CompactWidget: React.FC<Props> = ({
                 {...bindButton("plus")}
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border transition-colors cursor-pointer select-none active:scale-95 ${
                   state.plus
-                    ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
-                    : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
+                    ? "bg-accent text-accent-foreground border-border-focus shadow-xs"
+                    : "bg-surface-input text-text-primary border-border-subtle hover:border-border-element hover:bg-interactive-hover shadow-xs"
                 }`}
                 title={t("buttons.plus", "Plus 按鍵 (加號)")}
               >
@@ -308,15 +308,15 @@ export const CompactWidget: React.FC<Props> = ({
             </div>
 
             {/* Minimalist Expression Screen */}
-            <div className="w-12 h-8 rounded-lg bg-zinc-950 border border-white/[0.06] flex items-center justify-center p-1 select-none">
+            <div className="w-12 h-8 rounded-lg bg-surface-input border border-border-subtle flex items-center justify-center p-1 select-none">
               <svg viewBox="0 0 70 30" className="w-full h-full">
-                <circle cx="22" cy="12" r="2.8" fill="#e4e4e7" />
-                <circle cx="48" cy="12" r="2.8" fill="#e4e4e7" />
+                <circle cx="22" cy="12" r="2.8" fill="#0f172a" />
+                <circle cx="48" cy="12" r="2.8" fill="#0f172a" />
                 {isAnyButtonPressed ? (
                   <path
                     d="M 28, 18 Q 32, 22 35, 18 Q 38, 22 42, 18"
                     fill="none"
-                    stroke="#e4e4e7"
+                    stroke="#0f172a"
                     strokeWidth="2"
                     strokeLinecap="round"
                   />
@@ -324,7 +324,7 @@ export const CompactWidget: React.FC<Props> = ({
                   <path
                     d="M 28, 17 Q 35, 22 42, 17"
                     fill="none"
-                    stroke="#71717a"
+                    stroke="#64748b"
                     strokeWidth="1.8"
                     strokeLinecap="round"
                   />
@@ -338,8 +338,8 @@ export const CompactWidget: React.FC<Props> = ({
                 {...bindButton("capture")}
                 className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold border transition-colors cursor-pointer select-none active:scale-95 ${
                   state.capture
-                    ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
-                    : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
+                    ? "bg-accent text-accent-foreground border-border-focus shadow-xs"
+                    : "bg-surface-input text-text-primary border-border-subtle hover:border-border-element hover:bg-interactive-hover shadow-xs"
                 }`}
                 title={t("buttons.capture", "Capture 按鍵")}
               >
@@ -349,8 +349,8 @@ export const CompactWidget: React.FC<Props> = ({
                 {...bindButton("home")}
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold border transition-colors cursor-pointer select-none active:scale-95 ${
                   state.home
-                    ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
-                    : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
+                    ? "bg-accent text-accent-foreground border-border-focus shadow-xs"
+                    : "bg-surface-input text-text-primary border-border-subtle hover:border-border-element hover:bg-interactive-hover shadow-xs"
                 }`}
                 title={t("buttons.home", "Home 按鍵")}
               >
@@ -367,8 +367,8 @@ export const CompactWidget: React.FC<Props> = ({
                 {...bindButton("x")}
                 className={`absolute top-0 w-7 h-7 rounded-full border flex items-center justify-center text-xs font-bold transition-colors cursor-pointer select-none active:scale-95 ${
                   state.x
-                    ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
-                    : "bg-zinc-900 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-md"
+                    ? "bg-accent text-accent-foreground border-border-focus shadow-xs scale-95"
+                    : "bg-surface-input text-text-primary border-border-subtle hover:border-border-element hover:bg-interactive-hover shadow-xs"
                 }`}
               >
                 X
@@ -377,8 +377,8 @@ export const CompactWidget: React.FC<Props> = ({
                 {...bindButton("b")}
                 className={`absolute bottom-0 w-7 h-7 rounded-full border flex items-center justify-center text-xs font-bold transition-colors cursor-pointer select-none active:scale-95 ${
                   state.b
-                    ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
-                    : "bg-zinc-900 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-md"
+                    ? "bg-accent text-accent-foreground border-border-focus shadow-xs scale-95"
+                    : "bg-surface-input text-text-primary border-border-subtle hover:border-border-element hover:bg-interactive-hover shadow-xs"
                 }`}
               >
                 B
@@ -387,8 +387,8 @@ export const CompactWidget: React.FC<Props> = ({
                 {...bindButton("y")}
                 className={`absolute left-0 w-7 h-7 rounded-full border flex items-center justify-center text-xs font-bold transition-colors cursor-pointer select-none active:scale-95 ${
                   state.y
-                    ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
-                    : "bg-zinc-900 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-md"
+                    ? "bg-accent text-accent-foreground border-border-focus shadow-xs scale-95"
+                    : "bg-surface-input text-text-primary border-border-subtle hover:border-border-element hover:bg-interactive-hover shadow-xs"
                 }`}
               >
                 Y
@@ -397,8 +397,8 @@ export const CompactWidget: React.FC<Props> = ({
                 {...bindButton("a")}
                 className={`absolute right-0 w-7 h-7 rounded-full border flex items-center justify-center text-xs font-bold transition-colors cursor-pointer select-none active:scale-95 ${
                   state.a
-                    ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
-                    : "bg-zinc-900 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-md"
+                    ? "bg-accent text-accent-foreground border-border-focus shadow-xs scale-95"
+                    : "bg-surface-input text-text-primary border-border-subtle hover:border-border-element hover:bg-interactive-hover shadow-xs"
                 }`}
               >
                 A
@@ -409,17 +409,17 @@ export const CompactWidget: React.FC<Props> = ({
             <div
               ref={rightStickBaseRef}
               onPointerDown={(e) => startStickDrag("right", rightStickBaseRef, rightKnobRef, setIsDraggingRight, e)}
-              className={`relative w-18 h-18 rounded-full bg-zinc-950 border transition-all duration-150 select-none shadow-[inset_0_1px_3px_rgba(0,0,0,0.6)] flex items-center justify-center touch-none cursor-grab active:cursor-grabbing pointer-events-auto ${
+              className={`relative w-18 h-18 rounded-full bg-surface-input border transition-all duration-150 select-none shadow-[inset_0_1px_3px_rgba(15,23,42,0.08)] flex items-center justify-center touch-none cursor-grab active:cursor-grabbing pointer-events-auto ${
                 isDraggingRight
-                  ? "border-white/[0.3] ring-1 ring-white/[0.1]"
-                  : "border-white/[0.08] hover:border-white/[0.14]"
+                  ? "border-border-focus ring-1 ring-border-focus/20"
+                  : "border-border-element hover:border-border-focus"
               }`}
               title={t("buttons.r_stick", "右類比搖桿")}
             >
-              <span className="absolute top-1 text-[7px] font-mono text-zinc-600 select-none pointer-events-none">▲</span>
-              <span className="absolute bottom-1 text-[7px] font-mono text-zinc-600 select-none pointer-events-none">▼</span>
-              <span className="absolute left-1.5 text-[7px] font-mono text-zinc-600 select-none pointer-events-none">◀</span>
-              <span className="absolute right-1.5 text-[7px] font-mono text-zinc-600 select-none pointer-events-none">▶</span>
+              <span className="absolute top-1 text-[7px] font-mono text-text-muted select-none pointer-events-none">▲</span>
+              <span className="absolute bottom-1 text-[7px] font-mono text-text-muted select-none pointer-events-none">▼</span>
+              <span className="absolute left-1.5 text-[7px] font-mono text-text-muted select-none pointer-events-none">◀</span>
+              <span className="absolute right-1.5 text-[7px] font-mono text-text-muted select-none pointer-events-none">▶</span>
 
               <div
                 ref={rightKnobRef}
@@ -427,10 +427,10 @@ export const CompactWidget: React.FC<Props> = ({
                   isDraggingRight ? "transition-none" : "transition-transform duration-100 ease-out"
                 } ${
                   state.r_stick_click
-                    ? "bg-zinc-100 text-zinc-950 border-white scale-95 shadow-xs"
+                    ? "bg-accent text-accent-foreground border-border-focus scale-95 shadow-xs"
                     : isDraggingRight || (state.right_stick_x !== 128 || state.right_stick_y !== 128)
-                    ? "bg-zinc-200 text-zinc-950 border-white shadow-xs"
-                    : "bg-zinc-800 text-zinc-300 border-white/[0.1]"
+                    ? "bg-surface-card text-text-primary border-border-focus shadow-xs"
+                    : "bg-surface-card text-text-primary border-border-subtle shadow-xs"
                 }`}
                 style={
                   isDraggingRight
@@ -446,7 +446,7 @@ export const CompactWidget: React.FC<Props> = ({
       </div>
 
       {/* Bottom Coordinates Bar */}
-      <div className="pt-1.5 border-t border-white/[0.06] flex items-center justify-between text-[10px] font-mono text-zinc-500 shrink-0">
+      <div className="pt-1.5 border-t border-border-subtle flex items-center justify-between text-[10px] font-mono text-text-muted shrink-0">
         <span>L: {state.left_stick_x},{state.left_stick_y}</span>
         <span>R: {state.right_stick_x},{state.right_stick_y}</span>
       </div>

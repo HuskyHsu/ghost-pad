@@ -45,10 +45,10 @@ function getActionVisual(act: MacroAction) {
     const btn = (act.button || "a").toLowerCase();
     if (["a", "b", "x", "y"].includes(btn)) {
       const colors: Record<string, string> = {
-        a: "bg-emerald-500/25 text-emerald-200 border-emerald-500/40",
-        b: "bg-rose-500/25 text-rose-200 border-rose-500/40",
-        x: "bg-sky-500/25 text-sky-200 border-sky-500/40",
-        y: "bg-amber-500/25 text-amber-200 border-amber-500/40",
+        a: "bg-emerald-100 text-emerald-800 border-emerald-300",
+        b: "bg-rose-100 text-rose-800 border-rose-300",
+        x: "bg-sky-100 text-sky-800 border-sky-300",
+        y: "bg-amber-100 text-amber-900 border-amber-300",
       };
       return { lane: 0, label: btn.toUpperCase(), style: colors[btn] || colors.a };
     }
@@ -56,20 +56,20 @@ function getActionVisual(act: MacroAction) {
       return {
         lane: 3,
         label: btn.toUpperCase(),
-        style: "bg-pink-500/25 text-pink-200 border-pink-500/40 font-mono",
+        style: "bg-pink-100 text-pink-800 border-pink-300 font-mono",
       };
     }
     if (["l_stick_click", "r_stick_click"].includes(btn)) {
       return {
         lane: 2,
         label: btn === "l_stick_click" ? "L3" : "R3",
-        style: "bg-cyan-500/25 text-cyan-200 border-cyan-500/40 font-mono",
+        style: "bg-cyan-100 text-cyan-900 border-cyan-300 font-mono",
       };
     }
     return {
       lane: 4,
       label: btn === "home" ? "⌂" : btn === "capture" ? "◉" : btn === "plus" ? "+" : "−",
-      style: "bg-zinc-800 text-zinc-200 border-white/[0.1] font-mono",
+      style: "bg-slate-100 text-slate-800 border-slate-300 font-mono",
     };
   }
 
@@ -81,7 +81,7 @@ function getActionVisual(act: MacroAction) {
     return {
       lane: 2,
       label: dir,
-      style: "bg-cyan-500/25 text-cyan-200 border-cyan-500/40 font-mono",
+      style: "bg-cyan-100 text-cyan-900 border-cyan-300 font-mono",
     };
   }
 
@@ -91,7 +91,7 @@ function getActionVisual(act: MacroAction) {
     return {
       lane: 1,
       label: dir,
-      style: "bg-purple-500/25 text-purple-200 border-purple-500/40 font-mono",
+      style: "bg-purple-100 text-purple-900 border-purple-300 font-mono",
     };
   }
 
@@ -100,14 +100,14 @@ function getActionVisual(act: MacroAction) {
     return {
       lane: 4,
       label: `⏸ ${formatted}`,
-      style: "bg-zinc-850 text-amber-300 border-amber-500/30 font-mono",
+      style: "bg-amber-100 text-amber-900 border-amber-300 font-mono",
     };
   }
 
   return {
     lane: 4,
     label: "Wait",
-    style: "bg-zinc-850 text-zinc-300 border-white/[0.08] font-mono",
+    style: "bg-surface-input text-text-secondary border-border-subtle font-mono",
   };
 }
 
@@ -118,7 +118,7 @@ const ABXY_ITEMS: ActionPresetOption[] = [
     descKey: "btn_a_desc",
     type: "button",
     button: "a",
-    style: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30 hover:border-emerald-400",
+    style: "bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200 hover:border-emerald-400 font-bold",
   },
   {
     label: "B",
@@ -126,7 +126,7 @@ const ABXY_ITEMS: ActionPresetOption[] = [
     descKey: "btn_b_desc",
     type: "button",
     button: "b",
-    style: "bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30 hover:border-rose-400",
+    style: "bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200 hover:border-rose-400 font-bold",
   },
   {
     label: "X",
@@ -134,7 +134,7 @@ const ABXY_ITEMS: ActionPresetOption[] = [
     descKey: "btn_x_desc",
     type: "button",
     button: "x",
-    style: "bg-sky-500/20 text-sky-300 border-sky-500/40 hover:bg-sky-500/30 hover:border-sky-400",
+    style: "bg-sky-100 text-sky-800 border-sky-300 hover:bg-sky-200 hover:border-sky-400 font-bold",
   },
   {
     label: "Y",
@@ -142,7 +142,7 @@ const ABXY_ITEMS: ActionPresetOption[] = [
     descKey: "btn_y_desc",
     type: "button",
     button: "y",
-    style: "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30 hover:border-amber-400",
+    style: "bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200 hover:border-amber-400 font-bold",
   },
 ];
 
@@ -153,7 +153,7 @@ const DPAD_ITEMS: ActionPresetOption[] = [
     descKey: "dpad_up_desc",
     type: "dpad",
     dpad: 0,
-    style: "bg-purple-500/20 text-purple-300 border-purple-500/40 hover:bg-purple-500/30 hover:border-purple-400",
+    style: "bg-purple-100 text-purple-900 border-purple-300 hover:bg-purple-200 hover:border-purple-400 font-bold",
   },
   {
     label: "▼",
@@ -161,7 +161,7 @@ const DPAD_ITEMS: ActionPresetOption[] = [
     descKey: "dpad_down_desc",
     type: "dpad",
     dpad: 4,
-    style: "bg-purple-500/20 text-purple-300 border-purple-500/40 hover:bg-purple-500/30 hover:border-purple-400",
+    style: "bg-purple-100 text-purple-900 border-purple-300 hover:bg-purple-200 hover:border-purple-400 font-bold",
   },
   {
     label: "◀",
@@ -169,7 +169,7 @@ const DPAD_ITEMS: ActionPresetOption[] = [
     descKey: "dpad_left_desc",
     type: "dpad",
     dpad: 6,
-    style: "bg-purple-500/20 text-purple-300 border-purple-500/40 hover:bg-purple-500/30 hover:border-purple-400",
+    style: "bg-purple-100 text-purple-900 border-purple-300 hover:bg-purple-200 hover:border-purple-400 font-bold",
   },
   {
     label: "▶",
@@ -177,7 +177,7 @@ const DPAD_ITEMS: ActionPresetOption[] = [
     descKey: "dpad_right_desc",
     type: "dpad",
     dpad: 2,
-    style: "bg-purple-500/20 text-purple-300 border-purple-500/40 hover:bg-purple-500/30 hover:border-purple-400",
+    style: "bg-purple-100 text-purple-900 border-purple-300 hover:bg-purple-200 hover:border-purple-400 font-bold",
   },
 ];
 
@@ -188,7 +188,7 @@ const SHOULDER_ITEMS: ActionPresetOption[] = [
     descKey: "l_shoulder_desc",
     type: "button",
     button: "l",
-    style: "bg-pink-500/20 text-pink-300 border-pink-500/40 hover:bg-pink-500/30 hover:border-pink-400 font-bold",
+    style: "bg-pink-100 text-pink-800 border-pink-300 hover:bg-pink-200 hover:border-pink-400 font-bold",
   },
   {
     label: "ZL",
@@ -196,7 +196,7 @@ const SHOULDER_ITEMS: ActionPresetOption[] = [
     descKey: "zl_trigger_desc",
     type: "button",
     button: "zl",
-    style: "bg-pink-500/20 text-pink-300 border-pink-500/40 hover:bg-pink-500/30 hover:border-pink-400 font-bold",
+    style: "bg-pink-100 text-pink-800 border-pink-300 hover:bg-pink-200 hover:border-pink-400 font-bold",
   },
   {
     label: "ZR",
@@ -204,7 +204,7 @@ const SHOULDER_ITEMS: ActionPresetOption[] = [
     descKey: "zr_trigger_desc",
     type: "button",
     button: "zr",
-    style: "bg-pink-500/20 text-pink-300 border-pink-500/40 hover:bg-pink-500/30 hover:border-pink-400 font-bold",
+    style: "bg-pink-100 text-pink-800 border-pink-300 hover:bg-pink-200 hover:border-pink-400 font-bold",
   },
   {
     label: "R",
@@ -212,7 +212,7 @@ const SHOULDER_ITEMS: ActionPresetOption[] = [
     descKey: "r_shoulder_desc",
     type: "button",
     button: "r",
-    style: "bg-pink-500/20 text-pink-300 border-pink-500/40 hover:bg-pink-500/30 hover:border-pink-400 font-bold",
+    style: "bg-pink-100 text-pink-800 border-pink-300 hover:bg-pink-200 hover:border-pink-400 font-bold",
   },
 ];
 
@@ -225,7 +225,7 @@ const L_STICK_ITEMS: ActionPresetOption[] = [
     stick: "left",
     stickX: 128,
     stickY: 255,
-    style: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/30 hover:border-cyan-400",
+    style: "bg-cyan-100 text-cyan-900 border-cyan-300 hover:bg-cyan-200 hover:border-cyan-400 font-semibold",
   },
   {
     label: "L▼",
@@ -235,7 +235,7 @@ const L_STICK_ITEMS: ActionPresetOption[] = [
     stick: "left",
     stickX: 128,
     stickY: 0,
-    style: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/30 hover:border-cyan-400",
+    style: "bg-cyan-100 text-cyan-900 border-cyan-300 hover:bg-cyan-200 hover:border-cyan-400 font-semibold",
   },
   {
     label: "L◀",
@@ -245,7 +245,7 @@ const L_STICK_ITEMS: ActionPresetOption[] = [
     stick: "left",
     stickX: 0,
     stickY: 128,
-    style: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/30 hover:border-cyan-400",
+    style: "bg-cyan-100 text-cyan-900 border-cyan-300 hover:bg-cyan-200 hover:border-cyan-400 font-semibold",
   },
   {
     label: "L▶",
@@ -255,7 +255,7 @@ const L_STICK_ITEMS: ActionPresetOption[] = [
     stick: "left",
     stickX: 255,
     stickY: 128,
-    style: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/30 hover:border-cyan-400",
+    style: "bg-cyan-100 text-cyan-900 border-cyan-300 hover:bg-cyan-200 hover:border-cyan-400 font-semibold",
   },
   {
     label: "L3",
@@ -263,7 +263,7 @@ const L_STICK_ITEMS: ActionPresetOption[] = [
     descKey: "l_stick_click_desc",
     type: "button",
     button: "l_stick_click",
-    style: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/30 hover:border-cyan-400 font-bold",
+    style: "bg-cyan-100 text-cyan-900 border-cyan-300 hover:bg-cyan-200 hover:border-cyan-400 font-bold",
   },
 ];
 
@@ -276,7 +276,7 @@ const R_STICK_ITEMS: ActionPresetOption[] = [
     stick: "right",
     stickX: 128,
     stickY: 255,
-    style: "bg-teal-500/20 text-teal-300 border-teal-500/40 hover:bg-teal-500/30 hover:border-teal-400",
+    style: "bg-teal-100 text-teal-900 border-teal-300 hover:bg-teal-200 hover:border-teal-400 font-semibold",
   },
   {
     label: "R▼",
@@ -286,7 +286,7 @@ const R_STICK_ITEMS: ActionPresetOption[] = [
     stick: "right",
     stickX: 128,
     stickY: 0,
-    style: "bg-teal-500/20 text-teal-300 border-teal-500/40 hover:bg-teal-500/30 hover:border-teal-400",
+    style: "bg-teal-100 text-teal-900 border-teal-300 hover:bg-teal-200 hover:border-teal-400 font-semibold",
   },
   {
     label: "R◀",
@@ -296,7 +296,7 @@ const R_STICK_ITEMS: ActionPresetOption[] = [
     stick: "right",
     stickX: 0,
     stickY: 128,
-    style: "bg-teal-500/20 text-teal-300 border-teal-500/40 hover:bg-teal-500/30 hover:border-teal-400",
+    style: "bg-teal-100 text-teal-900 border-teal-300 hover:bg-teal-200 hover:border-teal-400 font-semibold",
   },
   {
     label: "R▶",
@@ -306,7 +306,7 @@ const R_STICK_ITEMS: ActionPresetOption[] = [
     stick: "right",
     stickX: 255,
     stickY: 128,
-    style: "bg-teal-500/20 text-teal-300 border-teal-500/40 hover:bg-teal-500/30 hover:border-teal-400",
+    style: "bg-teal-100 text-teal-900 border-teal-300 hover:bg-teal-200 hover:border-teal-400 font-semibold",
   },
   {
     label: "R3",
@@ -314,7 +314,7 @@ const R_STICK_ITEMS: ActionPresetOption[] = [
     descKey: "r_stick_click_desc",
     type: "button",
     button: "r_stick_click",
-    style: "bg-teal-500/20 text-teal-300 border-teal-500/40 hover:bg-teal-500/30 hover:border-teal-400 font-bold",
+    style: "bg-teal-100 text-teal-900 border-teal-300 hover:bg-teal-200 hover:border-teal-400 font-bold",
   },
 ];
 
@@ -325,7 +325,7 @@ const SYSTEM_ITEMS: ActionPresetOption[] = [
     descKey: "plus_desc",
     type: "button",
     button: "plus",
-    style: "bg-slate-700/40 text-slate-200 border-slate-600 hover:bg-slate-600/50 hover:border-slate-500 font-mono text-sm",
+    style: "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200 hover:border-slate-400 font-mono text-sm font-semibold",
   },
   {
     label: "−",
@@ -333,7 +333,7 @@ const SYSTEM_ITEMS: ActionPresetOption[] = [
     descKey: "minus_desc",
     type: "button",
     button: "minus",
-    style: "bg-slate-700/40 text-slate-200 border-slate-600 hover:bg-slate-600/50 hover:border-slate-500 font-mono text-sm",
+    style: "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200 hover:border-slate-400 font-mono text-sm font-semibold",
   },
   {
     label: "⌂",
@@ -341,7 +341,7 @@ const SYSTEM_ITEMS: ActionPresetOption[] = [
     descKey: "home_desc",
     type: "button",
     button: "home",
-    style: "bg-slate-700/40 text-slate-200 border-slate-600 hover:bg-slate-600/50 hover:border-slate-500",
+    style: "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200 hover:border-slate-400 font-semibold",
   },
   {
     label: "◉",
@@ -349,7 +349,7 @@ const SYSTEM_ITEMS: ActionPresetOption[] = [
     descKey: "capture_desc",
     type: "button",
     button: "capture",
-    style: "bg-slate-700/40 text-slate-200 border-slate-600 hover:bg-slate-600/50 hover:border-slate-500",
+    style: "bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200 hover:border-slate-400 font-semibold",
   },
 ];
 
@@ -386,8 +386,8 @@ const GamepadKeypadMatrix: React.FC<{
           item.style
         } ${
           selected
-            ? "ring-1 ring-white brightness-125 z-10 shadow-xs"
-            : "opacity-85 hover:opacity-100"
+            ? "ring-2 ring-slate-900 shadow-sm z-10 scale-[1.02]"
+            : "hover:scale-[1.01]"
         }`}
       >
         <span>{item.label}</span>
@@ -403,7 +403,7 @@ const GamepadKeypadMatrix: React.FC<{
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* D-Pad */}
         <div className="space-y-1">
-          <div className="text-[10px] font-bold text-zinc-400 px-1 uppercase tracking-wider">
+          <div className="text-[10px] font-bold text-text-muted px-1 uppercase tracking-wider">
             {t("score_sheet.matrix.dpad", "十字方向鍵 (D-Pad)")}
           </div>
           <div className="grid grid-cols-4 gap-1.5">
@@ -413,7 +413,7 @@ const GamepadKeypadMatrix: React.FC<{
 
         {/* ABXY */}
         <div className="space-y-1">
-          <div className="text-[10px] font-bold text-zinc-400 px-1 uppercase tracking-wider">
+          <div className="text-[10px] font-bold text-text-muted px-1 uppercase tracking-wider">
             {t("score_sheet.matrix.actions", "動作鍵 (ABXY)")}
           </div>
           <div className="grid grid-cols-4 gap-1.5">
@@ -424,7 +424,7 @@ const GamepadKeypadMatrix: React.FC<{
 
       {/* Row 2: Shoulders & Triggers (L, ZL, ZR, R) */}
       <div className="space-y-1">
-        <div className="text-[10px] font-bold text-zinc-400 px-1 uppercase tracking-wider">
+        <div className="text-[10px] font-bold text-text-muted px-1 uppercase tracking-wider">
           {t("score_sheet.matrix.shoulders", "肩鍵與扳機 (Shoulders & Triggers)")}
         </div>
         <div className="grid grid-cols-4 gap-2">
@@ -436,7 +436,7 @@ const GamepadKeypadMatrix: React.FC<{
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Left Stick */}
         <div className="space-y-1">
-          <div className="text-[10px] font-bold text-zinc-400 px-1 uppercase tracking-wider">
+          <div className="text-[10px] font-bold text-text-muted px-1 uppercase tracking-wider">
             {t("score_sheet.matrix.left_stick", "左類比搖桿 (L-Stick)")}
           </div>
           <div className="grid grid-cols-5 gap-1.5">
@@ -446,7 +446,7 @@ const GamepadKeypadMatrix: React.FC<{
 
         {/* Right Stick */}
         <div className="space-y-1">
-          <div className="text-[10px] font-bold text-zinc-400 px-1 uppercase tracking-wider">
+          <div className="text-[10px] font-bold text-text-muted px-1 uppercase tracking-wider">
             {t("score_sheet.matrix.right_stick", "右類比搖桿 (R-Stick)")}
           </div>
           <div className="grid grid-cols-5 gap-1.5">
@@ -456,10 +456,10 @@ const GamepadKeypadMatrix: React.FC<{
       </div>
 
       {/* Row 4: System Keys & Wait Switch */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-zinc-800/80 items-end">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-border-subtle items-end">
         {/* System Keys (Left 50%, perfectly aligned with D-Pad above) */}
         <div className="space-y-1">
-          <div className="text-[10px] font-bold text-zinc-400 px-1 uppercase tracking-wider">
+          <div className="text-[10px] font-bold text-text-muted px-1 uppercase tracking-wider">
             {t("score_sheet.matrix.system", "系統功能鍵")}
           </div>
           <div className="grid grid-cols-4 gap-1.5">
@@ -470,15 +470,15 @@ const GamepadKeypadMatrix: React.FC<{
         {/* Wait Option (Right 50%, aligned with ABXY above) */}
         {showWaitOption && onSetWait ? (
           <div className="space-y-1">
-            <div className="text-[10px] font-bold text-zinc-400 px-1 uppercase tracking-wider">
+            <div className="text-[10px] font-bold text-text-muted px-1 uppercase tracking-wider">
               {t("score_sheet.matrix.wait", "空白等待 (Wait)")}
             </div>
             <button
               type="button"
               onClick={onSetWait}
-              className="w-full h-9 px-3 rounded-xl bg-amber-950/20 hover:bg-amber-900/30 border border-amber-600/40 text-xs font-bold text-amber-300 hover:text-amber-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full h-9 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-xs font-bold text-amber-900 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
             >
-              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <Clock className="w-3.5 h-3.5 text-amber-600" />
               <span>{t("score_sheet.matrix.convert_to_wait", "轉為空白等待 (Wait)")}</span>
             </button>
           </div>
@@ -686,28 +686,28 @@ export const MacroScoreSheet: React.FC<Props> = ({
   return (
     <div className="flex-1 flex flex-col gap-4 select-none">
       {/* Top Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-zinc-900/60 border border-zinc-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-surface-card border border-border-subtle shadow-xs">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-zinc-200">
+          <span className="text-xs font-bold text-text-primary">
             {t("score_sheet.title", {
               actions: script.actions.length,
               lines: numLines,
               defaultValue: `多行動作時序軌道 (${script.actions.length} 步驟 • 共 ${numLines} 行)`,
             })}
           </span>
-          <span className="text-[10px] text-zinc-500">
+          <span className="text-[10px] text-text-muted">
             {t("score_sheet.tip", "• 右鍵點擊任一動作區塊可進行時長修改、換鍵與刪除")}
           </span>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Seconds per line selector */}
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+          <div className="flex items-center gap-1.5 text-xs text-text-muted">
             <span className="text-[10px]">{t("score_sheet.line_duration_label", "每行時長:")}</span>
             <select
               value={lineDurationSec}
               onChange={(e) => setLineDurationSec(Number(e.target.value))}
-              className="px-2 py-1 rounded bg-zinc-950 border border-zinc-700 text-xs text-zinc-200 focus:outline-none cursor-pointer font-medium"
+              className="px-2 py-1 rounded bg-surface-input border border-border-element text-xs text-text-primary focus:outline-none cursor-pointer font-medium shadow-xs"
             >
               <option value={4}>{t("score_sheet.opt_4s", "4 秒 / 行 (特大放大 • 微操清晰)")}</option>
               <option value={6}>{t("score_sheet.opt_6s", "6 秒 / 行 (清晰平衡)")}</option>
@@ -750,11 +750,11 @@ export const MacroScoreSheet: React.FC<Props> = ({
           return (
             <div
               key={lineIndex}
-              className="w-full rounded-xl bg-zinc-900/40 border border-white/[0.06] overflow-hidden"
+              className="w-full rounded-xl bg-surface-card border border-border-subtle overflow-hidden shadow-xs"
             >
               {/* Line Header */}
-              <div className="flex items-center justify-between px-3 py-1 bg-zinc-900/60 border-b border-white/[0.06] text-[10px] font-mono text-zinc-400">
-                <span className="font-medium text-zinc-200">
+              <div className="flex items-center justify-between px-3 py-1 bg-surface-card/90 border-b border-border-subtle text-[10px] font-mono text-text-muted">
+                <span className="font-medium text-text-primary">
                   {t("score_sheet.line_header", {
                     line: lineIndex + 1,
                     start: (lineStartMs / 1000).toFixed(1),
@@ -762,7 +762,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                     defaultValue: `第 ${lineIndex + 1} 行 (${(lineStartMs / 1000).toFixed(1)}s ~ ${(lineEndMs / 1000).toFixed(1)}s)`,
                   })}
                 </span>
-                <span className="text-[9px] text-zinc-500 font-mono">
+                <span className="text-[9px] text-text-muted font-mono">
                   {t("score_sheet.grid_scale", {
                     sec: lineDurationSec,
                     defaultValue: `每格 1 秒 • 共 ${lineDurationSec} 秒`,
@@ -771,11 +771,11 @@ export const MacroScoreSheet: React.FC<Props> = ({
               </div>
 
               {/* Time Ruler (Proportionally aligned with lanes below) */}
-              <div className="flex items-center px-2 py-0.5 bg-zinc-900/20 border-b border-white/[0.04] text-[8px] font-mono text-zinc-500">
+              <div className="flex items-center px-2 py-0.5 bg-surface-input/40 border-b border-border-subtle text-[8px] font-mono text-text-muted">
                 {/* Left track spacer (matches w-14 shrink-0 lane header) */}
                 <div className="w-14 shrink-0 flex items-center gap-1.5 pl-2 select-none pointer-events-none">
-                  <Clock className="w-2.5 h-2.5 text-zinc-500" />
-                  <span className="text-[8px] font-medium text-zinc-500 font-mono">
+                  <Clock className="w-2.5 h-2.5 text-text-muted" />
+                  <span className="text-[8px] font-medium text-text-muted font-mono">
                     {t("score_sheet.timeline", "時間軸")}
                   </span>
                 </div>
@@ -798,10 +798,10 @@ export const MacroScoreSheet: React.FC<Props> = ({
                               : "translateX(-50%)",
                         }}
                       >
-                        <span className="text-[8px] leading-none text-zinc-500 font-mono select-none">
+                        <span className="text-[8px] leading-none text-text-muted font-mono select-none">
                           +{sec}s
                         </span>
-                        <div className="w-px h-1 bg-zinc-700 mt-0.5" />
+                        <div className="w-px h-1 bg-border-element mt-0.5" />
                       </div>
                     );
                   })}
@@ -815,7 +815,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                         transform: "translateX(-50%)",
                       }}
                     >
-                      <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] border-t-zinc-200" />
+                      <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] border-t-text-primary" />
                     </div>
                   )}
                 </div>
@@ -829,7 +829,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                     <div className="w-14 shrink-0" />
                     <div className="flex-1 relative h-full">
                       <div
-                        className="absolute top-0 bottom-0 w-0.5 bg-white/80"
+                        className="absolute top-0 bottom-0 w-0.5 bg-text-primary"
                         style={{
                           left: `${playheadPct}%`,
                           transform: "translateX(-50%)",
@@ -845,7 +845,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                   return (
                     <div
                       key={lane.name}
-                      className="h-6 rounded-md bg-zinc-900/30 border border-white/[0.04] relative flex items-center"
+                      className="h-6 rounded-md bg-surface-input/30 border border-border-subtle/60 relative flex items-center"
                     >
                       {/* Left Track Name with Color Indicator Dot */}
                       <div className="w-14 shrink-0 flex items-center gap-1.5 pl-2 select-none pointer-events-none">
@@ -853,7 +853,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                           className="w-1.5 h-1.5 rounded-full shrink-0"
                           style={{ backgroundColor: laneIdx === 4 ? "#71717a" : lane.color }}
                         />
-                        <span className="text-[8.5px] font-medium text-zinc-400 truncate">
+                        <span className="text-[8.5px] font-medium text-text-secondary truncate">
                           {laneTitle}
                         </span>
                       </div>
@@ -864,7 +864,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                         {Array.from({ length: lineDurationSec + 1 }).map((__, sec) => (
                           <div
                             key={sec}
-                            className="absolute top-0 bottom-0 w-px bg-white/[0.03] pointer-events-none"
+                            className="absolute top-0 bottom-0 w-px bg-border-element/25 pointer-events-none"
                             style={{ left: `${(sec / lineDurationSec) * 100}%` }}
                           />
                         ))}
@@ -910,9 +910,9 @@ export const MacroScoreSheet: React.FC<Props> = ({
                                 vis.style
                               } ${
                                 isActive
-                                  ? "ring-1 ring-white scale-105 z-30 brightness-125"
+                                  ? "ring-2 ring-slate-900 shadow-md scale-105 z-30"
                                   : isConsecutiveWithNeighbor
-                                  ? "ring-1 ring-amber-400/60"
+                                  ? "ring-1 ring-amber-500"
                                   : ""
                               }`}
                               title={
@@ -967,7 +967,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                                   handleMergeJunction(j.firstIndex);
                                 }}
                                 style={{ left: `${leftPct}%` }}
-                                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-30 flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-90 text-zinc-950 shadow-lg border border-amber-200/90 hover:scale-125 transition-all cursor-pointer group ring-2 ring-zinc-950/40"
+                                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-30 flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-90 text-slate-900 shadow-md border border-amber-200 hover:scale-125 transition-all cursor-pointer group ring-2 ring-white"
                                 title={t("score_sheet.merge_junction_tooltip", {
                                   d1: j.duration1,
                                   d2: j.duration2,
@@ -988,7 +988,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
         })}
 
         {script.actions.length === 0 && (
-          <div className="p-8 text-center text-xs text-zinc-500 border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/30">
+          <div className="p-8 text-center text-xs text-text-muted border border-dashed border-border-element/60 rounded-xl bg-surface-card/60 shadow-xs">
             {t("score_sheet.empty_script", "目前本腳本尚無任何動作步驟。可點擊下方按鈕新增動作或透過即時儀表板進行側錄！")}
           </div>
         )}
@@ -999,18 +999,18 @@ export const MacroScoreSheet: React.FC<Props> = ({
         <button
           type="button"
           onClick={() => setActionPicker({ visible: true, durationMs: 150 })}
-          className="flex-[2] flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-white/[0.1] hover:border-white/[0.2] bg-zinc-900/30 hover:bg-zinc-900/60 text-xs font-medium text-zinc-300 hover:text-white transition-all cursor-pointer shadow-xs"
+          className="flex-[2] flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-border-element hover:border-border-focus bg-surface-card hover:bg-interactive-hover text-xs font-medium text-text-primary transition-all cursor-pointer shadow-xs"
         >
-          <Gamepad2 className="w-3.5 h-3.5 text-zinc-400" />
+          <Gamepad2 className="w-3.5 h-3.5 text-text-muted" />
           <span>+ {t("score_sheet.btn_add_action", "新增手把動作 (可選按鍵 / 搖桿方向)")}</span>
         </button>
 
         <button
           type="button"
           onClick={handleAppendWait}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-dashed border-white/[0.1] hover:border-white/[0.2] bg-zinc-900/30 hover:bg-zinc-900/60 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer shadow-xs"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-dashed border-border-element hover:border-border-focus bg-surface-card hover:bg-interactive-hover text-xs font-medium text-text-secondary transition-all cursor-pointer shadow-xs"
         >
-          <Clock className="w-3.5 h-3.5 text-zinc-500" />
+          <Clock className="w-3.5 h-3.5 text-text-muted" />
           <span>+ {t("score_sheet.btn_add_wait", "新增空白等待 (Wait)")}</span>
         </button>
       </div>
@@ -1018,21 +1018,21 @@ export const MacroScoreSheet: React.FC<Props> = ({
       {/* Unified Action Editor Modal */}
       {editingIndex !== null && currentEditingAction && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-150"
           onClick={() => setEditingIndex(null)}
         >
           <div
-            className="w-full max-w-2xl rounded-xl bg-zinc-900 border border-white/[0.1] p-5 shadow-2xl flex flex-col gap-3.5 select-none"
+            className="w-full max-w-2xl rounded-xl bg-surface-modal border border-border-element p-5 shadow-2xl flex flex-col gap-3.5 select-none"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
               <div className="flex items-center gap-2.5">
                 <div
                   className={`p-1.5 rounded-md border ${
                     currentEditingAction.type === "wait"
-                      ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
-                      : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                      ? "bg-amber-50 border-amber-200 text-amber-700"
+                      : "bg-emerald-50 border-emerald-200 text-emerald-700"
                   }`}
                 >
                   {currentEditingAction.type === "wait" ? (
@@ -1042,13 +1042,13 @@ export const MacroScoreSheet: React.FC<Props> = ({
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <h4 className="text-xs font-semibold text-zinc-100">
+                  <h4 className="text-xs font-semibold text-text-primary">
                     {t("score_sheet.step_edit_title", { index: editingIndex + 1, defaultValue: `步驟 #${editingIndex + 1} 動作編輯` })}
                   </h4>
-                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-white/[0.08]">
+                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md bg-surface-input text-text-primary border border-border-subtle">
                     {getActionVisual(currentEditingAction).label}
                   </span>
-                  <span className="text-xs text-zinc-500 font-medium">
+                  <span className="text-xs text-text-muted font-medium">
                     {currentEditingAction.note || (currentEditingAction.type === "wait" ? t("notes.wait", "空白等待") : "")}
                   </span>
                 </div>
@@ -1056,12 +1056,12 @@ export const MacroScoreSheet: React.FC<Props> = ({
 
               {/* Order adjust and close */}
               <div className="flex items-center gap-1.5">
-                <div className="flex items-center gap-0.5 bg-zinc-850 p-0.5 rounded-md border border-white/[0.08]">
+                <div className="flex items-center gap-0.5 bg-surface-input p-0.5 rounded-md border border-border-subtle">
                   <button
                     type="button"
                     disabled={editingIndex === 0}
                     onClick={() => handleMoveAction(editingIndex, -1)}
-                    className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-750 disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                    className="p-1 rounded text-text-muted hover:text-text-primary hover:bg-surface-card disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer transition-colors"
                     title={t("score_sheet.move_forward", "向前移動順序")}
                   >
                     <ArrowUp className="w-3.5 h-3.5" />
@@ -1070,7 +1070,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                     type="button"
                     disabled={editingIndex === script.actions.length - 1}
                     onClick={() => handleMoveAction(editingIndex, 1)}
-                    className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-750 disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                    className="p-1 rounded text-text-muted hover:text-text-primary hover:bg-surface-card disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer transition-colors"
                     title={t("score_sheet.move_backward", "向後移動順序")}
                   >
                     <ArrowDown className="w-3.5 h-3.5" />
@@ -1079,7 +1079,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={() => setEditingIndex(null)}
-                  className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-input transition-colors cursor-pointer"
                   title={t("actions.close", "關閉")}
                 >
                   <X className="w-4 h-4" />
@@ -1089,9 +1089,9 @@ export const MacroScoreSheet: React.FC<Props> = ({
 
             {/* Adjacent Wait Merge Recommendation Banner */}
             {hasAdjacentWait && (
-              <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-200">
+              <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 shadow-xs">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                   <span>
                     {t(
                       "score_sheet.adjacent_wait_tip",
@@ -1102,7 +1102,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={handleMergeThisWait}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 active:scale-95 border border-amber-500/40 text-[11px] font-semibold text-amber-100 transition-all cursor-pointer shrink-0"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-100 hover:bg-amber-200 active:scale-95 border border-amber-300 text-[11px] font-semibold text-amber-900 transition-all cursor-pointer shrink-0 shadow-xs"
                 >
                   <GitMerge className="w-3 h-3" />
                   <span>{t("score_sheet.btn_merge_this", "合併相鄰等待")}</span>
@@ -1111,10 +1111,10 @@ export const MacroScoreSheet: React.FC<Props> = ({
             )}
 
             {/* Hold / Wait Duration Setting */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 rounded-lg bg-zinc-950/70 border border-white/[0.06]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 rounded-lg bg-surface-input border border-border-subtle">
               <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-zinc-400" />
-                <span className="text-xs font-medium text-zinc-300">
+                <Clock className="w-3.5 h-3.5 text-text-muted" />
+                <span className="text-xs font-medium text-text-secondary">
                   {currentEditingAction.type === "wait"
                     ? t("score_sheet.wait_duration_label", "空白等待時間：")
                     : t("score_sheet.hold_duration_label", "按壓持續時間：")}
@@ -1130,9 +1130,9 @@ export const MacroScoreSheet: React.FC<Props> = ({
                         durationMs: Math.max(10, Number(e.target.value) || 10),
                       })
                     }
-                    className="w-16 px-2 py-0.5 rounded-md bg-zinc-900 border border-white/[0.08] text-xs font-mono font-bold text-zinc-100 text-center focus:outline-none focus:border-white/[0.22]"
+                    className="w-16 px-2 py-0.5 rounded-md bg-surface-card border border-border-element text-xs font-mono font-bold text-text-primary text-center focus:outline-none focus:border-border-focus shadow-xs"
                   />
-                  <span className="text-xs text-zinc-500 font-mono">ms</span>
+                  <span className="text-xs text-text-muted font-mono">ms</span>
                 </div>
               </div>
 
@@ -1149,8 +1149,8 @@ export const MacroScoreSheet: React.FC<Props> = ({
                     }
                     className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium transition-colors cursor-pointer ${
                       currentEditingAction.durationMs === presetMs
-                        ? "bg-zinc-100 text-zinc-950 font-bold shadow-xs"
-                        : "bg-zinc-800 hover:bg-zinc-750 text-zinc-400 hover:text-zinc-200 border border-white/[0.04]"
+                        ? "bg-accent text-accent-foreground font-bold shadow-xs"
+                        : "bg-surface-card hover:bg-interactive-hover text-text-secondary border border-border-subtle shadow-xs"
                     }`}
                   >
                     {presetMs}ms
@@ -1190,11 +1190,11 @@ export const MacroScoreSheet: React.FC<Props> = ({
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between border-t border-white/[0.06] pt-3">
+            <div className="flex items-center justify-between border-t border-border-subtle pt-3">
               <button
                 type="button"
                 onClick={() => handleDeleteAction(editingIndex)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-rose-400 hover:bg-rose-950/30 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>{t("score_sheet.delete_step", "刪除此步驟")}</span>
@@ -1204,9 +1204,9 @@ export const MacroScoreSheet: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={() => handleInsertWaitAfter(editingIndex)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-white/[0.08] text-xs font-medium text-zinc-300 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface-card hover:bg-interactive-hover border border-border-subtle text-xs font-medium text-text-primary transition-colors cursor-pointer shadow-xs"
                 >
-                  <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                  <Clock className="w-3.5 h-3.5 text-text-muted" />
                   <span>{t("score_sheet.insert_wait_after", "在此後插入等待")}</span>
                 </button>
 
@@ -1217,16 +1217,16 @@ export const MacroScoreSheet: React.FC<Props> = ({
                     setEditingIndex(null);
                     setActionPicker({ visible: true, insertIndex: idx, durationMs: 150 });
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-white/[0.08] text-xs font-medium text-zinc-300 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface-card hover:bg-interactive-hover border border-border-subtle text-xs font-medium text-text-primary transition-colors cursor-pointer shadow-xs"
                 >
-                  <Gamepad2 className="w-3.5 h-3.5 text-zinc-400" />
+                  <Gamepad2 className="w-3.5 h-3.5 text-text-muted" />
                   <span>{t("score_sheet.insert_action", "插入動作...")}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setEditingIndex(null)}
-                  className="px-4 py-1.5 rounded-md text-xs font-medium bg-zinc-100 hover:bg-white text-zinc-950 shadow-xs cursor-pointer transition-colors"
+                  className="px-4 py-1.5 rounded-md text-xs font-medium bg-accent hover:bg-accent/90 text-accent-foreground shadow-xs cursor-pointer transition-colors"
                 >
                   {t("actions.done", "完成")}
                 </button>
@@ -1239,24 +1239,24 @@ export const MacroScoreSheet: React.FC<Props> = ({
       {/* Action Picker Modal */}
       {actionPicker && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-150"
           onClick={() => setActionPicker(null)}
         >
           <div
-            className="w-full max-w-2xl rounded-xl bg-zinc-900 border border-white/[0.1] p-5 shadow-2xl flex flex-col gap-3.5 select-none"
+            className="w-full max-w-2xl rounded-xl bg-surface-modal border border-border-element p-5 shadow-2xl flex flex-col gap-3.5 select-none"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-md bg-zinc-800 border border-white/[0.08] text-zinc-200">
+                <div className="p-1.5 rounded-md bg-surface-input border border-border-subtle text-text-primary">
                   <Gamepad2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-semibold text-zinc-100">
+                  <h4 className="text-xs font-semibold text-text-primary">
                     {t("score_sheet.picker.title", "新增手把動作")}
                   </h4>
-                  <p className="text-[11px] text-zinc-500">
+                  <p className="text-[11px] text-text-muted">
                     {actionPicker.insertIndex !== undefined && actionPicker.insertIndex >= 0
                       ? t("score_sheet.picker.insert_after", { step: actionPicker.insertIndex + 1, defaultValue: `將於步驟 #${actionPicker.insertIndex + 1} 之後插入` })
                       : t("score_sheet.picker.append_end", "將新增至腳本末端")}
@@ -1267,7 +1267,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={() => setActionPicker(null)}
-                className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-input transition-colors cursor-pointer"
                 title={t("actions.close", "關閉")}
               >
                 <X className="w-4 h-4" />
@@ -1275,10 +1275,10 @@ export const MacroScoreSheet: React.FC<Props> = ({
             </div>
 
             {/* Hold Duration Setting Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 rounded-lg bg-zinc-950/70 border border-white/[0.06]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 rounded-lg bg-surface-input border border-border-subtle">
               <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-zinc-400" />
-                <span className="text-xs font-medium text-zinc-300">
+                <Clock className="w-3.5 h-3.5 text-text-muted" />
+                <span className="text-xs font-medium text-text-secondary">
                   {t("score_sheet.picker.duration_label", "按壓持續時間 (Hold Duration)：")}
                 </span>
                 <div className="flex items-center gap-1">
@@ -1293,9 +1293,9 @@ export const MacroScoreSheet: React.FC<Props> = ({
                         durationMs: Math.max(20, Number(e.target.value) || 20),
                       })
                     }
-                    className="w-16 px-2 py-0.5 rounded-md bg-zinc-900 border border-white/[0.08] text-xs font-mono font-bold text-zinc-100 text-center focus:outline-none focus:border-white/[0.22]"
+                    className="w-16 px-2 py-0.5 rounded-md bg-surface-card border border-border-element text-xs font-mono font-bold text-text-primary text-center focus:outline-none focus:border-border-focus shadow-xs"
                   />
-                  <span className="text-xs text-zinc-500 font-mono">ms</span>
+                  <span className="text-xs text-text-muted font-mono">ms</span>
                 </div>
               </div>
 
@@ -1313,8 +1313,8 @@ export const MacroScoreSheet: React.FC<Props> = ({
                     }
                     className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium transition-colors cursor-pointer ${
                       actionPicker.durationMs === presetMs
-                        ? "bg-zinc-100 text-zinc-950 font-bold shadow-xs"
-                        : "bg-zinc-800 hover:bg-zinc-750 text-zinc-400 hover:text-zinc-200 border border-white/[0.04]"
+                        ? "bg-accent text-accent-foreground font-bold shadow-xs"
+                        : "bg-surface-card hover:bg-interactive-hover text-text-secondary border border-border-subtle shadow-xs"
                     }`}
                   >
                     {presetMs}ms
@@ -1331,14 +1331,14 @@ export const MacroScoreSheet: React.FC<Props> = ({
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between border-t border-white/[0.06] pt-3">
-              <span className="text-[11px] text-zinc-500">
+            <div className="flex items-center justify-between border-t border-border-subtle pt-3">
+              <span className="text-[11px] text-text-muted">
                 {t("score_sheet.picker.footer_hint", "點選上方任意按鈕動作，將以設定之持續時間即刻加入")}
               </span>
               <button
                 type="button"
                 onClick={() => setActionPicker(null)}
-                className="px-3.5 py-1.5 rounded-md text-xs font-medium bg-zinc-800 hover:bg-zinc-750 text-zinc-300 border border-white/[0.08] cursor-pointer transition-colors"
+                className="px-3.5 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-interactive-hover text-text-primary border border-border-subtle cursor-pointer transition-colors shadow-xs"
               >
                 {t("actions.close", "關閉")}
               </button>

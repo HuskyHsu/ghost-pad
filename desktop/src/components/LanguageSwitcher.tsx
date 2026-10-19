@@ -35,32 +35,32 @@ export const LanguageSwitcher: React.FC = () => {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-800/80 hover:border-zinc-700 text-xs text-zinc-300 hover:text-zinc-100 transition-colors focus:outline-none focus:ring-1 focus:ring-zinc-600 whitespace-nowrap shrink-0"
+        className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-surface-card border border-border-element hover:bg-interactive-hover text-xs text-text-primary transition-colors focus:outline-none focus:ring-1 focus:ring-border-focus whitespace-nowrap shrink-0 shadow-xs cursor-pointer"
         aria-expanded={isOpen}
         aria-haspopup="true"
         title="Change Language / 切換語系 / 言語切替"
       >
-        <Globe className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+        <Globe className="w-3.5 h-3.5 text-text-muted shrink-0" />
         <span className="font-medium whitespace-nowrap text-[11px]">{currentLang.label}</span>
-        <ChevronDown className="w-3 h-3 text-zinc-500 shrink-0" />
+        <ChevronDown className="w-3 h-3 text-text-muted shrink-0" />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1.5 w-36 rounded-xl bg-zinc-900/95 backdrop-blur-md border border-zinc-800 shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute right-0 mt-1.5 w-36 rounded-xl bg-surface-modal border border-border-element shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
           {languages.map((lang) => {
             const isSelected = i18n.language === lang.code;
             return (
               <button
                 key={lang.code}
                 onClick={() => handleSelect(lang.code)}
-                className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left transition-colors ${
+                className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left transition-colors cursor-pointer ${
                   isSelected
-                    ? "bg-zinc-800/80 text-zinc-100 font-medium"
-                    : "text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-200"
+                    ? "bg-interactive-selected text-text-primary font-semibold"
+                    : "text-text-secondary hover:bg-interactive-hover hover:text-text-primary"
                 }`}
               >
                 <span>{lang.label}</span>
-                {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                {isSelected && <Check className="w-3.5 h-3.5 text-emerald-600" />}
               </button>
             );
           })}
