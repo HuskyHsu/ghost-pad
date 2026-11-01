@@ -229,21 +229,21 @@ impl SerialManager {
 
         let (mut port, reused) = self.acquire_port(port_name, baudrate)?;
         if reused {
-            println!("[Serial Info] Reusing open port {} (ESP32 not reset)", port_name);
-        }
-
-        // Mandatory 3-step handshake with ESP32 (0xFF, 0x33, 0xCC).
-        // Only genuine PRO-UART0 (UARTSwitchCon) firmware is allowed to start streaming.
-        // On failure the port is dropped so the next attempt reopens it from scratch.
-        if let Err(e) = Self::handshake_with_retry(&mut *port) {
-            eprintln!("[Serial Error] Firmware handshake failed, rejecting virtual gamepad start: {}", e);
-            return Err(AppError::FirmwareVerifyFailed {
-                baudrate,
-                reason: e,
+            println!("[Serial Info] Reusing open port {} (ESP32 not reset, handshake already passed)", port_name);
+        } else {
+            // Mandatory 3-step handshake with ESP32 (0xFF, 0x33, 0xCC).
+            // Only genuine PRO-UART0 (UARTSwitchCon) firmware is allowed to start streaming.
+            // On failure the port is dropped so the next attempt reopens it from scratch.
+            if let Err(e) = Self::handshake_with_retry(&mut *port) {
+                eprintln!("[Serial Error] Firmware handshake failed, rejecting virtual gamepad start: {}", e);
+                return Err(AppError::FirmwareVerifyFailed {
+                    baudrate,
+                    reason: e,
+                }
+                .to_json_string());
             }
-            .to_json_string());
+            println!("[Serial Info] ESP32 PRO-UART0 protocol handshake successful!");
         }
-        println!("[Serial Info] ESP32 PRO-UART0 protocol handshake successful!");
 
         {
             let mut s = self.status.write().unwrap();
@@ -496,8 +496,8 @@ impl SerialManager {
     pub fn perform_handshake(port: &mut dyn SerialPort) -> Result<(), String> {
         let mut buf = [0u8; 1];
 
-        // 1. Send 0xFF -> Expect 0xFF (ready) or 0x90 (already streaming)
-        port.write_all(&[0xFF])
+        // 1. Send 9x 0xFF -> Guarantees a resync trigger even if ESP32 is already waiting for 9-byte frames
+        port.write_all(&[0xFF; 9])
             .map_err(|e| format!("發送 0xFF 失敗: {}", e))?;
         let _ = port.flush();
         port.read_exact(&mut buf)
