@@ -57,11 +57,31 @@ pub enum SpecialCommand {
     ClearBonds,
 }
 
+/// A serial port kept open between sessions.
+///
+/// Opening a serial port on macOS asserts DTR/RTS, which resets the ESP32 (and drops its
+/// Bluetooth link to the Switch). A verified port is therefore kept open and reused for
+/// probing and for stopping/starting the virtual gamepad; it is only released when another
+/// port is selected or the app exits.
+struct HeldPort {
+    name: String,
+    port: Box<dyn SerialPort>,
+}
+
+/// PRO-UART0 firmware acknowledges every input packet with 0x90 while linked to the Switch.
+const LINK_ACK_BYTE: u8 = 0x90;
+/// The Switch link is considered down if no 0x90 ack was seen for this long.
+const LINK_TIMEOUT: Duration = Duration::from_millis(1500);
+/// While unlinked, pulse L+R this often so a Switch on "Change Grip/Order" registers us.
+const PAIR_PULSE_INTERVAL: Duration = Duration::from_secs(3);
+const PAIR_PULSE_LENGTH: Duration = Duration::from_millis(250);
+
 pub struct SerialManager {
     pub status: Arc<RwLock<SerialStatus>>,
     is_running: Arc<AtomicBool>,
     worker_handle: Mutex<Option<JoinHandle<()>>>,
     command_tx: Arc<Mutex<Option<Sender<SpecialCommand>>>>,
+    held_port: Arc<Mutex<Option<HeldPort>>>,
 }
 
 impl Default for SerialManager {
@@ -84,6 +104,7 @@ impl SerialManager {
             is_running: Arc::new(AtomicBool::new(false)),
             worker_handle: Mutex::new(None),
             command_tx: Arc::new(Mutex::new(None)),
+            held_port: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -146,18 +167,22 @@ impl SerialManager {
         self.status.read().unwrap().clone()
     }
 
-    /// Open serial port and start 60Hz background transmission loop
-    pub fn connect(
+    /// Take the held port if it is the requested one (reusing it does NOT reset the ESP32),
+    /// otherwise release whatever is held and open `port_name`. Returns `(port, reused)`.
+    fn acquire_port(
         &self,
         port_name: &str,
         baudrate: u32,
-        gamepad_mgr: Arc<GamepadManager>,
-        app_handle: AppHandle,
-    ) -> Result<(), String> {
-        // Disconnect any existing session first
-        let _ = self.disconnect();
-
-        let _open_guard = PORT_OPEN_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    ) -> Result<(Box<dyn SerialPort>, bool), String> {
+        let held = self.held_port.lock().unwrap_or_else(|e| e.into_inner()).take();
+        if let Some(mut h) = held {
+            if h.name == port_name && h.port.set_baud_rate(baudrate).is_ok() {
+                let _ = h.port.set_timeout(Duration::from_millis(200));
+                let _ = h.port.clear(ClearBuffer::All);
+                return Ok((h.port, true));
+            }
+            // Another port was selected (or the handle went stale): drop it and open fresh.
+        }
 
         let mut port = serialport::new(port_name, baudrate)
             .timeout(Duration::from_millis(200))
@@ -175,9 +200,41 @@ impl SerialManager {
         let _ = port.write_request_to_send(false);
         thread::sleep(Duration::from_millis(150));
         let _ = port.clear(ClearBuffer::All);
+        Ok((port, false))
+    }
+
+    fn hold_port(&self, name: &str, port: Box<dyn SerialPort>) {
+        *self.held_port.lock().unwrap_or_else(|e| e.into_inner()) = Some(HeldPort {
+            name: name.to_string(),
+            port,
+        });
+    }
+
+    /// Start the 60Hz background transmission loop.
+    ///
+    /// The serial port is kept open across stop/start (see [`HeldPort`]) so the ESP32 is not
+    /// reset, which would drop its Bluetooth link. The Switch link state is derived from the
+    /// 0x90 acks the firmware returns, never assumed.
+    pub fn connect(
+        &self,
+        port_name: &str,
+        baudrate: u32,
+        gamepad_mgr: Arc<GamepadManager>,
+        app_handle: AppHandle,
+    ) -> Result<(), String> {
+        // Disconnect any existing session first (hands its port back to `held_port`)
+        let _ = self.disconnect();
+
+        let _open_guard = PORT_OPEN_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+
+        let (mut port, reused) = self.acquire_port(port_name, baudrate)?;
+        if reused {
+            println!("[Serial Info] Reusing open port {} (ESP32 not reset)", port_name);
+        }
 
         // Mandatory 3-step handshake with ESP32 (0xFF, 0x33, 0xCC).
         // Only genuine PRO-UART0 (UARTSwitchCon) firmware is allowed to start streaming.
+        // On failure the port is dropped so the next attempt reopens it from scratch.
         if let Err(e) = Self::handshake_with_retry(&mut *port) {
             eprintln!("[Serial Error] Firmware handshake failed, rejecting virtual gamepad start: {}", e);
             return Err(AppError::FirmwareVerifyFailed {
@@ -201,6 +258,7 @@ impl SerialManager {
         self.is_running.store(true, Ordering::SeqCst);
         let is_running_clone = self.is_running.clone();
         let status_arc = self.status.clone();
+        let held_clone = self.held_port.clone();
         let port_name_string = port_name.to_string();
 
         let (cmd_tx, cmd_rx) = channel::<SpecialCommand>();
@@ -212,65 +270,58 @@ impl SerialManager {
                 let interval = Duration::from_millis(16); // ~60Hz
                 let mut packets_this_second: u32 = 0;
                 let mut last_fps_time = Instant::now();
-                let mut ack_buf = [0u8; 32];
+                let mut ack_buf = [0u8; 64];
+                let mut io_failed = false;
+
+                // Acks are drained with bytes_to_read(); a long read timeout would otherwise
+                // stall the 60Hz loop whenever the Switch link is down and nothing comes back.
+                let _ = port.set_timeout(Duration::from_millis(1));
+
+                let emit_status = |status: &Arc<RwLock<SerialStatus>>| {
+                    let current_stat = status.read().unwrap().clone();
+                    let _ = app_handle.emit("serial-status-changed", &current_stat);
+                };
+
+                // Switch link tracking (0x90 acks) + auto L+R pairing pulses while unlinked
+                let mut last_ack: Option<Instant> = None;
+                let mut link_up = false;
+                let mut pulse_next = Instant::now() + Duration::from_millis(1500);
+                let mut pulse_until: Option<Instant> = None;
+
+                // Burst helper for special commands
+                let burst = |port: &mut Box<dyn SerialPort>, state: &ControllerState, frames: u32| {
+                    let payload = state.pack_uart_switchcon();
+                    for _ in 0..frames {
+                        let _ = port.write_all(&payload);
+                        let _ = port.flush();
+                        thread::sleep(Duration::from_millis(16));
+                    }
+                };
 
                 while is_running_clone.load(Ordering::Relaxed) {
                     let loop_start = Instant::now();
 
                     // Check for special command injection
                     if let Ok(cmd) = cmd_rx.try_recv() {
+                        let neutral = ControllerState::default();
                         match cmd {
                             SpecialCommand::PairLR => {
-                                let mut pair_state = ControllerState::default();
-                                pair_state.l = true;
-                                pair_state.r = true;
-                                let pair_payload = pair_state.pack_uart_switchcon();
-                                // Burst L+R for 250ms (15 frames)
-                                for _ in 0..15 {
-                                    let _ = port.write_all(&pair_payload);
-                                    let _ = port.flush();
-                                    thread::sleep(Duration::from_millis(16));
-                                }
-                                let neutral = ControllerState::default().pack_uart_switchcon();
-                                for _ in 0..3 {
-                                    let _ = port.write_all(&neutral);
-                                    let _ = port.flush();
-                                    thread::sleep(Duration::from_millis(16));
-                                }
-                                {
-                                    let mut s = status_arc.write().unwrap();
-                                    s.switch_pairing_state = "connected".to_string();
-                                }
-                                let current_stat = status_arc.read().unwrap().clone();
-                                let _ = app_handle.emit("serial-status-changed", &current_stat);
+                                let mut s = ControllerState::default();
+                                s.l = true;
+                                s.r = true;
+                                burst(&mut port, &s, 15); // L+R for ~250ms
+                                burst(&mut port, &neutral, 3);
                             }
                             SpecialCommand::WakeReconnect => {
-                                let mut wake_state = ControllerState::default();
-                                wake_state.a = true;
-                                let wake_payload = wake_state.pack_uart_switchcon();
-                                // Burst A button for 160ms (10 frames)
-                                for _ in 0..10 {
-                                    let _ = port.write_all(&wake_payload);
-                                    let _ = port.flush();
-                                    thread::sleep(Duration::from_millis(16));
-                                }
-                                let neutral = ControllerState::default().pack_uart_switchcon();
-                                for _ in 0..3 {
-                                    let _ = port.write_all(&neutral);
-                                    let _ = port.flush();
-                                    thread::sleep(Duration::from_millis(16));
-                                }
-                                {
-                                    let mut s = status_arc.write().unwrap();
-                                    s.switch_pairing_state = "connected".to_string();
-                                }
-                                let current_stat = status_arc.read().unwrap().clone();
-                                let _ = app_handle.emit("serial-status-changed", &current_stat);
+                                let mut s = ControllerState::default();
+                                s.home = true;
+                                burst(&mut port, &s, 10); // Home for ~160ms (wakes a sleeping console)
+                                burst(&mut port, &neutral, 3);
                             }
                             SpecialCommand::EmergencyNeutral => {
-                                let neutral = ControllerState::default().pack_uart_switchcon();
+                                let payload = neutral.pack_uart_switchcon();
                                 for _ in 0..5 {
-                                    let _ = port.write_all(&neutral);
+                                    let _ = port.write_all(&payload);
                                     let _ = port.flush();
                                     thread::sleep(Duration::from_millis(10));
                                 }
@@ -278,22 +329,32 @@ impl SerialManager {
                             SpecialCommand::ClearBonds => {
                                 let _ = port.write_all(&[0xEE, 0xEE, 0xEE]);
                                 let _ = port.flush();
-                                {
-                                    let mut s = status_arc.write().unwrap();
-                                    s.switch_pairing_state = "pairing".to_string();
-                                }
-                                let current_stat = status_arc.read().unwrap().clone();
-                                let _ = app_handle.emit("serial-status-changed", &current_stat);
                             }
                         }
                     }
 
                     // Read current merged controller state (acts as continuous 60Hz keep-alive)
-                    let state = gamepad_mgr.get_current_state();
+                    let mut state = gamepad_mgr.get_current_state();
+
+                    // While the Switch link is down, pulse L+R periodically so a Switch sitting
+                    // on "Change Grip/Order" registers the controller. Never sent while linked.
+                    let now = Instant::now();
+                    if !link_up {
+                        if now >= pulse_next {
+                            pulse_until = Some(now + PAIR_PULSE_LENGTH);
+                            pulse_next = now + PAIR_PULSE_INTERVAL;
+                        }
+                        if pulse_until.map_or(false, |u| now < u) {
+                            state.l = true;
+                            state.r = true;
+                        }
+                    }
+
                     let payload = state.pack_uart_switchcon();
 
                     if let Err(e) = port.write_all(&payload) {
                         eprintln!("[Serial Error] 發送封包失敗: {}", e);
+                        io_failed = true;
                         break;
                     }
                     let _ = port.flush();
@@ -304,11 +365,32 @@ impl SerialManager {
                         s.packets_sent += 1;
                     }
 
-                    // Non-blocking drain of incoming ACK bytes (e.g. 0x90)
-                    if let Ok(count) = port.read(&mut ack_buf) {
-                        if count > 0 {
-                            // Can be used for round-trip latency tracking if needed
+                    // Non-blocking drain of incoming acks (0x90 = linked to the Switch)
+                    if let Ok(pending) = port.bytes_to_read() {
+                        if pending > 0 {
+                            let want = (pending as usize).min(ack_buf.len());
+                            if let Ok(count) = port.read(&mut ack_buf[..want]) {
+                                if ack_buf[..count].contains(&LINK_ACK_BYTE) {
+                                    last_ack = Some(Instant::now());
+                                }
+                            }
                         }
+                    }
+
+                    let link_now = last_ack.map_or(false, |t| t.elapsed() < LINK_TIMEOUT);
+                    if link_now != link_up {
+                        link_up = link_now;
+                        if link_up {
+                            pulse_until = None;
+                        } else {
+                            pulse_next = Instant::now() + PAIR_PULSE_INTERVAL;
+                        }
+                        {
+                            let mut s = status_arc.write().unwrap();
+                            s.switch_pairing_state =
+                                if link_up { "connected" } else { "pairing" }.to_string();
+                        }
+                        emit_status(&status_arc);
                     }
 
                     // Update FPS every second
@@ -317,8 +399,7 @@ impl SerialManager {
                             let mut s = status_arc.write().unwrap();
                             s.tx_fps = packets_this_second;
                         }
-                        let current_stat = status_arc.read().unwrap().clone();
-                        let _ = app_handle.emit("serial-status-changed", &current_stat);
+                        emit_status(&status_arc);
 
                         packets_this_second = 0;
                         last_fps_time = Instant::now();
@@ -338,6 +419,16 @@ impl SerialManager {
                     thread::sleep(Duration::from_millis(10));
                 }
 
+                // Keep the port open (hand it back) so stopping the service does not reset the
+                // ESP32 / drop its Switch link. A failed port is dropped instead.
+                if !io_failed {
+                    let _ = port.set_timeout(Duration::from_millis(200));
+                    *held_clone.lock().unwrap_or_else(|e| e.into_inner()) = Some(HeldPort {
+                        name: port_name_string.clone(),
+                        port,
+                    });
+                }
+
                 {
                     let mut s = status_arc.write().unwrap();
                     s.is_connected = false;
@@ -345,9 +436,8 @@ impl SerialManager {
                     s.tx_fps = 0;
                     s.switch_pairing_state = "disconnected".to_string();
                 }
-                let current_stat = status_arc.read().unwrap().clone();
-                let _ = app_handle.emit("serial-status-changed", &current_stat);
-                println!("[Serial] Serial port {} released safely and closed", port_name_string);
+                emit_status(&status_arc);
+                println!("[Serial] Streaming stopped on {} (port kept open)", port_name_string);
             })
             .map_err(|e| AppError::ThreadSpawnFailed { reason: e.to_string() }.to_json_string())?;
 
@@ -455,31 +545,19 @@ impl SerialManager {
         Err(last_err)
     }
 
-    /// Probe whether a specific serial port is running genuine PRO-UART0 (UARTSwitchCon) firmware
-    pub fn probe_firmware(port_name: &str, baudrate: u32) -> Result<bool, String> {
+    /// Probe whether a specific serial port is running genuine PRO-UART0 (UARTSwitchCon) firmware.
+    ///
+    /// A port that passes is kept open and reused by `connect`, so probing followed by starting
+    /// the virtual gamepad resets the ESP32 at most once (when the port is first opened).
+    pub fn probe_firmware(&self, port_name: &str, baudrate: u32) -> Result<bool, String> {
         let _open_guard = PORT_OPEN_LOCK.lock().unwrap_or_else(|e| e.into_inner());
 
-        let mut port = match serialport::new(port_name, baudrate)
-            .timeout(Duration::from_millis(400))
-            .open()
-        {
-            Ok(p) => p,
-            Err(e) => {
-                return Err(AppError::SerialOpenFailed {
-                    port: port_name.to_string(),
-                    reason: e.to_string(),
-                }
-                .to_json_string())
-            }
-        };
-
-        let _ = port.write_data_terminal_ready(false);
-        let _ = port.write_request_to_send(false);
-        thread::sleep(Duration::from_millis(200));
-        let _ = port.clear(ClearBuffer::All);
-
+        let (mut port, _reused) = self.acquire_port(port_name, baudrate)?;
         match Self::handshake_with_retry(&mut *port) {
-            Ok(()) => Ok(true),
+            Ok(()) => {
+                self.hold_port(port_name, port);
+                Ok(true)
+            }
             Err(_) => Ok(false),
         }
     }

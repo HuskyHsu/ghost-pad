@@ -78,28 +78,28 @@
   },
   "step2": {
     "locked_title": "步驟 2 已鎖定",
-    "locked_desc": "請先啟動「步驟 1：開啟虛擬手把」，序列串流就緒後方可進行 Switch 配對與自動回連。",
+    "locked_desc": "請先啟動「步驟 1：開啟虛擬手把」，序列串流就緒後方可連線 Switch。",
     "title": "步驟 2：Switch 自動配對與連線",
-    "desc": "首次手動配對並記憶，後續啟動虛擬手把即自動重連 1P",
-    "status_locked_1p": "✓ 已鎖定 1P",
-    "status_can_pair": "可發送配對指令",
-    "paired_box": {
-      "title": "已記憶配對主機 (自動配對就緒)",
-      "badge": "Auto-Pair Active",
-      "desc": "系統已記憶配對過的 Switch 主機。開啟虛擬手把時會自動發送 A 鍵喚醒訊號完成秒連。若未自動連上，可點擊下方按鈕手動重試。",
-      "btn_reconnect": "手動觸發自動回連 (A鍵喚醒)",
-      "btn_clear": "更換主機（清除配對記憶）",
-      "btn_neutral": "緊急訊號歸零"
+    "desc": "配對一次即可；Switch 睡醒或斷線後，進出「更改拿法/順序」即回連",
+    "status_locked_1p": "✓ 已連線 1P",
+    "status_can_pair": "等待 Switch",
+    "linked": {
+      "title": "Switch 已連線（1P）",
+      "badge": "收到 ESP32 回報",
+      "desc": "連線以 ESP32 的即時回報為準。Switch 關螢幕或休眠後會斷線，斷線時下方會自動出現回連步驟。"
     },
-    "unpaired_box": {
-      "title": "首次配對流程（尚未記憶主機）",
-      "badge": "需要手動配對",
-      "step1": "1. 請在 Switch 打開主畫面「控制器」➔「更改拿法 / 順序」畫面。",
-      "step2": "2. 點擊下方按鈕送出 L + R 握手脈衝，讓 Switch 自動分配為 1P。",
-      "step3": "3. 配對成功後將自動記憶，下次啟動直接自動連線！",
-      "btn_start_pair": "開始首次配對 (送出 L+R 並記憶)",
-      "btn_neutral": "緊急訊號歸零"
-    }
+    "waiting": {
+      "title": "等待 Switch 連線…",
+      "badge": "自動送出配對訊號中",
+      "heading": "在 Switch 上做這一步即可（首次配對與睡醒後回連相同）：",
+      "step1": "1. 喚醒 Switch，進入「控制器」➔「更改拿法/順序」。",
+      "step2": "2. 看到手把出現後，按 B 退出，狀態就會變為「已連線」。",
+      "note": "本頁會持續自動送出 L+R 配對訊號，不需要按任何按鈕，也不需要清除配對記憶。"
+    },
+    "btn_wake": "按 Home 喚醒 Switch",
+    "btn_clear": "重新配對 / 更換主機",
+    "btn_neutral": "緊急訊號歸零",
+    "clear_hint": "「重新配對」只有在 Switch 上已移除這支手把、或要換一台主機時才需要：先在 Switch「設定 ➔ 控制器與感應器 ➔ 斷開連線」，再按此鈕，然後照上方步驟配對。"
   },
   "footer": {
     "port": "● 序列埠: {{port}}",
@@ -129,18 +129,15 @@
     "recommended": "(推薦)"
   },
   "feedback": {
-    "paired_success": "已發送 L+R 首次配對握手！Switch 確認為 1P 後已自動儲存記憶，下次將自動配對。",
-    "wake_success": "已送出喚醒重連脈衝！Switch 應已快速回連為 1P。",
+    "wake_success": "已送出 Home 鍵，可喚醒休眠中的 Switch。",
     "neutral_success": "已發送中立安全封包，手把按鍵全部歸零。",
-    "reset_success": "已重置 ESP32 藍牙記憶並清除本機自動配對設定，可更換主機重新配對。",
+    "reset_success": "已清除 ESP32 的配對記憶。請依畫面步驟在 Switch 重新配對。",
     "need_step1_first": "請先啟動步驟 1「虛擬手把服務」，才能發送配對或控制指令！",
     "service_stopped": "虛擬手把服務已停止，所有按鍵訊號安全歸零。",
     "select_port_first": "請先於步驟 0 選取 ESP32 序列埠",
-    "service_started_auto": "虛擬手把服務已啟動！偵測到已配對主機，正自動發起喚醒配對...",
-    "auto_wake_sent": "已自動送出喚醒重連脈衝！Switch 應已自動回連為 1P。",
-    "service_started_manual": "虛擬手把服務已啟動！請於步驟 2 進行首次配對。",
     "flash_select_port": "請先接上 ESP32 並選取燒錄序列埠",
-    "flash_complete": "PRO-UART0.bin 韌體燒錄完成！正在重新驗證交握協議..."
+    "flash_complete": "PRO-UART0.bin 韌體燒錄完成！正在重新驗證交握協議...",
+    "service_started": "虛擬手把服務已啟動！Switch 連上後狀態會自動變為「已連線」。"
   },
   "gamepad_card": {
     "title": "實體手把管理",

@@ -119,7 +119,8 @@ async fn probe_firmware(
     if status.is_connected && status.port_name.as_deref() == Some(port_name.as_str()) {
         return Ok(true);
     }
-    tauri::async_runtime::spawn_blocking(move || SerialManager::probe_firmware(&port_name, baudrate))
+    let serial_mgr = state.serial_mgr.clone();
+    tauri::async_runtime::spawn_blocking(move || serial_mgr.probe_firmware(&port_name, baudrate))
         .await
         .map_err(|e| AppError::TaskExecutionFailed { reason: e.to_string() }.to_json_string())?
 }

@@ -78,28 +78,28 @@
   },
   "step2": {
     "locked_title": "Step 2 Locked",
-    "locked_desc": "Please start Step 1 Virtual Gamepad first. Switch pairing requires active serial streaming.",
+    "locked_desc": "Start \"Step 1: Enable virtual gamepad\" first. The Switch can connect once the serial stream is up.",
     "title": "Step 2: Switch Auto-Pairing & Connection",
-    "desc": "Pair manually once to remember host, subsequent starts will automatically reconnect 1P",
-    "status_locked_1p": "✓ Locked 1P",
-    "status_can_pair": "Ready to send pair commands",
-    "paired_box": {
-      "title": "Paired Console Remembered (Auto-Pair Ready)",
-      "badge": "Auto-Pair Active",
-      "desc": "Switch console remembered. When starting virtual gamepad, A-button wake signal is sent automatically for instant connection.",
-      "btn_reconnect": "Manual Auto-Reconnect (A Wake)",
-      "btn_clear": "Change Console (Clear Pairing)",
-      "btn_neutral": "Emergency Signal Reset"
+    "desc": "Pair once. After the Switch sleeps or drops the link, just open and leave \"Change Grip/Order\" to reconnect.",
+    "status_locked_1p": "✓ Linked as 1P",
+    "status_can_pair": "Waiting for Switch",
+    "linked": {
+      "title": "Switch connected (1P)",
+      "badge": "Confirmed by ESP32",
+      "desc": "Link status comes from live ESP32 feedback. It drops when the Switch screen turns off or sleeps; the reconnect steps then appear here automatically."
     },
-    "unpaired_box": {
-      "title": "First-time Pairing Flow (No Console Remembered)",
-      "badge": "Manual Pairing Needed",
-      "step1": "1. On Switch home screen, go to Controllers ➔ Change Grip/Order.",
-      "step2": "2. Click button below to send L + R handshake pulse for 1P assignment.",
-      "step3": "3. Once paired, console will be remembered for future auto-connection!",
-      "btn_start_pair": "Start Pairing (Send L+R & Save)",
-      "btn_neutral": "Emergency Signal Reset"
-    }
+    "waiting": {
+      "title": "Waiting for Switch…",
+      "badge": "Sending pairing signal automatically",
+      "heading": "Do this on the Switch (same for first pairing and reconnecting after wake):",
+      "step1": "1. Wake the Switch and open Controllers ➔ Change Grip/Order.",
+      "step2": "2. When the controller shows up, press B to leave; the status turns to \"Connected\".",
+      "note": "This page keeps sending the L+R pairing signal on its own. No button presses or clearing the pairing memory needed."
+    },
+    "btn_wake": "Press Home to wake Switch",
+    "btn_clear": "Re-pair / change console",
+    "btn_neutral": "Emergency neutral",
+    "clear_hint": "Re-pairing is only needed after removing this controller on the Switch or when changing consoles: first use Settings ➔ Controllers and Sensors ➔ Disconnect Controllers on the Switch, then press this button and follow the steps above."
   },
   "footer": {
     "port": "● Port: {{port}}",
@@ -129,18 +129,15 @@
     "recommended": "(Recommended)"
   },
   "feedback": {
-    "paired_success": "L+R pairing sent! Switch recognized 1P and memory has been saved for future auto-connect.",
-    "wake_success": "Wake pulse sent! Switch should reconnect as 1P shortly.",
+    "wake_success": "Home sent; this can wake a sleeping Switch.",
     "neutral_success": "Neutral safety packet sent. All inputs reset to center.",
-    "reset_success": "ESP32 Bluetooth bonds reset and local auto-pairing cleared.",
+    "reset_success": "ESP32 pairing memory cleared. Re-pair on the Switch following the steps shown.",
     "need_step1_first": "Please start Step 1 Virtual Gamepad Service before sending commands!",
     "service_stopped": "Virtual gamepad service stopped. All inputs reset to center.",
     "select_port_first": "Please select ESP32 serial port in Step 0 first",
-    "service_started_auto": "Virtual gamepad service started! Paired console found, auto-reconnecting...",
-    "auto_wake_sent": "Wake reconnect pulse sent! Switch should reconnect as 1P.",
-    "service_started_manual": "Virtual gamepad service started! Please proceed to Step 2 for first-time pairing.",
     "flash_select_port": "Please connect ESP32 and select serial port first",
-    "flash_complete": "PRO-UART0.bin flashed successfully! Re-verifying handshake protocol..."
+    "flash_complete": "PRO-UART0.bin flashed successfully! Re-verifying handshake protocol...",
+    "service_started": "Virtual gamepad started! Status turns to \"Connected\" once the Switch links up."
   },
   "gamepad_card": {
     "title": "Physical Gamepad Manager",

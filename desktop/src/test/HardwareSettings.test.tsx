@@ -170,7 +170,7 @@ describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
     expect(onConn).not.toHaveBeenCalledWith(true);
   });
 
-  it("sends L+R handshake command when connected", async () => {
+  it("shows waiting guidance (no fake 'connected') while the Switch link is down", async () => {
     (invoke as any).mockImplementation((cmd: string) => {
       if (cmd === "get_serial_ports") {
         return Promise.resolve([
@@ -187,9 +187,6 @@ describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
           switch_pairing_state: "pairing",
         });
       }
-      if (cmd === "send_serial_command") {
-        return Promise.resolve(undefined);
-      }
       return Promise.resolve(undefined);
     });
 
@@ -197,24 +194,13 @@ describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
     render(<HardwareSettings onPairingChange={onPairing} />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText("開始首次配對 (送出 L+R 並記憶)")
-      ).toBeInTheDocument();
+      expect(screen.getByText("等待 Switch 連線…")).toBeInTheDocument();
     });
-
-    const lrBtn = screen.getByText("開始首次配對 (送出 L+R 並記憶)");
-    fireEvent.click(lrBtn);
-
-    await waitFor(() => {
-      expect(invoke).toHaveBeenCalledWith("send_serial_command", {
-        command: "pair_lr",
-      });
-      expect(onPairing).toHaveBeenCalledWith("connected");
-    });
+    expect(screen.getByText(/更改拿法\/順序/, { selector: "div" })).toBeInTheDocument();
+    expect(onPairing).not.toHaveBeenCalledWith("connected");
   });
 
-  it("sends wake reconnect command when connected", async () => {
-    localStorage.setItem("ghostpad_switch_paired", "true");
+  it("shows connected only when the backend reports the link is up", async () => {
     (invoke as any).mockImplementation((cmd: string) => {
       if (cmd === "get_serial_ports") {
         return Promise.resolve([
@@ -231,26 +217,77 @@ describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
           switch_pairing_state: "connected",
         });
       }
-      if (cmd === "send_serial_command") {
-        return Promise.resolve(undefined);
-      }
       return Promise.resolve(undefined);
     });
 
     render(<HardwareSettings />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText("手動觸發自動回連 (A鍵喚醒)")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Switch 已連線（1P）")).toBeInTheDocument();
+    });
+  });
+
+  it("sends Home wake command and does not assume the link comes up", async () => {
+    (invoke as any).mockImplementation((cmd: string) => {
+      if (cmd === "get_serial_ports") {
+        return Promise.resolve([
+          { port_name: "/dev/cu.usbserial-0001", description: "CP2102" },
+        ]);
+      }
+      if (cmd === "get_serial_status") {
+        return Promise.resolve({
+          is_connected: true,
+          port_name: "/dev/cu.usbserial-0001",
+          baudrate: 19200,
+          packets_sent: 100,
+          tx_fps: 60,
+          switch_pairing_state: "pairing",
+        });
+      }
+      return Promise.resolve(undefined);
     });
 
-    const wakeBtn = screen.getByText("手動觸發自動回連 (A鍵喚醒)");
+    const onPairing = vi.fn();
+    render(<HardwareSettings onPairingChange={onPairing} />);
+
+    const wakeBtn = await screen.findByText("按 Home 喚醒 Switch");
     fireEvent.click(wakeBtn);
 
     await waitFor(() => {
       expect(invoke).toHaveBeenCalledWith("send_serial_command", {
         command: "wake_reconnect",
+      });
+    });
+    expect(onPairing).not.toHaveBeenCalledWith("connected");
+  });
+
+  it("clear bonds command is sent without touching local pairing state", async () => {
+    (invoke as any).mockImplementation((cmd: string) => {
+      if (cmd === "get_serial_ports") {
+        return Promise.resolve([
+          { port_name: "/dev/cu.usbserial-0001", description: "CP2102" },
+        ]);
+      }
+      if (cmd === "get_serial_status") {
+        return Promise.resolve({
+          is_connected: true,
+          port_name: "/dev/cu.usbserial-0001",
+          baudrate: 19200,
+          packets_sent: 100,
+          tx_fps: 60,
+          switch_pairing_state: "connected",
+        });
+      }
+      return Promise.resolve(undefined);
+    });
+
+    render(<HardwareSettings />);
+
+    fireEvent.click(await screen.findByText("重新配對 / 更換主機"));
+
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("send_serial_command", {
+        command: "clear_bonds",
       });
     });
   });

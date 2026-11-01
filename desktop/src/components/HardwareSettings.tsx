@@ -31,7 +31,6 @@ interface Props {
 }
 
 const COMMON_BAUDRATES = [19200, 115200, 921600];
-const PAIRING_STORAGE_KEY = "ghostpad_switch_paired";
 
 export const HardwareSettings: React.FC<Props> = ({
   onConnectionChange,
@@ -59,15 +58,6 @@ export const HardwareSettings: React.FC<Props> = ({
     packets_sent: 0,
     tx_fps: 0,
     switch_pairing_state: "disconnected",
-  });
-
-  // Pairing Memory state (localStorage)
-  const [hasPairedSwitch, setHasPairedSwitch] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem(PAIRING_STORAGE_KEY) === "true";
-    } catch {
-      return false;
-    }
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -104,16 +94,12 @@ export const HardwareSettings: React.FC<Props> = ({
   const isTauri = isTauriAvailable();
 
   const isMountedRef = useRef(true);
-  const wakeTimerRef = useRef<number | null>(null);
   const commandTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
-      if (wakeTimerRef.current !== null) {
-        clearTimeout(wakeTimerRef.current);
-      }
       if (commandTimerRef.current !== null) {
         clearTimeout(commandTimerRef.current);
       }
@@ -338,13 +324,8 @@ export const HardwareSettings: React.FC<Props> = ({
 
     if (!isMountedRef.current) return;
 
-    if (cmd === "pair_lr" || cmd === "wake_reconnect") {
-      setStatus((prev) => ({ ...prev, switch_pairing_state: "connected" }));
-      onPairingChange?.("connected");
-    } else if (cmd === "clear_bonds") {
-      setStatus((prev) => ({ ...prev, switch_pairing_state: "pairing" }));
-      onPairingChange?.("pairing");
-    }
+    // Note: the Switch link state is never assumed here. The backend derives it from the
+    // ESP32's 0x90 acks and pushes it via "serial-status-changed".
 
     setSuccessNotice(successLabel);
     if (commandTimerRef.current !== null) {
@@ -407,51 +388,22 @@ export const HardwareSettings: React.FC<Props> = ({
         baudrate: selectedBaudrate,
         packets_sent: 0,
         tx_fps: 60,
-        switch_pairing_state: hasPairedSwitch ? "pairing" : "disconnected",
+        switch_pairing_state: "pairing",
       });
       onConnectionChange?.(true);
-      onPairingChange?.(hasPairedSwitch ? "pairing" : "disconnected");
-
-      if (hasPairedSwitch) {
-        setSuccessNotice(t("feedback.service_started_auto", "虛擬手把服務已啟動！偵測到已配對主機，正自動發起喚醒配對..."));
-        if (wakeTimerRef.current !== null) {
-          clearTimeout(wakeTimerRef.current);
-        }
-        wakeTimerRef.current = window.setTimeout(() => {
-          if (!isMountedRef.current) return;
-          handleSendCommand(
-            "wake_reconnect",
-            t("feedback.auto_wake_sent", "已自動送出喚醒重連脈衝！Switch 應已自動回連為 1P。")
-          );
-        }, 450);
-      } else {
-        setSuccessNotice(t("feedback.service_started_manual", "虛擬手把服務已啟動！請於步驟 2 進行首次配對。"));
-      }
+      onPairingChange?.("pairing");
+      setSuccessNotice(
+        t("feedback.service_started", "虛擬手把服務已啟動！Switch 連上後狀態會自動變為「已連線」。")
+      );
     }
   };
 
-  // First time pair: Send L+R and remember in localStorage
-  const handleFirstTimePair = async () => {
-    await handleSendCommand(
-      "pair_lr",
-      t("feedback.paired_success", "已發送 L+R 首次配對握手！Switch 確認為 1P 後已自動儲存記憶，下次將自動配對。")
-    );
-    try {
-      localStorage.setItem(PAIRING_STORAGE_KEY, "true");
-    } catch {}
-    setHasPairedSwitch(true);
-  };
-
-  // Clear pairing memory (e.g. switching console)
+  // Re-pair: wipe the ESP32's stored host. The Switch must also forget the controller.
   const handleClearMemory = async () => {
     await handleSendCommand(
       "clear_bonds",
-      t("feedback.reset_success", "已重置 ESP32 藍牙記憶並清除本機自動配對設定，可更換主機重新配對。")
+      t("feedback.reset_success", "已清除 ESP32 的配對記憶。請依畫面步驟在 Switch 重新配對。")
     );
-    try {
-      localStorage.removeItem(PAIRING_STORAGE_KEY);
-    } catch {}
-    setHasPairedSwitch(false);
   };
 
   // Firmware Flasher
@@ -1042,7 +994,7 @@ export const HardwareSettings: React.FC<Props> = ({
                 {t("step2.locked_title", "步驟 2 已鎖定")}
               </div>
               <div className="text-[11px] text-text-secondary max-w-xs">
-                {t("step2.locked_desc", "請先啟動「步驟 1：開啟虛擬手把」，序列串流就緒後方可進行 Switch 配對與自動回連。")}
+                {t("step2.locked_desc", "請先啟動「步驟 1：開啟虛擬手把」，序列串流就緒後方可連線 Switch。")}
               </div>
             </div>
           )}
@@ -1063,124 +1015,116 @@ export const HardwareSettings: React.FC<Props> = ({
                   {t("step2.title", "步驟 2：Switch 自動配對與連線")}
                 </h2>
                 <p className="text-[11px] text-text-secondary">
-                  {t("step2.desc", "首次手動配對並記憶，後續啟動虛擬手把即自動重連 1P")}
+                  {t("step2.desc", "配對一次即可；Switch 睡醒或斷線後，進出「更改拿法/順序」即回連")}
                 </p>
               </div>
             </div>
             <span className="text-[10px] font-mono text-text-muted">
-              {isSwitchConnected ? t("step2.status_locked_1p", "✓ 已鎖定 1P") : t("step2.status_can_pair", "可發送配對指令")}
+              {isSwitchConnected ? t("step2.status_locked_1p", "✓ 已連線 1P") : t("step2.status_can_pair", "等待 Switch")}
             </span>
           </div>
 
-          {/* Branch A: Already Paired Console (Auto-reconnect workflow) */}
-          {hasPairedSwitch ? (
-            <div className="p-3.5 rounded-lg bg-emerald-50/70 border border-emerald-200 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-medium text-emerald-800">
+          {/* Single flow: pair once, then just re-enter "Change Grip/Order" whenever the link drops */}
+          <div
+            className={`p-3.5 rounded-lg border space-y-3 ${
+              isSwitchConnected
+                ? "bg-emerald-50/70 border-emerald-200"
+                : "bg-surface-input border-border-subtle"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div
+                className={`flex items-center gap-2 text-xs font-medium ${
+                  isSwitchConnected ? "text-emerald-800" : "text-text-primary"
+                }`}
+              >
+                {isSwitchConnected ? (
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span>{t("step2.paired_box.title", "已記憶配對主機 (自動配對就緒)")}</span>
-                </div>
-                <span className="text-[10px] font-mono text-emerald-700 px-2 py-0.5 rounded-md bg-emerald-100 border border-emerald-300">
-                  {t("step2.paired_box.badge", "Auto-Pair Active")}
+                ) : (
+                  <Radio className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                )}
+                <span>
+                  {isSwitchConnected
+                    ? t("step2.linked.title", "Switch 已連線（1P）")
+                    : t("step2.waiting.title", "等待 Switch 連線…")}
                 </span>
               </div>
+              <span className="text-[10px] font-mono text-text-muted">
+                {isSwitchConnected
+                  ? t("step2.linked.badge", "收到 ESP32 回報")
+                  : t("step2.waiting.badge", "自動送出配對訊號中")}
+              </span>
+            </div>
 
+            {isSwitchConnected ? (
               <p className="text-[11px] text-emerald-700 leading-relaxed">
-                {t("step2.paired_box.desc", "系統已記憶配對過的 Switch 主機。開啟虛擬手把時會自動發送 A 鍵喚醒訊號完成秒連。若未自動連上，可點擊下方按鈕手動重試。")}
+                {t(
+                  "step2.linked.desc",
+                  "連線以 ESP32 的即時回報為準。Switch 關螢幕或休眠後會斷線，斷線時下方會自動出現回連步驟。"
+                )}
               </p>
-
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <button
-                  onClick={() =>
-                    handleSendCommand(
-                      "wake_reconnect",
-                      t("feedback.wake_success", "已手動送出喚醒重連脈衝！Switch 應已快速回連為 1P。")
-                    )
-                  }
-                  disabled={activeCommand !== null || !isStep1Ready}
-                  className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 ${
-                    activeCommand === "wake_reconnect"
-                      ? "bg-slate-700 text-white"
-                      : "bg-accent text-accent-foreground hover:bg-accent-hover"
-                  }`}
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>{t("step2.paired_box.btn_reconnect", "手動觸發自動回連 (A鍵喚醒)")}</span>
-                </button>
-
-                <button
-                  onClick={handleClearMemory}
-                  disabled={activeCommand !== null || !isStep1Ready}
-                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-interactive-hover border border-border-element text-text-secondary transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
-                >
-                  <RotateCcw className="w-3 h-3 text-text-muted" />
-                  <span>{t("step2.paired_box.btn_clear", "更換主機（清除配對記憶）")}</span>
-                </button>
-
-                <button
-                  onClick={() =>
-                    handleSendCommand(
-                      "emergency_neutral",
-                      t("feedback.neutral_success", "已發送中立安全封包，手把按鍵全部歸零。")
-                    )
-                  }
-                  disabled={activeCommand !== null || !isStep1Ready}
-                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-rose-50 border border-border-element text-rose-600 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
-                >
-                  <Power className="w-3 h-3 text-rose-500" />
-                  <span>{t("step2.paired_box.btn_neutral", "緊急訊號歸零")}</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* Branch B: First-time Pairing Workflow */
-            <div className="p-3.5 rounded-lg bg-surface-input border border-border-subtle space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-medium text-text-primary">
-                  <Radio className="w-3.5 h-3.5 text-text-muted" />
-                  <span>{t("step2.unpaired_box.title", "首次配對流程（尚未記憶主機）")}</span>
-                </div>
-                <span className="text-[10px] text-amber-600 font-mono">
-                  {t("step2.unpaired_box.badge", "需要手動配對")}
-                </span>
-              </div>
-
+            ) : (
               <div className="text-[11px] text-text-secondary space-y-1 leading-relaxed">
-                <div>{t("step2.unpaired_box.step1", "1. 請在 Switch 打開主畫面「控制器」➔「更改拿法 / 順序」畫面。")}</div>
-                <div>{t("step2.unpaired_box.step2", "2. 點擊下方按鈕送出 L + R 握手脈衝，讓 Switch 自動分配為 1P。")}</div>
-                <div className="text-text-primary font-medium">{t("step2.unpaired_box.step3", "3. 配對成功後將自動記憶，下次啟動直接自動連線！")}</div>
+                <div className="text-text-primary font-medium">
+                  {t("step2.waiting.heading", "在 Switch 上做這一步即可（首次配對與睡醒後回連相同）：")}
+                </div>
+                <div>{t("step2.waiting.step1", "1. 喚醒 Switch，進入「控制器」➔「更改拿法/順序」。")}</div>
+                <div>{t("step2.waiting.step2", "2. 看到手把出現後，按 B 退出，狀態就會變為「已連線」。")}</div>
+                <div className="text-text-muted">
+                  {t(
+                    "step2.waiting.note",
+                    "本頁會持續自動送出 L+R 配對訊號，不需要按任何按鈕，也不需要清除配對記憶。"
+                  )}
+                </div>
               </div>
+            )}
 
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <button
-                  onClick={handleFirstTimePair}
-                  disabled={activeCommand !== null || !isStep1Ready}
-                  className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 ${
-                    activeCommand === "pair_lr"
-                      ? "bg-slate-700 text-white"
-                      : "bg-accent text-accent-foreground hover:bg-accent-hover"
-                  }`}
-                >
-                  <Radio className="w-3.5 h-3.5" />
-                  <span>{t("step2.unpaired_box.btn_start_pair", "開始首次配對 (送出 L+R 並記憶)")}</span>
-                </button>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                onClick={() =>
+                  handleSendCommand(
+                    "wake_reconnect",
+                    t("feedback.wake_success", "已送出 Home 鍵，可喚醒休眠中的 Switch。")
+                  )
+                }
+                disabled={activeCommand !== null || !isStep1Ready}
+                className="px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 bg-accent text-accent-foreground hover:bg-accent-hover"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>{t("step2.btn_wake", "按 Home 喚醒 Switch")}</span>
+              </button>
 
-                <button
-                  onClick={() =>
-                    handleSendCommand(
-                      "emergency_neutral",
-                      t("feedback.neutral_success", "已發送中立安全封包，手把按鍵全部歸零。")
-                    )
-                  }
-                  disabled={activeCommand !== null || !isStep1Ready}
-                  className="px-3 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-rose-50 border border-border-element text-rose-600 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
-                >
-                  <Power className="w-3 h-3 text-rose-500" />
-                  <span>{t("step2.unpaired_box.btn_neutral", "緊急訊號歸零")}</span>
-                </button>
-              </div>
+              <button
+                onClick={handleClearMemory}
+                disabled={activeCommand !== null || !isStep1Ready}
+                className="px-3 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-interactive-hover border border-border-element text-text-secondary transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
+              >
+                <RotateCcw className="w-3 h-3 text-text-muted" />
+                <span>{t("step2.btn_clear", "重新配對 / 更換主機")}</span>
+              </button>
+
+              <button
+                onClick={() =>
+                  handleSendCommand(
+                    "emergency_neutral",
+                    t("feedback.neutral_success", "已發送中立安全封包，手把按鍵全部歸零。")
+                  )
+                }
+                disabled={activeCommand !== null || !isStep1Ready}
+                className="px-3 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-rose-50 border border-border-element text-rose-600 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
+              >
+                <Power className="w-3 h-3 text-rose-500" />
+                <span>{t("step2.btn_neutral", "緊急訊號歸零")}</span>
+              </button>
             </div>
-          )}
+
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              {t(
+                "step2.clear_hint",
+                "「重新配對」只有在 Switch 上已移除這支手把、或要換一台主機時才需要：先在 Switch「設定 ➔ 控制器與感應器 ➔ 斷開連線」，再按此鈕，然後照上方步驟配對。"
+              )}
+            </p>
+          </div>
         </div>
       </div>
       </div>
