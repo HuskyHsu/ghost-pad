@@ -1,0 +1,49 @@
+name: Build ESP32 Firmware
+
+on:
+  push:
+    paths:
+      - "firmware/uartswitchcon/**"
+      - ".github/workflows/build-firmware.yml"
+  workflow_dispatch:
+
+jobs:
+  build-esp32:
+    name: Build Auto-Reconnect Firmware
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies & Python 2.7
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc git wget make libncurses-dev flex bison gperf python2.7 python-pip python-setuptools python-serial
+          sudo ln -sf /usr/bin/python2.7 /usr/bin/python
+
+      - name: Download Xtensa Toolchain for ESP32
+        run: |
+          wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+          tar -xzf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+          echo "$PWD/xtensa-esp32-elf/bin" >> $GITHUB_PATH
+
+      - name: Clone nullstalgia esp-idf
+        run: |
+          git clone --recursive https://github.com/nullstalgia/esp-idf.git $HOME/esp-idf
+          echo "IDF_PATH=$HOME/esp-idf" >> $GITHUB_ENV
+
+      - name: Compile Firmware
+        run: |
+          cd firmware/uartswitchcon
+          make -j$(nproc)
+          cp build/OpenSwitchPad.bin build/PRO-UART0-RECONNECT.bin
+
+      - name: Upload Firmware Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PRO-UART0-RECONNECT-FIRMWARE
+          path: |
+            firmware/uartswitchcon/build/bootloader/bootloader.bin
+            firmware/uartswitchcon/build/partitions_singleapp.bin
+            firmware/uartswitchcon/build/OpenSwitchPad.bin
+            firmware/uartswitchcon/build/PRO-UART0-RECONNECT.bin
