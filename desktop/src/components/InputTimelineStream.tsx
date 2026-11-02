@@ -205,6 +205,22 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
       }
     }
 
+    // Fail-safe cleanup: finalize any held notes whose input is no longer active
+    heldNotesMapRef.current.forEach((held, key) => {
+      let isStillActive = false;
+      if (key === "stick_left") {
+        isStillActive = currLDir !== null;
+      } else if (key === "stick_right") {
+        isStillActive = currRDir !== null;
+      } else {
+        isStillActive = currButtons[key as keyof typeof currButtons]?.active ?? false;
+      }
+      if (!isStillActive) {
+        held.endTime = now;
+        heldNotesMapRef.current.delete(key);
+      }
+    });
+
     prevStateRef.current = state;
   }, [state]);
 

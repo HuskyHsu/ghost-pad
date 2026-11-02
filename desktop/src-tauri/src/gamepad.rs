@@ -5,7 +5,7 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, Mutex, RwLock,
 };
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use gilrs::{Axis, Button, Event, EventType, Gilrs};
 use serde::{Deserialize, Serialize};
@@ -272,16 +272,11 @@ impl GamepadManager {
             })
             .collect();
 
-        // If active is None, OR active points to a disconnected device:
-        // Automatically switch to the first currently connected device!
-        let active_is_connected = active.map_or(false, |act_id| {
-            list.iter().any(|g| g.id == act_id && g.is_connected)
-        });
-
-        if !active_is_connected {
-            *active = list.iter().find(|g| g.is_connected).map(|g| g.id);
-            if let Some(new_id) = *active {
-                println!("[GamepadManager] Auto-selected active gamepad ID: {}", new_id);
+        // If active is set but points to a disconnected device:
+        // Clear it so any connected device can supply inputs!
+        if let Some(act_id) = *active {
+            if !list.iter().any(|g| g.id == act_id && g.is_connected) {
+                *active = None;
             }
         }
 
@@ -326,6 +321,7 @@ impl GamepadManager {
                 let mut dpad_right = false;
 
                 let mut last_emit_state = ControllerState::default();
+                let mut last_emit_time = Instant::now();
 
                 // Initial sync
                 Self::sync_gamepad_list(&gilrs, &gamepads_arc, &active_id_arc);
@@ -346,6 +342,19 @@ impl GamepadManager {
                             EventType::Disconnected => {
                                 println!("[GamepadManager] Disconnected ID: {}", current_id);
                                 connection_changed = true;
+                                {
+                                    let mut active = active_id_arc.lock().unwrap();
+                                    if *active == Some(current_id) {
+                                        *active = None;
+                                    }
+                                }
+                                // Reset physical inputs to neutral immediately upon disconnection
+                                *physical_state_arc.write().unwrap() = ControllerState::default();
+                                dpad_up = false;
+                                dpad_down = false;
+                                dpad_left = false;
+                                dpad_right = false;
+                                physical_input_changed = true;
                             }
                             EventType::ButtonPressed(btn, _) => {
                                 println!("[GamepadManager] ButtonPressed: {:?} from ID: {}", btn, current_id);
@@ -358,13 +367,11 @@ impl GamepadManager {
 
                         // Check if event belongs to active gamepad
                         let is_target = {
-                            let mut active = active_id_arc.lock().unwrap();
-                            // If no active gamepad or active is pointing to something else,
-                            // accept input from any single connected device!
-                            if active.is_none() {
-                                *active = Some(current_id);
+                            let active = active_id_arc.lock().unwrap();
+                            match *active {
+                                Some(act_id) => act_id == current_id,
+                                None => true, // Accept input from any connected gamepad if none is locked!
                             }
-                            *active == Some(current_id)
                         };
 
                         if !is_target {
@@ -391,6 +398,7 @@ impl GamepadManager {
                                         Button::Mode => s.home = true,
                                         Button::LeftThumb => s.l_stick_click = true,
                                         Button::RightThumb => s.r_stick_click = true,
+                                        Button::C | Button::Z => s.capture = true,
                                         Button::DPadUp => {
                                             dpad_up = true;
                                             s.dpad = Self::compute_dpad(dpad_up, dpad_down, dpad_left, dpad_right);
@@ -426,6 +434,7 @@ impl GamepadManager {
                                         Button::Mode => s.home = false,
                                         Button::LeftThumb => s.l_stick_click = false,
                                         Button::RightThumb => s.r_stick_click = false,
+                                        Button::C | Button::Z => s.capture = false,
                                         Button::DPadUp => {
                                             dpad_up = false;
                                             s.dpad = Self::compute_dpad(dpad_up, dpad_down, dpad_left, dpad_right);
@@ -445,6 +454,27 @@ impl GamepadManager {
                                         _ => {}
                                     }
                                 }
+                                EventType::ButtonChanged(btn, val, _) => {
+                                    physical_input_changed = true;
+                                    let pressed = val > 0.4;
+                                    match btn {
+                                        Button::East => s.a = pressed,
+                                        Button::South => s.b = pressed,
+                                        Button::North => s.x = pressed,
+                                        Button::West => s.y = pressed,
+                                        Button::LeftTrigger => s.l = pressed,
+                                        Button::RightTrigger => s.r = pressed,
+                                        Button::LeftTrigger2 => s.zl = pressed,
+                                        Button::RightTrigger2 => s.zr = pressed,
+                                        Button::Select => s.minus = pressed,
+                                        Button::Start => s.plus = pressed,
+                                        Button::Mode => s.home = pressed,
+                                        Button::LeftThumb => s.l_stick_click = pressed,
+                                        Button::RightThumb => s.r_stick_click = pressed,
+                                        Button::C | Button::Z => s.capture = pressed,
+                                        _ => {}
+                                    }
+                                }
                                 EventType::AxisChanged(axis, val, _) => {
                                     physical_input_changed = true;
                                     match axis {
@@ -452,6 +482,8 @@ impl GamepadManager {
                                         Axis::LeftStickY => s.left_stick_y = Self::axis_to_u8(val, 0.1),
                                         Axis::RightStickX => s.right_stick_x = Self::axis_to_u8(val, 0.1),
                                         Axis::RightStickY => s.right_stick_y = Self::axis_to_u8(val, 0.1),
+                                        Axis::LeftZ => s.zl = val > 0.2,
+                                        Axis::RightZ => s.zr = val > 0.2,
                                         _ => {}
                                     }
                                 }
@@ -476,8 +508,30 @@ impl GamepadManager {
                     // Read current state snapshot and emit if changed
                     let current = state_arc.read().unwrap().clone();
                     if current != last_emit_state {
-                        let _ = app_handle.emit("gamepad-state", &current);
-                        last_emit_state = current;
+                        let now = Instant::now();
+                        // Digital buttons and dpad transitions emit immediately for zero input lag.
+                        // Pure analog stick jitter is throttled to ~60Hz (16ms) to prevent IPC flooding.
+                        let buttons_changed = current.a != last_emit_state.a
+                            || current.b != last_emit_state.b
+                            || current.x != last_emit_state.x
+                            || current.y != last_emit_state.y
+                            || current.l != last_emit_state.l
+                            || current.r != last_emit_state.r
+                            || current.zl != last_emit_state.zl
+                            || current.zr != last_emit_state.zr
+                            || current.minus != last_emit_state.minus
+                            || current.plus != last_emit_state.plus
+                            || current.home != last_emit_state.home
+                            || current.capture != last_emit_state.capture
+                            || current.l_stick_click != last_emit_state.l_stick_click
+                            || current.r_stick_click != last_emit_state.r_stick_click
+                            || current.dpad != last_emit_state.dpad;
+
+                        if buttons_changed || now.duration_since(last_emit_time) >= Duration::from_millis(16) {
+                            let _ = app_handle.emit("gamepad-state", &current);
+                            last_emit_state = current;
+                            last_emit_time = now;
+                        }
                     }
 
                     // Poll rate: ~100Hz (10ms)

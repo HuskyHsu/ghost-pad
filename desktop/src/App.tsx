@@ -449,6 +449,7 @@ export function App() {
     }, 1000);
 
     let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let rafId: number | null = null;
     let unlistenStatePromise: Promise<() => void> | null = null;
     let unlistenConnPromise: Promise<() => void> | null = null;
 
@@ -457,10 +458,20 @@ export function App() {
 
     if (isTauri) {
 
-      // Listen to real-time gamepad input state from Rust
+      // Listen to real-time gamepad input state from Rust (rAF-coalesced to prevent UI thread choking)
+      let latestPayload: ControllerState | null = null;
+
       unlistenStatePromise = listen<ControllerState>("gamepad-state", (event) => {
-        setControllerState(event.payload);
+        latestPayload = event.payload;
         packetCount++;
+        if (rafId === null) {
+          rafId = requestAnimationFrame(() => {
+            if (latestPayload) {
+              setControllerState(latestPayload);
+            }
+            rafId = null;
+          });
+        }
       });
 
       // Listen to gamepad hotplug / connect events
@@ -492,6 +503,7 @@ export function App() {
 
     return () => {
       if (pollTimer) clearInterval(pollTimer);
+      if (rafId !== null) cancelAnimationFrame(rafId);
       clearInterval(fpsTimer);
       unlistenStatePromise?.then((fn) => fn());
       unlistenConnPromise?.then((fn) => fn());
