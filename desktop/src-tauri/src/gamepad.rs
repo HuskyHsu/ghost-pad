@@ -7,7 +7,7 @@ use std::sync::{
 };
 use std::time::{Duration, Instant};
 
-use gilrs::{Axis, Button, Event, EventType, Gilrs};
+use gilrs::{Axis, Button, Event, EventType, Gilrs, GilrsBuilder};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter};
 
@@ -306,7 +306,7 @@ impl GamepadManager {
         std::thread::Builder::new()
             .name("gamepad-polling".to_string())
             .spawn(move || {
-                let mut gilrs = match Gilrs::new() {
+                let mut gilrs = match GilrsBuilder::new().with_default_filters(false).build() {
                     Ok(g) => g,
                     Err(e) => {
                         eprintln!("[GamepadManager] Failed to init gilrs: {}", e);
@@ -488,6 +488,83 @@ impl GamepadManager {
                                     }
                                 }
                                 _ => {}
+                            }
+                        }
+                    }
+
+                    // Active hardware state reconciliation (prevents dropped release packets from sticking)
+                    {
+                        let active_filter = *active_id_arc.lock().unwrap();
+                        let mut has_active_gamepad = false;
+
+                        for (gp_id, gp) in gilrs.gamepads() {
+                            let numeric_id: usize = gp_id.into();
+                            let is_matching = match active_filter {
+                                Some(act_id) => act_id == numeric_id,
+                                None => true,
+                            };
+                            if !is_matching || !gp.is_connected() {
+                                continue;
+                            }
+                            has_active_gamepad = true;
+
+                            let mut s = physical_state_arc.write().unwrap();
+                            let lx = gp.axis_data(Axis::LeftStickX).map(|d| d.value()).unwrap_or(0.0);
+                            let ly = gp.axis_data(Axis::LeftStickY).map(|d| d.value()).unwrap_or(0.0);
+                            let rx = gp.axis_data(Axis::RightStickX).map(|d| d.value()).unwrap_or(0.0);
+                            let ry = gp.axis_data(Axis::RightStickY).map(|d| d.value()).unwrap_or(0.0);
+
+                            // If hardware stick has returned to deadzone center, force neutral
+                            if lx.abs() < 0.1 && s.left_stick_x != NEUTRAL_STICK {
+                                s.left_stick_x = NEUTRAL_STICK;
+                                physical_input_changed = true;
+                            }
+                            if ly.abs() < 0.1 && s.left_stick_y != NEUTRAL_STICK {
+                                s.left_stick_y = NEUTRAL_STICK;
+                                physical_input_changed = true;
+                            }
+                            if rx.abs() < 0.1 && s.right_stick_x != NEUTRAL_STICK {
+                                s.right_stick_x = NEUTRAL_STICK;
+                                physical_input_changed = true;
+                            }
+                            if ry.abs() < 0.1 && s.right_stick_y != NEUTRAL_STICK {
+                                s.right_stick_y = NEUTRAL_STICK;
+                                physical_input_changed = true;
+                            }
+
+                            // If button is released at hardware level, force false
+                            if s.a && !gp.is_pressed(Button::East) { s.a = false; physical_input_changed = true; }
+                            if s.b && !gp.is_pressed(Button::South) { s.b = false; physical_input_changed = true; }
+                            if s.x && !gp.is_pressed(Button::North) { s.x = false; physical_input_changed = true; }
+                            if s.y && !gp.is_pressed(Button::West) { s.y = false; physical_input_changed = true; }
+                            if s.l && !gp.is_pressed(Button::LeftTrigger) { s.l = false; physical_input_changed = true; }
+                            if s.r && !gp.is_pressed(Button::RightTrigger) { s.r = false; physical_input_changed = true; }
+                            if s.zl && !gp.is_pressed(Button::LeftTrigger2) && gp.axis_data(Axis::LeftZ).map(|d| d.value()).unwrap_or(0.0) <= 0.2 { s.zl = false; physical_input_changed = true; }
+                            if s.zr && !gp.is_pressed(Button::RightTrigger2) && gp.axis_data(Axis::RightZ).map(|d| d.value()).unwrap_or(0.0) <= 0.2 { s.zr = false; physical_input_changed = true; }
+                            if s.minus && !gp.is_pressed(Button::Select) { s.minus = false; physical_input_changed = true; }
+                            if s.plus && !gp.is_pressed(Button::Start) { s.plus = false; physical_input_changed = true; }
+                            if s.home && !gp.is_pressed(Button::Mode) { s.home = false; physical_input_changed = true; }
+                            if s.l_stick_click && !gp.is_pressed(Button::LeftThumb) { s.l_stick_click = false; physical_input_changed = true; }
+                            if s.r_stick_click && !gp.is_pressed(Button::RightThumb) { s.r_stick_click = false; physical_input_changed = true; }
+                            if s.capture && !gp.is_pressed(Button::C) && !gp.is_pressed(Button::Z) { s.capture = false; physical_input_changed = true; }
+
+                            // D-Pad reconciliation
+                            if !gp.is_pressed(Button::DPadUp) && dpad_up { dpad_up = false; s.dpad = Self::compute_dpad(dpad_up, dpad_down, dpad_left, dpad_right); physical_input_changed = true; }
+                            if !gp.is_pressed(Button::DPadDown) && dpad_down { dpad_down = false; s.dpad = Self::compute_dpad(dpad_up, dpad_down, dpad_left, dpad_right); physical_input_changed = true; }
+                            if !gp.is_pressed(Button::DPadLeft) && dpad_left { dpad_left = false; s.dpad = Self::compute_dpad(dpad_up, dpad_down, dpad_left, dpad_right); physical_input_changed = true; }
+                            if !gp.is_pressed(Button::DPadRight) && dpad_right { dpad_right = false; s.dpad = Self::compute_dpad(dpad_up, dpad_down, dpad_left, dpad_right); physical_input_changed = true; }
+                        }
+
+                        // If no connected gamepad is found at all, reset physical state to neutral
+                        if !has_active_gamepad {
+                            let mut s = physical_state_arc.write().unwrap();
+                            if *s != ControllerState::default() {
+                                *s = ControllerState::default();
+                                dpad_up = false;
+                                dpad_down = false;
+                                dpad_left = false;
+                                dpad_right = false;
+                                physical_input_changed = true;
                             }
                         }
                     }
