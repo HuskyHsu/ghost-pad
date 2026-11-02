@@ -399,7 +399,8 @@ impl GamepadManager {
                                         Button::RightTrigger2 => s.zr = true,
                                         Button::Select => s.minus = true,
                                         Button::Start => s.plus = true,
-                                        Button::Mode => s.home = true,
+                                        // Ignore physical Home button: Home action is strictly restricted to on-screen UI
+                                        Button::Mode => {}
                                         Button::LeftThumb => s.l_stick_click = true,
                                         Button::RightThumb => s.r_stick_click = true,
                                         Button::C | Button::Z => s.capture = true,
@@ -435,7 +436,7 @@ impl GamepadManager {
                                         Button::RightTrigger2 => s.zr = false,
                                         Button::Select => s.minus = false,
                                         Button::Start => s.plus = false,
-                                        Button::Mode => s.home = false,
+                                        Button::Mode => {}
                                         Button::LeftThumb => s.l_stick_click = false,
                                         Button::RightThumb => s.r_stick_click = false,
                                         Button::C | Button::Z => s.capture = false,
@@ -472,7 +473,7 @@ impl GamepadManager {
                                         Button::RightTrigger2 => s.zr = pressed,
                                         Button::Select => s.minus = pressed,
                                         Button::Start => s.plus = pressed,
-                                        Button::Mode => s.home = pressed,
+                                        Button::Mode => {}
                                         Button::LeftThumb => s.l_stick_click = pressed,
                                         Button::RightThumb => s.r_stick_click = pressed,
                                         Button::C | Button::Z => s.capture = pressed,
