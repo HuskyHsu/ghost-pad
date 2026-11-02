@@ -39,7 +39,7 @@
 #define JOYCON_L 0x01
 #define JOYCON_R 0x02
 
-#define CONTROLLER_TYPE JOYCON_L
+#define CONTROLLER_TYPE PRO_CON
 
 // Buttons and sticks
 #define A_DPAD_CENTER 0x08
@@ -931,14 +931,18 @@ void connection_cb(esp_bd_addr_t bd_addr, esp_hidd_connection_state_t state) {
       ESP_LOGI(TAG, "setting bluetooth non connectable");
       save_switch_address(bd_addr);
       if (ReconnectHandle != NULL) {
-        vTaskDelete(ReconnectHandle);
+        TaskHandle_t rh = ReconnectHandle;
         ReconnectHandle = NULL;
+        vTaskDelete(rh);
       }
       esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE);
 
       // clear blinking LED - solid
-      vTaskDelete(BlinkHandle);
-      BlinkHandle = NULL;
+      if (BlinkHandle != NULL) {
+        TaskHandle_t bh = BlinkHandle;
+        BlinkHandle = NULL;
+        vTaskDelete(bh);
+      }
       gpio_set_level(LED_GPIO, 1);
       // start solid
       xSemaphoreTake(xSemaphore, portMAX_DELAY);
@@ -946,8 +950,9 @@ void connection_cb(esp_bd_addr_t bd_addr, esp_hidd_connection_state_t state) {
       xSemaphoreGive(xSemaphore);
       // restart send_task
       if (SendingHandle != NULL) {
-        vTaskDelete(SendingHandle);
+        TaskHandle_t sh = SendingHandle;
         SendingHandle = NULL;
+        vTaskDelete(sh);
       }
       xTaskCreatePinnedToCore(send_task, "send_task", 2048, NULL, 2,
                               &SendingHandle, 0);
@@ -956,7 +961,9 @@ void connection_cb(esp_bd_addr_t bd_addr, esp_hidd_connection_state_t state) {
       ESP_LOGI(TAG, "connecting");
       break;
     case ESP_HIDD_CONN_STATE_DISCONNECTED:
-      xTaskCreate(startBlink, "blink_task", 1024, NULL, 1, &BlinkHandle);
+      if (BlinkHandle == NULL) {
+        xTaskCreate(startBlink, "blink_task", 1024, NULL, 1, &BlinkHandle);
+      }
       // start blink
       ESP_LOGI(TAG, "disconnected from %02x:%02x:%02x:%02x:%02x:%02x",
                bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4],
@@ -1092,9 +1099,7 @@ void intr_data_cb(uint8_t report_id, uint16_t len, uint8_t* p_data) {
       esp_hid_device_send_report(ESP_HIDD_REPORT_TYPE_INTRDATA, 0x21,
                                  sizeof(reply3001), reply3001);
       ESP_LOGI(TAG, "reply3001");
-      if (CONTROLLER_TYPE == JOYCON_L) {
-        paired = 1;
-      }
+      paired = 1;
     }
 
     if (p_data[9] == 33 && p_data[10] == 33) {

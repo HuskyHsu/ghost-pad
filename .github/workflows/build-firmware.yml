@@ -15,11 +15,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install build dependencies & Python 2.7
+      - name: Install build dependencies & Python environments
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc git wget make libncurses-dev flex bison gperf python2.7 python-pip python-setuptools python-serial
+          sudo apt-get install -y gcc git wget make libncurses-dev flex bison gperf python2.7 python-pip python-setuptools python-serial python3 python3-pip
           sudo ln -sf /usr/bin/python2.7 /usr/bin/python
+          python3 -m pip install -U esptool
 
       - name: Download Xtensa Toolchain for ESP32
         run: |
@@ -32,18 +33,33 @@ jobs:
           git clone --recursive https://github.com/nullstalgia/esp-idf.git $HOME/esp-idf
           echo "IDF_PATH=$HOME/esp-idf" >> $GITHUB_ENV
 
-      - name: Compile Firmware
+      - name: Compile Firmware & Merge All-in-One Binary
         run: |
           cd firmware/uartswitchcon
           make -j$(nproc)
-          cp build/OpenSwitchPad.bin build/PRO-UART0-RECONNECT.bin
+          
+          # Generate merged 0x0 all-in-one binary so flashing at 0x0 cannot brick the bootloader
+          python3 -m esptool --chip esp32 merge_bin \
+            -o build/PRO-UART0-RECONNECT-MERGED.bin \
+            --flash_mode dio \
+            --flash_freq 40m \
+            --flash_size 4MB \
+            0x1000 build/bootloader/bootloader.bin \
+            0x10000 build/partitions_singleapp.bin \
+            0x20000 build/OpenSwitchPad.bin
+
+          # Duplicate with convenient names
+          cp build/PRO-UART0-RECONNECT-MERGED.bin build/PRO-UART0.bin
+          cp build/OpenSwitchPad.bin build/app-only-0x20000.bin
 
       - name: Upload Firmware Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: PRO-UART0-RECONNECT-FIRMWARE
           path: |
+            firmware/uartswitchcon/build/PRO-UART0-RECONNECT-MERGED.bin
+            firmware/uartswitchcon/build/PRO-UART0.bin
             firmware/uartswitchcon/build/bootloader/bootloader.bin
             firmware/uartswitchcon/build/partitions_singleapp.bin
             firmware/uartswitchcon/build/OpenSwitchPad.bin
-            firmware/uartswitchcon/build/PRO-UART0-RECONNECT.bin
+            firmware/uartswitchcon/build/app-only-0x20000.bin

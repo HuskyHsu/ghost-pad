@@ -69,10 +69,21 @@ Nintendo Switch 手把使用藍牙 Classic (BR/EDR) HID，而非 BLE。
 - 0x30 Full Input Report 映射機制（48 bytes，包含 3 bytes 按鍵、12-bit 搖桿與 6 軸 IMU 數據）。
 
 ### 3.2 快速燒錄預編譯韌體
-使用 `esptool` 直接寫入已包含 Bootloader 與分割表的二進位檔：
+使用 `esptool` 直接寫入已包含 Bootloader 與分割表的合併二進位檔（起始位址 `0x0`）：
 ```bash
 python -m esptool --port /dev/cu.usbserial-1140 --baud 460800 write-flash 0x0 firmware/PRO-UART0.bin
 ```
+
+> **注意：分區燒錄位址說明（防磚保護）**
+> 若使用 CI/CD 或自編的分開二進位檔，**切勿將單獨的 app 檔直接燒錄至 `0x0`**（這會覆蓋 ESP32 的 Bootloader 導致無法開機）。正確分區位址為：
+> - Bootloader：`0x1000 build/bootloader/bootloader.bin`
+> - 分割表：`0x10000 build/partitions_singleapp.bin`
+> - 應用程式：`0x20000 build/OpenSwitchPad.bin`
+> 
+> 或使用 `esptool merge_bin` 打包成可在 `0x0` 一鍵燒錄的完整鏡像：
+> ```bash
+> python3 -m esptool --chip esp32 merge_bin -o firmware/PRO-UART0.bin --flash_mode dio --flash_freq 40m --flash_size 4MB 0x1000 build/bootloader/bootloader.bin 0x10000 build/partitions_singleapp.bin 0x20000 build/OpenSwitchPad.bin
+> ```
 
 ### 3.3 Arduino IDE 自行編譯設定
 若需自行修改或編譯 [`firmware/esp32_switch_bridge/esp32_switch_bridge.ino`](file:///Users/shihchi/Developer/ghost-pad/firmware/esp32_switch_bridge/esp32_switch_bridge.ino)：
