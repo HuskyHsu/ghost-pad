@@ -148,15 +148,21 @@ impl ControllerState {
         mask
     }
 
-    /// Bitmask for high buttons (Byte 0 / btn_hi)
+    /// Bitmask for high buttons (Byte 0 in UARTSwitchCon packet / Byte 1 in Protocol.md)
+    /// Bit 0: Minus
+    /// Bit 1: Plus
+    /// Bit 2: L Stick Click
+    /// Bit 3: R Stick Click
+    /// Bit 4: Home (Switch Home Menu)
+    /// Bit 5: Capture (Screenshot)
     pub fn btn_hi(&self) -> u8 {
         let mut mask = 0u8;
         if self.minus { mask |= 1 << 0; }
         if self.plus { mask |= 1 << 1; }
-        if self.home { mask |= 1 << 2; }
-        if self.capture { mask |= 1 << 3; }
-        if self.l_stick_click { mask |= 1 << 4; }
-        if self.r_stick_click { mask |= 1 << 5; }
+        if self.l_stick_click { mask |= 1 << 2; }
+        if self.r_stick_click { mask |= 1 << 3; }
+        if self.home { mask |= 1 << 4; }
+        if self.capture { mask |= 1 << 5; }
         mask
     }
 
@@ -297,6 +303,27 @@ mod tests {
 
         let de_num_center: DPadDirection = serde_json::from_str("8").unwrap();
         assert_eq!(de_num_center, DPadDirection::Center);
+    }
+
+    #[test]
+    fn test_home_and_capture_bitmask_alignment() {
+        let mut state = ControllerState::default();
+        state.home = true;
+        // Home must be Bit 4 (0x10) per UARTSwitchCon firmware specification
+        assert_eq!(state.btn_hi(), 1 << 4);
+
+        state = ControllerState::default();
+        state.capture = true;
+        // Capture must be Bit 5 (0x20)
+        assert_eq!(state.btn_hi(), 1 << 5);
+
+        state = ControllerState::default();
+        state.l_stick_click = true;
+        assert_eq!(state.btn_hi(), 1 << 2);
+
+        state = ControllerState::default();
+        state.r_stick_click = true;
+        assert_eq!(state.btn_hi(), 1 << 3);
     }
 
     #[test]

@@ -250,7 +250,7 @@ describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
     const onPairing = vi.fn();
     render(<HardwareSettings onPairingChange={onPairing} />);
 
-    const wakeBtn = await screen.findByText("按 Home 喚醒 Switch");
+    const wakeBtn = await screen.findByText("返回主畫面 (Home)");
     fireEvent.click(wakeBtn);
 
     await waitFor(() => {

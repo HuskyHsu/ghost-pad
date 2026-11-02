@@ -94,12 +94,13 @@
       "heading": "Do this on the Switch (same for first pairing and reconnecting after wake):",
       "step1": "1. Wake the Switch and open Controllers ➔ Change Grip/Order.",
       "step2": "2. When the controller shows up, press B to leave; the status turns to \"Connected\".",
-      "note": "This page keeps sending the L+R pairing signal on its own. No button presses or clearing the pairing memory needed."
+      "note": "This page keeps sending the L+R pairing signal on its own. No button presses or clearing the pairing memory needed.",
+      "wake_tip": "(If the console is asleep, press the Switch power button to wake it first)"
     },
-    "btn_wake": "Press Home to wake Switch",
     "btn_clear": "Re-pair / change console",
     "btn_neutral": "Emergency neutral",
-    "clear_hint": "Re-pairing is only needed after removing this controller on the Switch or when changing consoles: first use Settings ➔ Controllers and Sensors ➔ Disconnect Controllers on the Switch, then press this button and follow the steps above."
+    "clear_hint": "Re-pairing is only needed after removing this controller on the Switch or when changing consoles: first use Settings ➔ Controllers and Sensors ➔ Disconnect Controllers on the Switch, then press this button and follow the steps above.",
+    "btn_home": "Home Menu (Home)"
   },
   "footer": {
     "port": "● Port: {{port}}",
@@ -129,7 +130,7 @@
     "recommended": "(Recommended)"
   },
   "feedback": {
-    "wake_success": "Home sent; this can wake a sleeping Switch.",
+    "wake_success": "Home key sent (Return to Home Menu). If console is asleep, press Switch power button directly.",
     "neutral_success": "Neutral safety packet sent. All inputs reset to center.",
     "reset_success": "ESP32 pairing memory cleared. Re-pair on the Switch following the steps shown.",
     "need_step1_first": "Please start Step 1 Virtual Gamepad Service before sending commands!",

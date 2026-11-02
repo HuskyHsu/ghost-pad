@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import {
   Cpu,
+  Home,
   RefreshCw,
   Power,
   Zap,
@@ -1067,6 +1068,9 @@ export const HardwareSettings: React.FC<Props> = ({
               <div className="text-[11px] text-text-secondary space-y-1 leading-relaxed">
                 <div className="text-text-primary font-medium">
                   {t("step2.waiting.heading", "在 Switch 上做這一步即可（首次配對與睡醒後回連相同）：")}
+                  <span className="text-text-muted font-normal block sm:inline sm:ml-1 text-[10px]">
+                    {t("step2.waiting.wake_tip", "（若主機休眠，請先按 Switch 電源鍵點亮螢幕）")}
+                  </span>
                 </div>
                 <div>{t("step2.waiting.step1", "1. 喚醒 Switch，進入「控制器」➔「更改拿法/順序」。")}</div>
                 <div>{t("step2.waiting.step2", "2. 看到手把出現後，按 B 退出，狀態就會變為「已連線」。")}</div>
@@ -1084,14 +1088,15 @@ export const HardwareSettings: React.FC<Props> = ({
                 onClick={() =>
                   handleSendCommand(
                     "wake_reconnect",
-                    t("feedback.wake_success", "已送出 Home 鍵，可喚醒休眠中的 Switch。")
+                    t("feedback.wake_success", "已送出 Home 鍵訊號（返回主畫面）。若主機休眠請按 Switch 電源鍵點亮。")
                   )
                 }
                 disabled={activeCommand !== null || !isStep1Ready}
                 className="px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 bg-accent text-accent-foreground hover:bg-accent-hover"
+                title="送出 Home 鍵返回 Switch 主畫面"
               >
-                <Zap className="w-3.5 h-3.5" />
-                <span>{t("step2.btn_wake", "按 Home 喚醒 Switch")}</span>
+                <Home className="w-3.5 h-3.5" />
+                <span>{t("step2.btn_home", "返回主畫面 (Home)")}</span>
               </button>
 
               <button
