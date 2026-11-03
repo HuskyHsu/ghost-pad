@@ -1,0 +1,9 @@
+{
+  "SERIAL_OPEN_FAILED": "Failed to open serial port {{port}}: {{reason}}",
+  "FIRMWARE_VERIFY_FAILED": "ESP32 firmware verification failed: {{reason}}. Please verify PRO-UART0.bin is flashed and port/baudrate ({{baudrate}}) are correct.",
+  "SERIAL_NOT_OPEN": "Serial communication is not active. Please click \"Start Bridge\" first.",
+  "UNKNOWN_SERIAL_COMMAND": "Unknown command: {{command}}",
+  "TASK_EXECUTION_FAILED": "Background task failed: {{reason}}",
+  "THREAD_SPAWN_FAILED": "Failed to start serial transmission thread: {{reason}}",
+  "INTERNAL_ERROR": "Internal error: {{message}}"
+}

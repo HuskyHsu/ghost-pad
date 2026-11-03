@@ -8,11 +8,11 @@
 
 ```text
   ┌─────────────────────────────────────────────────────────┐
-  │                 PC 端 (Python 3.10+)                    │
-  │  - 鍵盤監聽引擎 (pynput, 實體 WASD/技能即時映射)         │
-  │  - 宣告式腳本執行器 (JSON / YAML, 毫秒級高精度時間序)    │
-  │  - 巨集錄製器 (實時捕獲時序差並導出為標準 JSON)           │
+  │         PC 端 (Ghost-Pad Desktop: Rust Core + Tauri v2) │
+  │  - 手把輪詢引擎 (gilrs, 8BitDo / Joy-Con / Pro 原生支援) │
+  │  - 鍵盤與螢幕觸控映射 (WASD + 三路輸入並行橋接)          │
   │  - 50~60Hz 心跳發送循環 & 一鍵 Fail-safe 緊急中斷機制    │
+  │  - 即時 60~120Hz 幽靈手把儀表板與音樂五線譜時序流        │
   └───────────────────────────┬─────────────────────────────┘
                               │ USB 序列埠 (Baud: 19200)
                               │ 低延遲二進位封包 (Binary Protocol)
@@ -68,13 +68,11 @@ Nintendo Switch 手把使用藍牙 Classic (BR/EDR) HID，而非 BLE。
 - L2CAP 專屬通訊通道 (PSM 0x11, 0x13)
 - 0x30 Full Input Report 映射機制（48 bytes，包含 3 bytes 按鍵、12-bit 搖桿與 6 軸 IMU 數據）。
 
-### 3.2 快速燒錄預編譯韌體
-使用 `esptool` 直接寫入已包含 Bootloader 與分割表的二進位檔：
+### 3.2 燒錄預編譯韌體
+本專案已直接內建開箱即用的合併韌體二進位檔 [`firmware/PRO-UART0.bin`](file:///Users/shihchi/Developer/ghost-pad/firmware/PRO-UART0.bin)（已整合 Bootloader、分區表及 Switch Pro Controller 藍牙模擬程式，起始位址 `0x0`），不需另行配置編譯環境或建置韌體。
+
+使用 `esptool` 直接寫入即可：
 ```bash
 python -m esptool --port /dev/cu.usbserial-1140 --baud 460800 write-flash 0x0 firmware/PRO-UART0.bin
 ```
-
-### 3.3 Arduino IDE 自行編譯設定
-若需自行修改或編譯 [`firmware/esp32_switch_bridge/esp32_switch_bridge.ino`](file:///Users/shihchi/Developer/ghost-pad/firmware/esp32_switch_bridge/esp32_switch_bridge.ino)：
-1. 開發板：選擇 **ESP32 Dev Module**
-2. 分割表（Partition Scheme）：必須選擇 **`Huge APP (3MB No OTA / 1MB SPIFFS)`**（因藍牙協定棧體積約 1.3MB，預設分區會編譯失敗）。
+（亦可直接使用 Ghost-Pad 桌面應用程式中的「一鍵燒錄」功能自動完成寫入）

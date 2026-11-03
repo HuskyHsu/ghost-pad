@@ -1,0 +1,116 @@
+name: Release Desktop App (macOS)
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos-release:
+    name: Build & Release macOS App (Universal)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+
+      - name: Cache Cargo dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "desktop/src-tauri -> target"
+
+      - name: Install desktop dependencies
+        run: |
+          cd desktop
+          npm ci
+
+      - name: Sync version from tag (if present)
+        run: |
+          REF_NAME="${{ github.ref_name }}"
+          if [[ "$REF_NAME" =~ ^v?[0-9]+\.[0-9]+ ]]; then
+            VERSION="${REF_NAME#v}"
+            echo "Tag version detected: $VERSION. Syncing to desktop configs..."
+            
+            node -e "
+              const fs = require('fs');
+              const v = '$VERSION';
+              
+              // 1. desktop/package.json
+              const pkg = JSON.parse(fs.readFileSync('desktop/package.json', 'utf8'));
+              pkg.version = v;
+              fs.writeFileSync('desktop/package.json', JSON.stringify(pkg, null, 2) + '\n');
+              
+              // 2. desktop/src-tauri/tauri.conf.json
+              const conf = JSON.parse(fs.readFileSync('desktop/src-tauri/tauri.conf.json', 'utf8'));
+              conf.version = v;
+              fs.writeFileSync('desktop/src-tauri/tauri.conf.json', JSON.stringify(conf, null, 2) + '\n');
+              
+              // 3. desktop/src-tauri/Cargo.toml
+              let cargo = fs.readFileSync('desktop/src-tauri/Cargo.toml', 'utf8');
+              cargo = cargo.replace(/(\[package\][\s\S]*?version\s*=\s*\")[^\"]+(\")/, '\$1' + v + '\$2');
+              fs.writeFileSync('desktop/src-tauri/Cargo.toml', cargo);
+            "
+          else
+            echo "Non-semantic version tag or manual trigger, keeping existing config versions."
+          fi
+
+      - name: Run Frontend Tests
+        run: |
+          cd desktop
+          npm test
+        env:
+          NODE_OPTIONS: "--require ./src/test/node-polyfill.cjs"
+
+      - name: Run Backend Tests
+        run: |
+          cargo test --manifest-path desktop/src-tauri/Cargo.toml
+
+      - name: Build Tauri macOS Universal Bundle
+        run: |
+          cd desktop
+          # Builds Universal binary (.dmg and .app supporting both Apple Silicon and Intel Mac)
+          npx tauri build --target universal-apple-darwin
+
+      - name: Package macOS .app into ZIP archive
+        run: |
+          BUNDLE_DIR="desktop/src-tauri/target/universal-apple-darwin/release/bundle"
+          APP_PATH="$BUNDLE_DIR/macos/Ghost-Pad.app"
+          
+          if [ -d "$APP_PATH" ]; then
+            cd "$BUNDLE_DIR/macos"
+            # Using ditto preserves macOS file attributes, symlinks, and code signatures
+            ditto -c -k --sequesterRsrc --keepParent Ghost-Pad.app Ghost-Pad-macOS-universal.zip
+            echo "Created Ghost-Pad-macOS-universal.zip successfully."
+          fi
+
+      - name: Create GitHub Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Ghost-Pad ${{ github.ref_name }}"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            desktop/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

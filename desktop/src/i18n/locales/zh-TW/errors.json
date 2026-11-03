@@ -1,0 +1,9 @@
+{
+  "SERIAL_OPEN_FAILED": "無法開啟序列埠 {{port}}：{{reason}}",
+  "FIRMWARE_VERIFY_FAILED": "ESP32 韌體驗證失敗：{{reason}}。請確認已燒錄 PRO-UART0.bin、序列埠與鮑率 ({{baudrate}}) 正確。",
+  "SERIAL_NOT_OPEN": "序列通訊未開啟，請先點擊「開啟虛擬手把」",
+  "UNKNOWN_SERIAL_COMMAND": "未知的指令：{{command}}",
+  "TASK_EXECUTION_FAILED": "背景工作執行失敗：{{reason}}",
+  "THREAD_SPAWN_FAILED": "無法啟動序列發送線程：{{reason}}",
+  "INTERNAL_ERROR": "內部錯誤：{{message}}"
+}
