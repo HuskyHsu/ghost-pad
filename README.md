@@ -41,7 +41,16 @@ ghost-pad/
 
 ---
 
-## 🚀 快速啟動桌面端 (Getting Started)
+## 📦 下載與安裝 (Download & Releases)
+
+一般使用者無需自行安裝開發環境或編譯程式碼：
+- 請前往本專案的 **[GitHub Releases 頁面](https://github.com/shihchi/ghost-pad/releases)**。
+- 下載最新的 **`Ghost-Pad_<version>_universal.dmg`**（通用二進位版本，同時支援 Apple Silicon M1/M2/M3/M4 與 Intel Mac）。
+- 開啟 `.dmg` 檔案，將 **Ghost-Pad** 拖入「應用程式 (Applications)」資料夾即可直接使用！
+
+---
+
+## 🚀 開發者快速啟動 (Getting Started)
 
 請確保電腦已安裝 **Node.js 18+** 與 **Rust 工具鏈**，切換至 `desktop` 目錄即可啟動：
 
@@ -64,14 +73,28 @@ npm run dev
 
 ---
 
-## 🧪 自動化測試 (Automated Testing)
+## 🧪 自動化測試與 CI/CD (Testing & Releases)
 
-本專案具備完整的前後端單元測試與 GitHub Actions CI/CD 流程：
+本專案具備完整的前後端單元測試與 GitHub Actions CI/CD 發布流程：
 
 ```bash
-# 執行前端測試 (57 項全通)
+# 執行前端測試 (90 項全通)
 cd desktop && npm test
 
-# 執行 Rust 後端通訊與狀態合併測試 (18 項全通)
+# 執行 Rust 後端通訊與狀態合併測試 (20 項全通)
 cd desktop/src-tauri && cargo test
+```
+
+### 🏷️ 建立與發布新版本 (Release Tagging)
+
+每當在 Git 打上版本標籤（例如 `v1.0.0`）並推送到 GitHub 時，CI/CD 會自動啟動：
+1. 自動同步版本號至前端與後端設定檔。
+2. 執行所有前端與後端單元測試。
+3. 在 macOS Runner 上建置 Universal 二進位應用程式（支援 Apple Silicon 與 Intel）。
+4. 自動發布至 **GitHub Releases**，包含 `.dmg` 安裝檔與 `.zip` 壓縮檔供使用者直接下載。
+
+```bash
+# 打上版本標籤並推送
+git tag v1.0.0
+git push origin v1.0.0
 ```
