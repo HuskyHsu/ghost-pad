@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
+import ghostPadIcon from "../assets/Ghost-Pad-icon.svg";
 
 interface Props {
   activeTab: "dashboard" | "macro" | "hardware";
@@ -60,8 +61,8 @@ export const Sidebar: React.FC<Props> = ({
       {/* Top App Header */}
       <div className="h-14 px-4 border-b border-border-subtle flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-surface-card border border-border-element shadow-xs flex items-center justify-center text-text-primary">
-            <Gamepad2 className="w-4 h-4 text-text-primary" />
+          <div className="w-7 h-7 rounded-lg bg-[#033157] border border-border-element shadow-xs flex items-center justify-center p-1 overflow-hidden shrink-0">
+            <img src={ghostPadIcon} alt="Ghost-Pad" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="font-semibold text-xs tracking-tight text-text-primary">Ghost-Pad</div>

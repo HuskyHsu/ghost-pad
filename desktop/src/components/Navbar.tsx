@@ -1,7 +1,7 @@
 import React from "react";
-import { Gamepad2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import ghostPadIcon from "../assets/Ghost-Pad-icon.svg";
 
 interface Props {
   activeTab: "dashboard" | "macro" | "hardware";
@@ -22,8 +22,8 @@ export const Navbar: React.FC<Props> = ({
     <header className="h-14 px-6 bg-surface-card/90 border-b border-border-subtle flex items-center justify-between backdrop-blur-md select-none sticky top-0 z-50">
       {/* Brand Identity */}
       <div className="flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-lg bg-surface-sidebar border border-border-subtle flex items-center justify-center text-text-secondary shadow-xs">
-          <Gamepad2 className="w-4 h-4" />
+        <div className="w-7 h-7 rounded-lg bg-[#033157] border border-border-subtle flex items-center justify-center shadow-xs p-1 overflow-hidden shrink-0">
+          <img src={ghostPadIcon} alt="Ghost-Pad" className="w-full h-full object-contain" />
         </div>
         <div>
           <span className="font-semibold text-sm tracking-tight text-text-primary">{t("app_name")}</span>
