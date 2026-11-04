@@ -1,25 +1,9 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { ControllerState } from "../types";
-import { MacroAction, MacroButtonName, RecordingPhase } from "../types/macro";
-import { getStickDirection } from "../components/InputTimelineStream";
-import i18n from "../i18n";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { getStickDirection } from '../components/InputTimelineStream';
+import { ControllerState } from '../types';
+import { MacroAction, MacroButtonName, RecordingPhase } from '../types/macro';
 
-const BUTTON_KEYS: MacroButtonName[] = [
-  "a",
-  "b",
-  "x",
-  "y",
-  "l",
-  "r",
-  "zl",
-  "zr",
-  "minus",
-  "plus",
-  "home",
-  "capture",
-  "l_stick_click",
-  "r_stick_click",
-];
+const BUTTON_KEYS: MacroButtonName[] = ['a', 'b', 'x', 'y', 'l', 'r', 'zl', 'zr', 'minus', 'plus', 'home', 'capture', 'l_stick_click', 'r_stick_click'];
 
 interface RawActionWithTiming extends MacroAction {
   _startedAt: number;
@@ -43,7 +27,7 @@ interface UseMacroRecorderOptions {
 }
 
 export function useMacroRecorder(options?: UseMacroRecorderOptions) {
-  const [phase, setPhase] = useState<RecordingPhase>("idle");
+  const [phase, setPhase] = useState<RecordingPhase>('idle');
   const [countdown, setCountdown] = useState<number>(3);
   const [recordedActions, setRecordedActions] = useState<MacroAction[]>([]);
   const [recordingElapsedMs, setRecordingElapsedMs] = useState<number>(0);
@@ -71,7 +55,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
   }, []);
 
   const startRecordingImmediate = useCallback(() => {
-    setPhase("recording");
+    setPhase('recording');
     const now = performance.now();
     recordingStartTimeRef.current = now;
     completedActionsRef.current = [];
@@ -90,8 +74,8 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
   }, []);
 
   const startCountdown = useCallback(() => {
-    if (phase !== "idle") return;
-    setPhase("countdown");
+    if (phase !== 'idle') return;
+    setPhase('countdown');
     setCountdown(3);
 
     if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
@@ -114,12 +98,12 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
       clearInterval(countdownTimerRef.current);
       countdownTimerRef.current = null;
     }
-    setPhase("idle");
+    setPhase('idle');
     setCountdown(3);
   }, []);
 
   const stopRecording = useCallback(() => {
-    if (phase !== "recording") return;
+    if (phase !== 'recording') return;
 
     if (elapsedTimerRef.current) {
       clearInterval(elapsedTimerRef.current);
@@ -134,11 +118,9 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
       const dur = Math.max(30, Math.round(now - startTime));
       completedActionsRef.current.push({
         id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-        type: "button",
+        type: 'button',
         button: btn,
         durationMs: dur,
-        delayAfterMs: 40,
-        note: i18n.t("macro:notes.press_button", { btn: btn.toUpperCase(), defaultValue: `按壓 ${btn.toUpperCase()}` }),
         _startedAt: startTime,
         _endedAt: now,
       });
@@ -150,13 +132,11 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
       const { startedAt, x, y } = activeStickLeftRef.current;
       completedActionsRef.current.push({
         id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-        type: "stick",
-        stick: "left",
+        type: 'stick',
+        stick: 'left',
         stickX: x,
         stickY: y,
         durationMs: Math.max(40, Math.round(now - startedAt)),
-        delayAfterMs: 40,
-        note: i18n.t("macro:notes.push_l_stick", { defaultValue: "推動左搖桿" }),
         _startedAt: startedAt,
         _endedAt: now,
       });
@@ -168,13 +148,11 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
       const { startedAt, x, y } = activeStickRightRef.current;
       completedActionsRef.current.push({
         id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-        type: "stick",
-        stick: "right",
+        type: 'stick',
+        stick: 'right',
         stickX: x,
         stickY: y,
         durationMs: Math.max(40, Math.round(now - startedAt)),
-        delayAfterMs: 40,
-        note: i18n.t("macro:notes.push_r_stick", { defaultValue: "推動右搖桿" }),
         _startedAt: startedAt,
         _endedAt: now,
       });
@@ -186,11 +164,9 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
       const { startedAt, direction } = activeDpadRef.current;
       completedActionsRef.current.push({
         id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-        type: "dpad",
+        type: 'dpad',
         dpad: direction,
         durationMs: Math.max(40, Math.round(now - startedAt)),
-        delayAfterMs: 40,
-        note: i18n.t("macro:notes.push_dpad", { defaultValue: "十字鍵" }),
         _startedAt: startedAt,
         _endedAt: now,
       });
@@ -200,7 +176,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
     // 5. Sort all actions STRICTLY chronologically by _startedAt
     const sorted = [...completedActionsRef.current].sort((a, b) => a._startedAt - b._startedAt);
 
-    // 6. Split gaps into independent 'wait' actions instead of embedding in delayAfterMs
+    // 6. Split gaps into independent 'wait' actions
     const finalActions: MacroAction[] = [];
     for (let idx = 0; idx < sorted.length; idx++) {
       const item = sorted[idx];
@@ -213,8 +189,6 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
         stickY: item.stickY,
         dpad: item.dpad,
         durationMs: item.durationMs,
-        delayAfterMs: 0,
-        note: item.note,
       });
 
       // If gap before next action >= 10ms, insert an independent wait action
@@ -223,10 +197,8 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
         if (gap >= 10) {
           finalActions.push({
             id: `act-wait-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-            type: "wait",
+            type: 'wait',
             durationMs: gap,
-            delayAfterMs: 0,
-            note: i18n.t("macro:notes.wait", { defaultValue: "等待暫停" }),
           });
         }
       }
@@ -239,16 +211,14 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
       if (trailingGap >= 40) {
         finalActions.push({
           id: `act-wait-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-          type: "wait",
+          type: 'wait',
           durationMs: trailingGap,
-          delayAfterMs: 0,
-          note: i18n.t("macro:notes.wait", { defaultValue: "等待暫停" }),
         });
       }
     }
 
     setRecordedActions(finalActions);
-    setPhase("idle");
+    setPhase('idle');
 
     if (options?.onRecordingComplete) {
       options.onRecordingComplete(finalActions, finalDuration);
@@ -259,7 +229,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
   // Feed live state into recorder
   const feedControllerState = useCallback(
     (state: ControllerState) => {
-      if (phase !== "recording") return;
+      if (phase !== 'recording') return;
 
       const now = performance.now();
 
@@ -279,25 +249,21 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
 
           completedActionsRef.current.push({
             id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-            type: "button",
+            type: 'button',
             button: btn,
             durationMs: duration,
-            delayAfterMs: 40,
-            note: i18n.t("macro:notes.press_button", { btn: btn.toUpperCase(), defaultValue: `按壓 ${btn.toUpperCase()}` }),
             _startedAt: startTime,
             _endedAt: now,
           });
 
           // Live preview in sorted chronological order
-          const liveSorted = [...completedActionsRef.current]
-            .sort((a, b) => a._startedAt - b._startedAt)
-            .map((item) => ({ ...item }));
+          const liveSorted = [...completedActionsRef.current].sort((a, b) => a._startedAt - b._startedAt).map((item) => ({ ...item }));
           setRecordedActions(liveSorted);
         }
       }
 
       // 2. Process Left Stick Direction Transitions
-      const currLDir = getStickDirection(state.left_stick_x, state.left_stick_y, "L");
+      const currLDir = getStickDirection(state.left_stick_x, state.left_stick_y, 'L');
       const prevLDir = activeStickLeftRef.current?.direction || null;
 
       if (currLDir !== prevLDir) {
@@ -306,13 +272,11 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
           const { startedAt, x, y } = activeStickLeftRef.current;
           completedActionsRef.current.push({
             id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-            type: "stick",
-            stick: "left",
+            type: 'stick',
+            stick: 'left',
             stickX: x,
             stickY: y,
             durationMs: Math.max(30, Math.round(now - startedAt)),
-            delayAfterMs: 40,
-            note: i18n.t("macro:notes.push_l_stick", { defaultValue: "推動左搖桿" }),
             _startedAt: startedAt,
             _endedAt: now,
           });
@@ -329,14 +293,12 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
           };
         }
 
-        const liveSorted = [...completedActionsRef.current]
-          .sort((a, b) => a._startedAt - b._startedAt)
-          .map((item) => ({ ...item }));
+        const liveSorted = [...completedActionsRef.current].sort((a, b) => a._startedAt - b._startedAt).map((item) => ({ ...item }));
         setRecordedActions(liveSorted);
       }
 
       // 3. Process Right Stick Direction Transitions
-      const currRDir = getStickDirection(state.right_stick_x, state.right_stick_y, "R");
+      const currRDir = getStickDirection(state.right_stick_x, state.right_stick_y, 'R');
       const prevRDir = activeStickRightRef.current?.direction || null;
 
       if (currRDir !== prevRDir) {
@@ -344,13 +306,11 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
           const { startedAt, x, y } = activeStickRightRef.current;
           completedActionsRef.current.push({
             id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-            type: "stick",
-            stick: "right",
+            type: 'stick',
+            stick: 'right',
             stickX: x,
             stickY: y,
             durationMs: Math.max(30, Math.round(now - startedAt)),
-            delayAfterMs: 40,
-            note: i18n.t("macro:notes.push_r_stick", { defaultValue: "推動右搖桿" }),
             _startedAt: startedAt,
             _endedAt: now,
           });
@@ -366,14 +326,12 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
           };
         }
 
-        const liveSorted = [...completedActionsRef.current]
-          .sort((a, b) => a._startedAt - b._startedAt)
-          .map((item) => ({ ...item }));
+        const liveSorted = [...completedActionsRef.current].sort((a, b) => a._startedAt - b._startedAt).map((item) => ({ ...item }));
         setRecordedActions(liveSorted);
       }
 
       // 4. Process D-Pad Direction Transitions
-      const dpadVal = typeof state.dpad === "number" ? state.dpad : 8;
+      const dpadVal = typeof state.dpad === 'number' ? state.dpad : 8;
       const prevDpadVal = activeDpadRef.current?.direction ?? 8;
 
       if (dpadVal !== prevDpadVal) {
@@ -381,11 +339,9 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
           const { startedAt, direction } = activeDpadRef.current;
           completedActionsRef.current.push({
             id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-            type: "dpad",
+            type: 'dpad',
             dpad: direction,
             durationMs: Math.max(30, Math.round(now - startedAt)),
-            delayAfterMs: 40,
-            note: i18n.t("macro:notes.push_dpad", { defaultValue: "十字鍵" }),
             _startedAt: startedAt,
             _endedAt: now,
           });
@@ -399,13 +355,11 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
           };
         }
 
-        const liveSorted = [...completedActionsRef.current]
-          .sort((a, b) => a._startedAt - b._startedAt)
-          .map((item) => ({ ...item }));
+        const liveSorted = [...completedActionsRef.current].sort((a, b) => a._startedAt - b._startedAt).map((item) => ({ ...item }));
         setRecordedActions(liveSorted);
       }
     },
-    [phase]
+    [phase],
   );
 
   return {

@@ -41,40 +41,40 @@ export const MacroPlayerBar: React.FC<Props> = ({
     <div className="w-full bg-surface-card/95 border-t border-border-subtle backdrop-blur-md px-4 py-2.5 shrink-0 select-none shadow-md">
       {/* Control Console Row: 3 columns with fixed left and right */}
       <div className="w-full flex items-center justify-between gap-4">
-        {/* Left: Playback Controls & Script Title */}
-        <div className="flex items-center gap-3 shrink-0 min-w-[260px]">
+        {/* Left: Playback Controls & Live Status */}
+        <div className="flex items-center gap-2.5 shrink-0">
           {/* Main Play / Pause / Stop Group */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             {!isPlaying ? (
               <button
                 type="button"
                 disabled={!script || script.actions.length === 0}
                 onClick={onPlay}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs disabled:opacity-35 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed transition-colors cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs disabled:opacity-35 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed transition-colors cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                 title={t("player.play_tooltip", "開始播放腳本")}
               >
-                <Play className="w-3.5 h-3.5 fill-current" />
-                <span>{t("player.play", "播放")}</span>
+                <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+                <span className="whitespace-nowrap">{t("player.play", "播放")}</span>
               </button>
             ) : isPaused ? (
               <button
                 type="button"
                 onClick={onResume}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                 title={t("player.resume_tooltip", "繼續播放")}
               >
-                <Play className="w-3.5 h-3.5 fill-current" />
-                <span>{t("player.resume", "繼續")}</span>
+                <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+                <span className="whitespace-nowrap">{t("player.resume", "繼續")}</span>
               </button>
             ) : (
               <button
                 type="button"
                 onClick={onPause}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 shadow-xs transition-colors cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 shadow-xs transition-colors cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                 title={t("player.pause_tooltip", "暫停播放")}
               >
-                <Pause className="w-3.5 h-3.5" />
-                <span>{t("player.pause", "暫停")}</span>
+                <Pause className="w-3.5 h-3.5 shrink-0" />
+                <span className="whitespace-nowrap">{t("player.pause", "暫停")}</span>
               </button>
             )}
 
@@ -83,43 +83,43 @@ export const MacroPlayerBar: React.FC<Props> = ({
               type="button"
               disabled={!isPlaying}
               onClick={onStop}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-rose-50 text-text-secondary hover:text-rose-700 border border-border-element hover:border-rose-300 disabled:opacity-35 disabled:hover:bg-surface-card disabled:hover:text-text-secondary disabled:hover:border-border-element disabled:cursor-not-allowed shadow-xs transition-colors cursor-pointer active:scale-95"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-rose-50 text-text-secondary hover:text-rose-700 border border-border-element hover:border-rose-300 disabled:opacity-35 disabled:hover:bg-surface-card disabled:hover:text-text-secondary disabled:hover:border-border-element disabled:cursor-not-allowed shadow-xs transition-colors cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
               title={t("player.stop_tooltip", "停止播放並重置手把中立 (Esc)")}
             >
-              <Square className="w-3 h-3 fill-current" />
-              <span className="hidden sm:inline">{t("player.stop", "停止")}</span>
-              <kbd className="hidden lg:inline-block text-[9px] px-1 py-0.2 rounded bg-surface-input text-text-muted font-mono border border-border-subtle">
+              <Square className="w-3 h-3 fill-current shrink-0" />
+              <span className="hidden sm:inline whitespace-nowrap">{t("player.stop", "停止")}</span>
+              <kbd className="hidden lg:inline-block text-[9px] px-1 py-0.2 rounded bg-surface-input text-text-muted font-mono border border-border-subtle shrink-0">
                 Esc
               </kbd>
             </button>
           </div>
 
-          {/* Script Name & Status Indicator */}
-          <div className="flex flex-col">
-            <div className="text-xs font-medium text-text-primary truncate max-w-[160px]">
-              {script ? script.name : t("player.no_selection", "未選擇腳本")}
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-mono">
-              {isPlaying ? (
-                <span className="flex items-center gap-1 text-emerald-600 font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  {isPaused
-                    ? t("player.paused", "已暫停")
-                    : t("player.loop_status", {
-                        loop: status.currentLoop,
-                        step: status.currentActionIndex + 1,
-                        defaultValue: `循環 #${status.currentLoop} • 步 #${status.currentActionIndex + 1}`,
-                      })}
+          {/* Active Live Status Badge (Only shown when running or paused) */}
+          {isPlaying && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded font-mono text-[11px] border shrink-0 whitespace-nowrap shadow-xs">
+              {isPaused ? (
+                <span className="flex items-center gap-1.5 text-amber-700 font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span>{t("player.paused", "已暫停")}</span>
                 </span>
               ) : (
-                <span className="text-text-muted">{t("player.standby", "待命就緒")}</span>
+                <span className="flex items-center gap-1.5 text-emerald-600 font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>
+                    {t("player.loop_status", {
+                      loop: status.currentLoop,
+                      step: status.currentActionIndex + 1,
+                      defaultValue: `循環 #${status.currentLoop} • 步 #${status.currentActionIndex + 1}`,
+                    })}
+                  </span>
+                </span>
               )}
             </div>
-          </div>
+          )}
         </div>
 
         {/* Middle: Progress Bar */}
-        <div className="flex-1 max-w-md min-w-[120px] mx-2 flex flex-col gap-1">
+        <div className="flex-1 max-w-xl mx-3 flex flex-col gap-1 min-w-0">
           <div className="flex items-center justify-between text-[10px] text-text-muted font-mono">
             <span>{t("player.progress", { percent: status.progressPercent, defaultValue: `進度：${status.progressPercent}%` })}</span>
             <span>
@@ -134,7 +134,9 @@ export const MacroPlayerBar: React.FC<Props> = ({
           </div>
           <div className="w-full h-1.5 rounded-full bg-surface-input border border-border-subtle overflow-hidden relative">
             <div
-              className="h-full bg-accent-primary transition-all duration-100 ease-out"
+              className={`h-full transition-all duration-100 ease-out ${
+                isPlaying ? "bg-emerald-500" : "bg-accent-primary"
+              }`}
               style={{ width: `${status.progressPercent}%` }}
             />
           </div>
@@ -143,11 +145,11 @@ export const MacroPlayerBar: React.FC<Props> = ({
         {/* Right: Loop Mode Controls */}
         <div className="shrink-0 flex items-center gap-2 justify-end">
           {/* Loop Mode Selector */}
-          <div className="flex items-center gap-0.5 bg-surface-input p-0.5 rounded-md border border-border-subtle">
+          <div className="flex items-center gap-0.5 bg-surface-input p-0.5 rounded-md border border-border-subtle shrink-0">
             <button
               type="button"
               onClick={() => onChangeConfig({ loopMode: "once" })}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
                 config.loopMode === "once"
                   ? "bg-surface-card text-text-primary border border-border-element shadow-xs"
                   : "text-text-muted hover:text-text-primary border border-transparent"
@@ -160,21 +162,21 @@ export const MacroPlayerBar: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => onChangeConfig({ loopMode: "count" })}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
                 config.loopMode === "count"
                   ? "bg-surface-card text-text-primary border border-border-element shadow-xs"
                   : "text-text-muted hover:text-text-primary border border-transparent"
               }`}
               title={t("player.loop_count_tooltip", "循環指定次數")}
             >
-              <Repeat className="w-3 h-3" />
+              <Repeat className="w-3 h-3 shrink-0" />
               <span>{t("player.loop_count", "循環")}</span>
             </button>
 
             <button
               type="button"
               onClick={() => onChangeConfig({ loopMode: "infinite" })}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
                 config.loopMode === "infinite"
                   ? "bg-surface-card text-text-primary border border-border-element shadow-xs"
                   : "text-text-muted hover:text-text-primary border border-transparent"

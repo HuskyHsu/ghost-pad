@@ -19,8 +19,9 @@
   "untitled_macro": "Untitled Macro",
   "save_changes": "Save Changes",
   "saved": "Saved",
+  "export_success_title": "File Saved Successfully",
+  "export_success_path": "Saved to: {{path}}",
   "back_to_list": "Back to List",
-  "preset_badge": "Preset",
   "export_json_tooltip": "Export single JSON macro file",
   "duplicate_tooltip": "Duplicate as new macro",
   "delete_tooltip": "Delete this macro",
@@ -93,11 +94,11 @@
     "trim_tooltip": "Auto trim leading/trailing whitespace & minor noise",
     "line_header": "Line {{line}} ({{start}}s ~ {{end}}s)",
     "grid_scale": "1s per grid • {{sec}}s total",
-    "opt_4s": "4s / Line (High Zoom • Detailed)",
-    "opt_6s": "6s / Line (Balanced)",
-    "opt_8s": "8s / Line (Standard)",
-    "opt_10s": "10s / Line",
-    "opt_12s": "12s / Line",
+    "opt_5s": "5s / line",
+    "opt_10s": "10s / line",
+    "opt_15s": "15s / line",
+    "opt_20s": "20s / line",
+    "opt_30s": "30s / line",
     "consecutive_waits_tip": "Found {{count}} consecutive wait step(s) with no other inputs in between. We recommend merging them to streamline the timing.",
     "btn_merge_waits": "Merge Consecutive Waits",
     "merge_waits_tooltip": "Merge adjacent consecutive wait steps into single wait steps",
@@ -203,7 +204,6 @@
     "minus_desc": "Minus (−) Select",
     "home_desc": "Home (⌂) Button",
     "capture_desc": "Capture (◉) Button",
-    "imported_script_default_name": "Imported Script",
-    "imported_tag": "Imported"
+    "imported_script_default_name": "Imported Script"
   }
 }

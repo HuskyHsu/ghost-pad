@@ -19,8 +19,9 @@
   "untitled_macro": "未命名巨集",
   "save_changes": "儲存變更",
   "saved": "已儲存",
+  "export_success_title": "檔案儲存成功",
+  "export_success_path": "已儲存至：{{path}}",
   "back_to_list": "返回清單",
-  "preset_badge": "範本",
   "export_json_tooltip": "匯出單一 JSON 腳本檔案",
   "duplicate_tooltip": "複製一份新腳本",
   "delete_tooltip": "刪除此腳本",
@@ -93,11 +94,11 @@
     "trim_tooltip": "自動修剪頭尾空白與微隙雜訊",
     "line_header": "第 {{line}} 行 ({{start}}s ~ {{end}}s)",
     "grid_scale": "每格 1 秒 • 共 {{sec}} 秒",
-    "opt_4s": "4 秒 / 行 (特大放大 • 微操清晰)",
-    "opt_6s": "6 秒 / 行 (清晰平衡)",
-    "opt_8s": "8 秒 / 行 (標準)",
+    "opt_5s": "5 秒 / 行",
     "opt_10s": "10 秒 / 行",
-    "opt_12s": "12 秒 / 行",
+    "opt_15s": "15 秒 / 行",
+    "opt_20s": "20 秒 / 行",
+    "opt_30s": "30 秒 / 行",
     "consecutive_waits_tip": "偵測到時序中存在 {{count}} 處連續的等待步驟（中途無其他動作），建議點選合併以精簡時序。",
     "btn_merge_waits": "合併連續等待",
     "merge_waits_tooltip": "將相鄰的連續等待合併為單一步驟",
@@ -203,7 +204,6 @@
     "minus_desc": "Minus 選擇鍵",
     "home_desc": "Home 主頁鍵",
     "capture_desc": "Capture 截圖鍵",
-    "imported_script_default_name": "匯入之腳本",
-    "imported_tag": "已匯入"
+    "imported_script_default_name": "匯入之腳本"
   }
 }

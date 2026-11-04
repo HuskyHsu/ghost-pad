@@ -33,11 +33,9 @@ export const SaveMacroModal: React.FC<Props> = ({
       id: `macro-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       name: name.trim() || defaultTitle,
       description: description.trim(),
-      tags: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
       actions,
-      isPreset: false,
     };
     onSave(newScript, openEditor);
   };
@@ -117,30 +115,30 @@ export const SaveMacroModal: React.FC<Props> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
+        <div className="flex items-center justify-between pt-3 border-t border-border-subtle gap-2">
           <button
             type="button"
             onClick={onDiscard}
-            className="px-3 py-1.5 rounded-md text-xs font-medium text-text-muted hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+            className="px-3 py-1.5 rounded-md text-xs font-medium text-text-muted hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
           >
             {t("save_modal.discard", "捨棄錄製")}
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => handleSaveInternal(false)}
-              className="px-3.5 py-1.5 rounded-md text-xs font-medium bg-surface-card text-text-primary hover:bg-interactive-hover transition-colors cursor-pointer border border-border-subtle shadow-xs"
+              className="px-3.5 py-1.5 rounded-md text-xs font-medium bg-surface-card text-text-primary hover:bg-interactive-hover transition-colors cursor-pointer border border-border-subtle shadow-xs shrink-0 whitespace-nowrap"
             >
               {t("save_modal.save_only", "僅儲存腳本")}
             </button>
             <button
               type="button"
               onClick={() => handleSaveInternal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium bg-accent hover:bg-accent/90 text-accent-foreground shadow-xs transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium bg-accent hover:bg-accent/90 text-accent-foreground shadow-xs transition-colors cursor-pointer shrink-0 whitespace-nowrap"
             >
-              <span>{t("save_modal.save_and_edit", "儲存並編輯")}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span className="whitespace-nowrap">{t("save_modal.save_and_edit", "儲存並編輯")}</span>
+              <ArrowRight className="w-3.5 h-3.5 shrink-0" />
             </button>
           </div>
         </div>

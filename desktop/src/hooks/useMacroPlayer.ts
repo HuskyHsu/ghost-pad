@@ -1,12 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import {
-  MacroScript,
-  MacroPlaybackConfig,
-  MacroPlayerStatus,
-} from "../types/macro";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { MacroPlaybackConfig, MacroPlayerStatus, MacroScript } from '../types/macro';
 
 export const DEFAULT_PLAYBACK_CONFIG: MacroPlaybackConfig = {
-  loopMode: "once",
+  loopMode: 'once',
   loopCount: 1,
   loopDelayMs: 500,
   speedMultiplier: 1.0,
@@ -14,7 +10,7 @@ export const DEFAULT_PLAYBACK_CONFIG: MacroPlaybackConfig = {
 
 interface UseMacroPlayerOptions {
   onTriggerButton?: (button: string, pressed: boolean) => void;
-  onTriggerStick?: (stick: "left" | "right", x: number, y: number) => void;
+  onTriggerStick?: (stick: 'left' | 'right', x: number, y: number) => void;
   onTriggerDpad?: (direction: number) => void;
   onResetInputs?: () => void;
   onPlaybackComplete?: (script: MacroScript) => void;
@@ -80,8 +76,8 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
       optionsRef.current.onResetInputs();
     } else {
       // Fallback neutral triggers
-      optionsRef.current?.onTriggerStick?.("left", 128, 128);
-      optionsRef.current?.onTriggerStick?.("right", 128, 128);
+      optionsRef.current?.onTriggerStick?.('left', 128, 128);
+      optionsRef.current?.onTriggerStick?.('right', 128, 128);
       optionsRef.current?.onTriggerDpad?.(8);
     }
 
@@ -100,13 +96,13 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
   // Global ESC shortcut to trigger emergency stop
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isPlayingRef.current) {
+      if (e.key === 'Escape' && isPlayingRef.current) {
         stop();
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown);
       if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
       if (releaseTimeoutRef.current) clearTimeout(releaseTimeoutRef.current);
     };
@@ -130,8 +126,7 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
         const speed = configRef.current.speedMultiplier || 1.0;
         const delayBetween = Math.max(50, configRef.current.loopDelayMs / speed);
 
-        const shouldContinue =
-          loopMode === "infinite" || (loopMode === "count" && loopIndex < maxLoops);
+        const shouldContinue = loopMode === 'infinite' || (loopMode === 'count' && loopIndex < maxLoops);
 
         if (shouldContinue) {
           stepTimeoutRef.current = setTimeout(() => {
@@ -160,7 +155,6 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
       const action = actions[actionIndex];
       const speed = configRef.current.speedMultiplier || 1.0;
       const duration = Math.max(10, Math.round(action.durationMs / speed));
-      const delayAfter = action.delayAfterMs ? Math.round(action.delayAfterMs / speed) : 0;
 
       // Update progress
       const progress = Math.round(((actionIndex + 1) / actions.length) * 100);
@@ -172,23 +166,23 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
       }));
 
       // Trigger input based on action type
-      if (action.type === "button" && action.button) {
+      if (action.type === 'button' && action.button) {
         const btn = action.button;
         optionsRef.current?.onTriggerButton?.(btn, true);
 
         releaseTimeoutRef.current = setTimeout(() => {
           optionsRef.current?.onTriggerButton?.(btn, false);
         }, duration);
-      } else if (action.type === "stick" && action.stick) {
-        const sx = typeof action.stickX === "number" ? action.stickX : 128;
-        const sy = typeof action.stickY === "number" ? action.stickY : 128;
+      } else if (action.type === 'stick' && action.stick) {
+        const sx = typeof action.stickX === 'number' ? action.stickX : 128;
+        const sy = typeof action.stickY === 'number' ? action.stickY : 128;
         optionsRef.current?.onTriggerStick?.(action.stick, sx, sy);
 
         releaseTimeoutRef.current = setTimeout(() => {
           optionsRef.current?.onTriggerStick?.(action.stick!, 128, 128);
         }, duration);
-      } else if (action.type === "dpad") {
-        const d = typeof action.dpad === "number" ? action.dpad : 8;
+      } else if (action.type === 'dpad') {
+        const d = typeof action.dpad === 'number' ? action.dpad : 8;
         optionsRef.current?.onTriggerDpad?.(d);
 
         releaseTimeoutRef.current = setTimeout(() => {
@@ -196,12 +190,12 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
         }, duration);
       }
 
-      // Schedule next step after (duration + delayAfter)
+      // Schedule next step after duration
       stepTimeoutRef.current = setTimeout(() => {
         executeStep(script, actionIndex + 1, loopIndex);
-      }, duration + delayAfter);
+      }, duration);
     },
-    [stop]
+    [stop],
   );
 
   const play = useCallback(
@@ -221,12 +215,7 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
       currentActionIndexRef.current = 0;
       currentLoopRef.current = 1;
 
-      const totalLoops =
-        effectiveConfig.loopMode === "infinite"
-          ? Infinity
-          : effectiveConfig.loopMode === "count"
-          ? effectiveConfig.loopCount
-          : 1;
+      const totalLoops = effectiveConfig.loopMode === 'infinite' ? Infinity : effectiveConfig.loopMode === 'count' ? effectiveConfig.loopCount : 1;
 
       loopStartTimeRef.current = performance.now();
       if (playheadTimerRef.current) clearInterval(playheadTimerRef.current);
@@ -254,7 +243,7 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
 
       executeStep(script, 0, 1);
     },
-    [executeStep]
+    [executeStep],
   );
 
   const pause = useCallback(() => {

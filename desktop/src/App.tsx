@@ -23,6 +23,7 @@ import { useMacroRecorder } from "./hooks/useMacroRecorder";
 import { useMacroPlayer } from "./hooks/useMacroPlayer";
 import { isTauriAvailable } from "./utils/tauri";
 import { useTranslation } from "react-i18next";
+import { ToastProvider } from "./context/ToastContext";
 
 const PAIRING_STORAGE_KEY = "ghostpad_switch_paired";
 
@@ -242,7 +243,6 @@ export function App() {
       name: `${script.name} (${t("actions.copy_suffix", "副本")})`,
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      isPreset: false,
     };
     const next = [dup, ...macros];
     setMacros(next);
@@ -529,8 +529,9 @@ export function App() {
 
   // Full-size macOS Master-Detail layout
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-window-base text-text-primary font-sans select-none">
-      {/* Left Master Sidebar */}
+    <ToastProvider>
+      <div className="flex h-screen w-screen overflow-hidden bg-window-base text-text-primary font-sans select-none">
+        {/* Left Master Sidebar */}
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -623,7 +624,8 @@ export function App() {
           onDiscard={() => setPendingSaveRecording(null)}
         />
       )}
-    </div>
+      </div>
+    </ToastProvider>
   );
 }
 

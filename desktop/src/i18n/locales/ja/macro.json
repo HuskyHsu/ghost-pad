@@ -19,8 +19,9 @@
   "untitled_macro": "無題のマクロ",
   "save_changes": "変更を保存",
   "saved": "保存済み",
+  "export_success_title": "ファイルを保存しました",
+  "export_success_path": "保存先: {{path}}",
   "back_to_list": "一覧に戻る",
-  "preset_badge": "プリセット",
   "export_json_tooltip": "JSON ファイルとしてエクスポート",
   "duplicate_tooltip": "新規マクロとして複製",
   "delete_tooltip": "このマクロを削除",
@@ -93,11 +94,11 @@
     "trim_tooltip": "前後の空白と微小なノイズを自動トリム",
     "line_header": "第 {{line}} 行 ({{start}}s ~ {{end}}s)",
     "grid_scale": "1マス 1秒 • 合計 {{sec}} 秒",
-    "opt_4s": "4秒 / 行 (拡大・詳細操作向き)",
-    "opt_6s": "6秒 / 行 (バランス)",
-    "opt_8s": "8秒 / 行 (標準)",
+    "opt_5s": "5秒 / 行",
     "opt_10s": "10秒 / 行",
-    "opt_12s": "12秒 / 行",
+    "opt_15s": "15秒 / 行",
+    "opt_20s": "20秒 / 行",
+    "opt_30s": "30秒 / 行",
     "consecutive_waits_tip": "途中に他の操作がない連続した待機ステップが {{count}} 箇所見つかりました。タイミングを整理するために結合をおすすめします。",
     "btn_merge_waits": "連続待機を結合",
     "merge_waits_tooltip": "隣接する連続した待機ステップを1つにまとめます",
@@ -203,7 +204,6 @@
     "minus_desc": "Minus (−) セレクト",
     "home_desc": "Home (⌂) ホーム",
     "capture_desc": "Capture (◉) キャプチャー",
-    "imported_script_default_name": "インポートされたスクリプト",
-    "imported_tag": "インポート済み"
+    "imported_script_default_name": "インポートされたスクリプト"
   }
 }

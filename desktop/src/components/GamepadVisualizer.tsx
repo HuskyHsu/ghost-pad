@@ -152,25 +152,25 @@ export const GamepadVisualizer: React.FC<Props> = ({
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-window-base relative">
       {/* 1. Unified Top Header */}
-      <div className="h-16 px-6 border-b border-border-subtle flex items-center justify-between shrink-0 bg-window-base/80 backdrop-blur-sm z-30">
-        <div className="flex items-center gap-3">
+      <div className="h-16 px-6 border-b border-border-subtle flex items-center justify-between shrink-0 bg-surface-card/80 backdrop-blur-sm z-30 gap-4">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="w-9 h-9 rounded-lg bg-surface-card border border-border-element flex items-center justify-center text-text-primary shadow-xs shrink-0">
             <Gamepad2 className="w-4 h-4" />
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-sm font-semibold tracking-tight text-text-primary">
+              <h1 className="text-sm font-semibold tracking-tight text-text-primary whitespace-nowrap">
                 {t("live_controls.title")}
               </h1>
               <span
-                className={`px-1.5 py-0.5 rounded font-mono text-[10px] border flex items-center gap-1.5 ${
+                className={`px-1.5 py-0.5 rounded font-mono text-[10px] border flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
                   gamepadName
                     ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                     : "bg-surface-card text-text-secondary border-border-element shadow-xs"
                 }`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${gamepadName ? "bg-emerald-500" : "bg-text-disabled"}`} />
-                <span>{gamepadName || t("live_controls.local_mode")}</span>
+                <span className="truncate">{gamepadName || t("live_controls.local_mode")}</span>
               </span>
             </div>
             <p className="text-xs text-text-secondary truncate hidden sm:block">
@@ -182,42 +182,42 @@ export const GamepadVisualizer: React.FC<Props> = ({
         </div>
 
         {/* Action Toolbar */}
-        <div className="flex items-center gap-2 text-xs font-mono">
+        <div className="flex items-center gap-2 text-xs font-mono shrink-0">
           {/* Quick Macro Recording Button */}
           {recordingPhase === "recording" ? (
             <button
               type="button"
               onClick={onStopRecord}
-              className="flex items-center gap-2 h-8 px-3 rounded-md bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-600 font-medium text-xs transition-colors cursor-pointer select-none"
+              className="flex items-center gap-2 h-8 px-3 rounded-md bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-600 font-medium text-xs transition-colors cursor-pointer select-none shrink-0 whitespace-nowrap"
               title={t("live_controls.rec_tooltip_stop")}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-              <span>
+              <span className="whitespace-nowrap">
                 {t("live_controls.recording")} {(recordingElapsedMs / 1000).toFixed(1)}s ({recordedActionsCount})
               </span>
-              <Square className="w-3 h-3 fill-rose-500 ml-0.5" />
+              <Square className="w-3 h-3 fill-rose-500 ml-0.5 shrink-0" />
             </button>
           ) : (
             <button
               type="button"
               onClick={onStartRecord}
               disabled={recordingPhase === "countdown"}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-surface-card hover:bg-interactive-hover border border-border-element text-rose-600 hover:text-rose-700 font-medium text-xs transition-colors shadow-xs cursor-pointer select-none"
+              className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-surface-card hover:bg-interactive-hover border border-border-element text-rose-600 hover:text-rose-700 font-medium text-xs transition-colors shadow-xs cursor-pointer select-none shrink-0 whitespace-nowrap"
               title={t("live_controls.rec_tooltip_start")}
             >
-              <CircleDot className="w-3.5 h-3.5 text-rose-500" />
-              <span>{t("live_controls.record_macro")}</span>
+              <CircleDot className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+              <span className="whitespace-nowrap">{t("live_controls.record_macro")}</span>
             </button>
           )}
 
           {/* Keyboard Guide Toggle Button */}
           <button
             onClick={() => setShowKeyGuide(!showKeyGuide)}
-            className="flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-surface-card hover:bg-interactive-hover border border-border-element text-text-primary font-medium text-xs transition-colors shadow-xs cursor-pointer"
+            className="flex items-center gap-1.5 h-8 px-2.5 rounded-md bg-surface-card hover:bg-interactive-hover border border-border-element text-text-primary font-medium text-xs transition-colors shadow-xs cursor-pointer shrink-0 whitespace-nowrap"
             title={t("live_controls.help_tooltip")}
           >
-            <Keyboard className="w-3.5 h-3.5 text-text-muted" />
-            <span>{t("sidebar.keyboard_title")}</span>
+            <Keyboard className="w-3.5 h-3.5 text-text-muted shrink-0" />
+            <span className="whitespace-nowrap">{t("sidebar.keyboard_title")}</span>
           </button>
         </div>
       </div>

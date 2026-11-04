@@ -125,6 +125,85 @@ async fn probe_firmware(
         .map_err(|e| AppError::TaskExecutionFailed { reason: e.to_string() }.to_json_string())?
 }
 
+#[tauri::command]
+async fn save_file_dialog(default_name: String, content: String) -> Result<Option<String>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        #[cfg(target_os = "macos")]
+        {
+            let script = format!(
+                r#"try
+                    set chosenPath to POSIX path of (choose file name with prompt "儲存巨集腳本檔案" default name "{}" default location (path to downloads folder))
+                    return chosenPath
+                on error
+                    return "CANCELLED"
+                end try"#,
+                default_name.replace('\\', "\\\\").replace('"', "\\\"")
+            );
+
+            let output = std::process::Command::new("osascript")
+                .arg("-e")
+                .arg(script)
+                .output()
+                .map_err(|e| e.to_string())?;
+
+            if !output.status.success() {
+                return Err(String::from_utf8_lossy(&output.stderr).to_string());
+            }
+
+            let result = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if result.is_empty() || result == "CANCELLED" {
+                return Ok(None);
+            }
+
+            if let Some(parent) = std::path::Path::new(&result).parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+            std::fs::write(&result, content).map_err(|e| e.to_string())?;
+            Ok(Some(result))
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            let ps_script = format!(
+                r#"[void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms"); $s = New-Object System.Windows.Forms.SaveFileDialog; $s.FileName = "{}"; $s.Filter = "JSON Files (*.json)|*.json|All Files (*.*)|*.*"; if ($s.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {{ Write-Host $s.FileName }} else {{ Write-Host "CANCELLED" }}"#,
+                default_name.replace('"', "`\"")
+            );
+            let output = std::process::Command::new("powershell")
+                .arg("-Command")
+                .arg(ps_script)
+                .output()
+                .map_err(|e| e.to_string())?;
+
+            let result = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if result.is_empty() || result == "CANCELLED" {
+                return Ok(None);
+            }
+            std::fs::write(&result, content).map_err(|e| e.to_string())?;
+            Ok(Some(result))
+        }
+
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        {
+            let output = std::process::Command::new("zenity")
+                .args(["--file-selection", "--save", "--confirm-overwrite", &format!("--filename={}", default_name)])
+                .output();
+
+            if let Ok(out) = output {
+                if out.status.success() {
+                    let path = String::from_utf8_lossy(&out.stdout).trim().to_string();
+                    if !path.is_empty() {
+                        std::fs::write(&path, content).map_err(|e| e.to_string())?;
+                        return Ok(Some(path));
+                    }
+                }
+            }
+            Ok(None)
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let gamepad_mgr = Arc::new(GamepadManager::new());
@@ -173,6 +252,7 @@ pub fn run() {
             get_serial_status,
             send_serial_command,
             probe_firmware,
+            save_file_dialog,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

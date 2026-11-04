@@ -106,11 +106,6 @@ export const MacroList: React.FC<Props> = ({
                 <div className="font-semibold text-xs text-zinc-100 truncate">
                   {s.name}
                 </div>
-                {s.isPreset && (
-                  <span className="shrink-0 px-1.5 py-0.5 rounded text-[9px] font-bold bg-violet-500/20 text-violet-400 border border-violet-500/30">
-                    範本
-                  </span>
-                )}
               </div>
 
               {s.description && (

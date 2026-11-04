@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useMacroPlayer } from "../hooks/useMacroPlayer";
-import { MacroScript } from "../types/macro";
+import { act, renderHook } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useMacroPlayer } from '../hooks/useMacroPlayer';
+import { MacroScript } from '../types/macro';
 
-describe("useMacroPlayer Hook", () => {
+describe('useMacroPlayer Hook', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -14,47 +14,46 @@ describe("useMacroPlayer Hook", () => {
   });
 
   const mockScript: MacroScript = {
-    id: "test-script",
-    name: "測試腳本",
-    description: "",
-    tags: [],
+    id: 'test-script',
+    name: '測試腳本',
+    description: '',
     createdAt: 0,
     updatedAt: 0,
     actions: [
-      { id: "1", type: "button", button: "a", durationMs: 100, delayAfterMs: 50 },
-      { id: "2", type: "button", button: "b", durationMs: 100, delayAfterMs: 50 },
+      { id: '1', type: 'button', button: 'a', durationMs: 100 },
+      { id: '2', type: 'button', button: 'b', durationMs: 100 },
     ],
   };
 
-  it("plays script and triggers button presses with durations", () => {
+  it('plays script and triggers button presses with durations', () => {
     const onButton = vi.fn();
     const onComplete = vi.fn();
     const { result } = renderHook(() =>
       useMacroPlayer({
         onTriggerButton: onButton,
         onPlaybackComplete: onComplete,
-      })
+      }),
     );
 
     act(() => {
-      result.current.play(mockScript, { loopMode: "once" });
+      result.current.play(mockScript, { loopMode: 'once' });
     });
 
     expect(result.current.status.isPlaying).toBe(true);
     // Button A down
-    expect(onButton).toHaveBeenCalledWith("a", true);
+    expect(onButton).toHaveBeenCalledWith('a', true);
 
     // Advance 100ms -> Button A up
     act(() => {
       vi.advanceTimersByTime(100);
     });
-    expect(onButton).toHaveBeenCalledWith("a", false);
+    expect(onButton).toHaveBeenCalledWith('a', false);
 
     // Advance 50ms delay -> Button B down
     act(() => {
       vi.advanceTimersByTime(50);
     });
-    expect(onButton).toHaveBeenCalledWith("b", true);
+    expect(onButton).toHaveBeenCalledWith('b', true);
 
     // Advance 100ms + 50ms -> finishes playback
     act(() => {
@@ -64,12 +63,12 @@ describe("useMacroPlayer Hook", () => {
     expect(onComplete).toHaveBeenCalled();
   });
 
-  it("supports emergency stop and resets inputs", () => {
+  it('supports emergency stop and resets inputs', () => {
     const onReset = vi.fn();
     const { result } = renderHook(() =>
       useMacroPlayer({
         onResetInputs: onReset,
-      })
+      }),
     );
 
     act(() => {
@@ -84,17 +83,17 @@ describe("useMacroPlayer Hook", () => {
     expect(onReset).toHaveBeenCalled();
   });
 
-  it("supports loop mode count", () => {
+  it('supports loop mode count', () => {
     const onComplete = vi.fn();
     const { result } = renderHook(() =>
       useMacroPlayer({
         onPlaybackComplete: onComplete,
-      })
+      }),
     );
 
     act(() => {
       result.current.play(mockScript, {
-        loopMode: "count",
+        loopMode: 'count',
         loopCount: 2,
         loopDelayMs: 200,
       });
