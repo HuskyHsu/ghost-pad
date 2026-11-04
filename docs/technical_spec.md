@@ -1,78 +1,190 @@
-# 🛠️ PC-to-Switch Controller Bridge: 技術架構與通訊協定規範
+# 🛠️ Ghost-Pad: Technical Specification & Communication Protocol
 
-本文件記載系統底層架構、通訊協定、ESP32 韌體實作原理與開發者指南。
+<div align="center">
+
+**[English](technical_spec.md) | [繁體中文](technical_spec.zh-TW.md) | [日本語](technical_spec.ja.md)**
+
+</div>
+
+This document specifies the low-level system architecture, serial communication protocol, ESP32 Bluetooth emulation internals, handshake state machine, and Rust core backend design for **Ghost-Pad (PC-to-Switch Controller Bridge)**.
 
 ---
 
-## 1. 系統架構圖
+## 1. System Architecture & Hardware Link
 
 ```text
-  ┌─────────────────────────────────────────────────────────┐
-  │         PC 端 (Ghost-Pad Desktop: Rust Core + Tauri v2) │
-  │  - 手把輪詢引擎 (gilrs, 8BitDo / Joy-Con / Pro 原生支援) │
-  │  - 鍵盤與螢幕觸控映射 (WASD + 三路輸入並行橋接)          │
-  │  - 50~60Hz 心跳發送循環 & 一鍵 Fail-safe 緊急中斷機制    │
-  │  - 即時 60~120Hz 幽靈手把儀表板與音樂五線譜時序流        │
-  └───────────────────────────┬─────────────────────────────┘
-                              │ USB 序列埠 (Baud: 19200)
-                              │ 低延遲二進位封包 (Binary Protocol)
-                              ▼
-  ┌─────────────────────────────────────────────────────────┐
-  │              ESP32 開發板 (Bluetooth Classic)           │
-  │  - 高速 Serial 接收與校驗和檢查 (CRC8 / XOR)            │
-  │  - 200ms 心跳逾時防暴走看門狗 (Heartbeat Watchdog)      │
-  │  - 模擬原廠 Pro Controller (VID: 0x057E, PID: 0x2009)   │
-  └───────────────────────────┬─────────────────────────────┘
-                              │ 無線藍牙 HID (Report ID 0x30)
-                              ▼
-  ┌─────────────────────────────────────────────────────────┐
-  │                  Nintendo Switch 主機                   │
-  │       (在「更改拿法 / 順序」配對完成，視為標準無線手把)    │
-  └─────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │ PC Desktop (Ghost-Pad Desktop: Tauri v2 + Rust Core + React 19)         │
+  │  - Gamepad polling engine (gilrs native low-latency listener)           │
+  │  - Keyboard & touch mappings (WASD stick math, Pointer Capture 120Hz)   │
+  │  - Tri-input dynamic merging (Digital OR, Analog Override, Mute)        │
+  │  - 60Hz heartbeat timer thread & HeldPort anti-reset protection         │
+  │  - Macro Studio (3-2-1 delta recorder, score sheet editor, loop engine) │
+  │  - 109 automated tests (89 frontend Vitest + 20 backend Rust)           │
+  └────────────────────────────────────┬────────────────────────────────────┘
+                                       │ USB Serial Port (Baudrate: 19200)
+                                       │ Binary Packet Stream (UARTSwitchCon 9-Byte)
+                                       ▼
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │ ESP32 Dev Board (Bluetooth Classic BR/EDR HID)                          │
+  │  - High-speed serial RX interrupt and CRC-8 checksum verification       │
+  │  - 200ms heartbeat fail-safe watchdog timer                             │
+  │  - Genuine Pro Controller emulation (VID: 0x057E, PID: 0x2009)          │
+  │  - L+R pairing pulse, A/Home wake reconnection, Clear Bonds             │
+  └────────────────────────────────────┬────────────────────────────────────┘
+                                       │ Wireless Bluetooth HID (Report ID 0x30, 48 Bytes)
+                                       ▼
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │ Nintendo Switch Console                                                 │
+  │  - Paired via "Change Grip / Order" as a standard 1P wireless controller │
+  └─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. 通訊協定規範 (Protocol Specification)
+## 2. Communication Protocol Specifications
 
-### 2.1 UARTSwitchCon 9-Byte 串列通訊協定 (當前使用)
-搭配燒錄的 `PRO-UART0.bin` 韌體，通訊採用 19200 鮑率，封包結構如下：
+Ghost-Pad supports two binary serial protocols. The default standard protocol is **UARTSwitchCon 9-Byte**.
 
-| 位元組 (Byte) | 欄位名稱 | 說明 |
-| :--- | :--- | :--- |
-| **Byte 0** | Button High (`btn_hi`)| 功能鍵遮罩：`[SR, SL, Capture, Home, R3, L3, Plus, Minus]` |
-| **Byte 1** | Button Low (`btn_lo`) | 動作鍵遮罩：`[ZR, ZL, R, L, X, A, B, Y]` |
-| **Byte 2** | D-Pad 方向 | `0x08=居中, 0x00=上, 0x01=右上, 0x02=右, 0x03=右下, 0x04=下, 0x05=左下, 0x06=左, 0x07=左上` |
-| **Byte 3** | Left Stick X | 左搖桿 X (`0~255`，`128` 為中心) |
-| **Byte 4** | Left Stick Y | 左搖桿 Y (`0~255`，`0` 最頂，`255` 最底，`128` 居中) |
-| **Byte 5** | Right Stick X | 右搖桿 X (`0~255`，`128` 為中心) |
-| **Byte 6** | Right Stick Y | 右搖桿 Y (`0~255`，`128` 居中) |
-| **Byte 7** | Reserved | 固定 `0x00` |
-| **Byte 8** | CRC8 Checksum | 前 8 位元組之 CRC8 校驗碼 (多項式 `0x07`) |
+### 2.1 UARTSwitchCon 9-Byte Serial Protocol (Default Standard)
 
-- **握手程序 (Handshake)**：
-  1. PC 傳送 `0xFF`，ESP32 回應 `0xFF`（若已連線則回應 `0x90`）。
-  2. PC 傳送 `0x33`，ESP32 回應 `0xCC`。
-  3. PC 傳送 `0xCC`，ESP32 回應 `0x33`。
-  4. 隨後每次接收到合法的 9-byte 封包，ESP32 均會回傳 `0x90` ACK。
+Baudrate is configured at **19200 bps**, 8 data bits, no parity, 1 stop bit (8N1). Each control packet has a fixed length of 9 bytes:
+
+| Byte (Offset) | Field Name | Type / Range | Specification & Definition |
+| :---: | :--- | :---: | :--- |
+| **Byte 0** | `btn_hi` (System Function Mask) | `u8` (Bitmask) | • Bit 0: Minus (-)<br>• Bit 1: Plus (+)<br>• Bit 2: L Stick Click (L3)<br>• Bit 3: R Stick Click (R3)<br>• Bit 4: Home (⌂)<br>• Bit 5: Capture (◉)<br>• Bit 6~7: Reserved (`0`) |
+| **Byte 1** | `btn_lo` (Action Buttons Mask) | `u8` (Bitmask) | • Bit 0: Y<br>• Bit 1: B<br>• Bit 2: A<br>• Bit 3: X<br>• Bit 4: L<br>• Bit 5: R<br>• Bit 6: ZL<br>• Bit 7: ZR |
+| **Byte 2** | `dpad` (D-Pad Direction) | `u8` (0~8) | `0`=Up, `1`=Up-Right, `2`=Right, `3`=Down-Right,<br>`4`=Down, `5`=Down-Left, `6`=Left, `7`=Up-Left,<br>`8`=Neutral Center |
+| **Byte 3** | `left_stick_x` (Left Stick X) | `u8` (0~255) | `0`=Full Left, `128`=Center, `255`=Full Right |
+| **Byte 4** | `left_stick_y` (Left Stick Y) | `u8` (0~255) | Inverted: `255 - app_y`<br>`0`=Full Top, `128`=Center, `255`=Full Bottom |
+| **Byte 5** | `right_stick_x` (Right Stick X) | `u8` (0~255) | `0`=Full Left, `128`=Center, `255`=Full Right |
+| **Byte 6** | `right_stick_y` (Right Stick Y) | `u8` (0~255) | Inverted: `255 - app_y`<br>`0`=Full Top, `128`=Center, `255`=Full Bottom |
+| **Byte 7** | `reserved` (Reserved) | `u8` | Fixed at `0x00` |
+| **Byte 8** | `crc8` (Checksum) | `u8` | Standard **CRC-8** over Bytes 0 to 7 (Polynomial `0x07`, Init `0x00`) |
+
+#### CRC-8 Algorithm Implementation (Rust)
+
+```rust
+pub fn calculate_crc8(data: &[u8]) -> u8 {
+    let mut crc: u8 = 0x00;
+    for &byte in data {
+        crc ^= byte;
+        for _ in 0..8 {
+            if (crc & 0x80) != 0 {
+                crc = (crc << 1) ^ 0x07;
+            } else {
+                crc <<= 1;
+            }
+        }
+    }
+    crc
+}
+```
 
 ---
 
-## 3. ESP32 韌體架構與燒錄指引
+### 2.2 Serial Handshake State Machine
 
-### 3.1 為什麼需要藍牙 Classic？
-Nintendo Switch 手把使用藍牙 Classic (BR/EDR) HID，而非 BLE。
-包含：
-- Vendor ID: `0x057E` (Nintendo Co., Ltd.)
-- Product ID: `0x2009` (Switch Pro Controller)
-- L2CAP 專屬通訊通道 (PSM 0x11, 0x13)
-- 0x30 Full Input Report 映射機制（48 bytes，包含 3 bytes 按鍵、12-bit 搖桿與 6 軸 IMU 數據）。
+To synchronize the ESP32 firmware with the PC desktop app, the connection sequence follows a strict 3-stage handshake:
 
-### 3.2 燒錄預編譯韌體
-本專案已直接內建開箱即用的合併韌體二進位檔 [`firmware/PRO-UART0.bin`](file:///Users/shihchi/Developer/ghost-pad/firmware/PRO-UART0.bin)（已整合 Bootloader、分區表及 Switch Pro Controller 藍牙模擬程式，起始位址 `0x0`），不需另行配置編譯環境或建置韌體。
+```mermaid
+sequenceDiagram
+    participant PC as PC Desktop (Ghost-Pad)
+    participant ESP as ESP32 Board
+    participant SW as Switch Console
 
-使用 `esptool` 直接寫入即可：
-```bash
-python -m esptool --port /dev/cu.usbserial-1140 --baud 460800 write-flash 0x0 firmware/PRO-UART0.bin
+    Note over PC, ESP: Stage 1: 3-Stage Handshake Synchronization
+    PC->>ESP: Send 0xFF (Probe / Syn)
+    ESP-->>PC: Reply 0xFF (or 0x90 if already linked)
+    PC->>ESP: Send 0x33
+    ESP-->>PC: Reply 0xCC
+    PC->>ESP: Send 0xCC
+    ESP-->>PC: Reply 0x33
+    Note over PC, ESP: Handshake verified; 60Hz heartbeat thread starts
+
+    loop Every 16.6ms (60Hz Heartbeat Loop)
+        PC->>ESP: 9-Byte Control Packet (Bytes 0..8)
+        opt Switch Bluetooth connection active
+            ESP->>SW: Bluetooth HID Report 0x30
+            ESP-->>PC: Reply 0x90 (LINK_ACK_BYTE)
+        end
+    end
 ```
-（亦可直接使用 Ghost-Pad 桌面應用程式中的「一鍵燒錄」功能自動完成寫入）
+
+- **ACK and Link Timeout Management**:
+  - Whenever the ESP32 is actively linked to the Switch, every valid 9-byte packet received is acknowledged with `0x90` (`LINK_ACK_BYTE`).
+  - If no `0x90` ACK is received for 1500ms, the desktop app flags the Switch connection as disconnected or in sleep mode.
+  - While unlinked in pairing mode, the ESP32 periodically pulses an L+R button packet (250ms duration every 3 seconds) to facilitate swift pairing on the Switch "Change Grip / Order" screen.
+
+---
+
+### 2.3 Custom 10-Byte XOR Protocol (Legacy Compatibility)
+
+For compatibility with certain custom Arduino firmware sketches, the Rust backend also provides a 10-Byte XOR packet encoder:
+
+| Offset | Field | Description |
+| :---: | :--- | :--- |
+| `0` | Header 0 | Fixed header byte `0xAA` |
+| `1` | Header 1 | Fixed header byte `0x55` |
+| `2` | `btn_lo` | Action button bitmask (`Y, B, A, X, L, R, ZL, ZR`) |
+| `3` | `btn_hi` | System button bitmask (`Minus, Plus, L3, R3, Home, Capture`) |
+| `4` | `dpad` | D-Pad direction code (`0~8`) |
+| `5` | `left_stick_x` | Left Stick X (`0~255`) |
+| `6` | `left_stick_y` | Left Stick Y (`0~255`) |
+| `7` | `right_stick_x` | Right Stick X (`0~255`) |
+| `8` | `right_stick_y` | Right Stick Y (`0~255`) |
+| `9` | `checksum` | XOR Checksum: `btn_lo ^ btn_hi ^ dpad ^ lx ^ ly ^ rx ^ ry` |
+
+---
+
+## 3. ESP32 Bluetooth Classic Emulation & Firmware Architecture
+
+### 3.1 Bluetooth Classic (BR/EDR) HID Profile
+
+The Nintendo Switch strictly requires **Bluetooth Classic HID (Human Interface Device)** gamepads and does not support BLE gamepads:
+- **Vendor ID (VID)**: `0x057E` (Nintendo Co., Ltd.)
+- **Product ID (PID)**: `0x2009` (Switch Pro Controller)
+- **L2CAP Channels**: PSM `0x11` (HID Control), PSM `0x13` (HID Interrupt)
+- **Input Report 0x30**:
+  - Standard 48-byte report containing 3 bytes for buttons, 12-bit ADC mapping for analog sticks, and 6-axis gyroscope and accelerometer (IMU) telemetry data.
+
+### 3.2 Pre-Compiled Merged Firmware (`firmware/PRO-UART0.bin`)
+
+The repository includes a ready-to-flash binary file [`firmware/PRO-UART0.bin`](../firmware/PRO-UART0.bin):
+- Integrates the ESP-IDF Bootloader, Partition Table, NVS storage partition, and the UARTSwitchCon core application.
+- Flash offset begins at address `0x00000000`.
+- Can be flashed with one click via the Ghost-Pad desktop app, or using `esptool`:
+  ```bash
+  python -m esptool --port <YOUR_PORT> --baud 460800 write-flash 0x0 firmware/PRO-UART0.bin
+  ```
+
+---
+
+## 4. Rust Core Architecture (`desktop/src-tauri`)
+
+The Rust backend is structured into modular components:
+
+1. **`gamepad.rs` (Input Listener & Merge Engine)**:
+   - Integrates the `gilrs` crate on a dedicated worker thread for physical gamepad polling.
+   - Implements dual-source state merging (`GamepadManager::merge`): digital buttons use logical OR; stick axes and D-Pad prioritize active virtual inputs.
+   - Applies stick deadzone clamping (`axis_to_u8`) to eliminate drift.
+2. **`serial.rs` (Serial Communication & Heartbeat Loop)**:
+   - Manages 19200 baud serial communications and maintains the 60Hz (16.6ms) heartbeat loop.
+   - Features `HeldPort` management: holds the verified port open between sessions to prevent macOS DTR/RTS resets from rebooting the ESP32.
+   - Handles commands: `PairLR` (pairing pulse), `WakeReconnect` (A/Home wake pulse), `ClearBonds` (reset memory), and `EmergencyNeutral` (safe neutral state).
+3. **`protocol.rs` (Packet Serialization & Verification)**:
+   - Defines `ControllerState` and serializer methods for 9-byte CRC8 and 10-byte XOR packets.
+   - Contains unit-tested standard CRC-8 calculation.
+4. **`lib.rs` (Tauri IPC Bridge & Dialogs)**:
+   - Exposes IPC commands: `send_virtual_button`, `send_virtual_stick`, `toggle_serial`, `flash_firmware`, `save_file_dialog`, etc.
+
+---
+
+## 5. Fail-Safe Watchdogs & Safety Mechanisms
+
+1. **ESP32 Onboard Watchdog (200ms Timeout)**:
+   - If the ESP32 does not receive a valid serial packet for 200ms, it automatically centers both analog sticks (`128, 128`) and releases all buttons to prevent runaway character actions.
+2. **Safe Disconnect Protocol**:
+   - Before closing the serial port or terminating the app, the backend transmits neutral state packets to ensure the controller state on the Switch is completely clear.
+3. **Emergency Abort (`Esc` Key)**:
+   - During macro playback, pressing the keyboard `Esc` key or clicking the UI "Emergency Abort" button instantly cancels all pending timers and issues `reset_virtual_inputs` to release all buttons.

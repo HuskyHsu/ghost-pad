@@ -1,100 +1,139 @@
 # 👻 Ghost-Pad (PC-to-Switch Controller Bridge)
 
-Ghost-Pad 是專為 Nintendo Switch 打造的高效能虛擬手把代理、視覺化儀表板與自動化控制系統。  
-透過電腦作為智慧控制器核心，經由 USB 序列埠傳輸指令給 ESP32 開發板，以原廠藍牙無線模擬 **Nintendo Switch Pro Controller**。
+<div align="center">
+
+**[English](README.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md)**
+
+High-performance PC-to-Nintendo Switch virtual controller bridge, live visualizer dashboard, and macro automation system.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tauri v2](https://img.shields.io/badge/Tauri-v2-24C8DB?logo=tauri&logoColor=white)](https://tauri.app/)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Rust](https://img.shields.io/badge/Rust-2021-DEA584?logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/Tests-109%20Passed-brightgreen)](desktop)
+
+</div>
 
 ---
 
-## 🌟 核心特色
-
-- 🎮 **三路並行操作橋接 (Tri-Input Bridge)**：
-  - **實體手把**：藍牙或 USB 連接 8BitDo Micro、Switch Pro Controller、Joy-Con 原生低延遲輪詢。
-  - **電腦鍵盤**：預設 WASD 與鍵盤鍵位映射，支援斜向推動與確認/取消/功能鍵。
-  - **螢幕觸控 / 滑鼠**：直接點擊幽靈控制器按鈕或平滑拖曳類比搖桿（支援 120Hz 零延遲硬體加速）。
-- 👻 **幽靈手把動態儀表板 (Live Visualizer)**：
-  - 擬真可愛幽靈造型手把，動態表情回饋與搖桿角度視覺化。
-  - 響應式自動等比縮放，支援自適應切換迷你懸浮 HUD 模式視窗。
-- 🎼 **即時操作時序流 (Live Timeline Stream)**：
-  - 5 軌專業音樂五線譜架構（動作鍵、十字鍵、搖桿、肩鍵、系統鍵），即時記錄操作時序長按光帶。
-- ⚡ **嚴格三步硬體管理 (Hardware Control)**：
-  - ESP32 序列埠與晶片自動識別（CH340 / CP2102 / FTDI 等）。
-  - 一鍵開關 60Hz 心跳封包傳輸線程與防暴走看門狗（Watchdog Fail-Safe）。
-  - Switch 自動配對記憶與快速 A 鍵喚醒回連。
+Ghost-Pad is a high-performance virtual controller bridge, live visualizer dashboard, and macro automation studio built for the Nintendo Switch.  
+Using your computer as an intelligent controller core, it sends commands via USB Serial to an ESP32 development board, which emulates an authentic **Nintendo Switch Pro Controller** over Bluetooth Classic (VID: `0x057E`, PID: `0x2009`).
 
 ---
 
-## 📁 專案架構導覽
+## 🌟 Key Features
+
+- 🎮 **Tri-Input Bridge**:
+  - **Physical Gamepad**: Native low-latency polling for 8BitDo Micro, Switch Pro Controller, and Joy-Con via Bluetooth or USB (`gilrs`, latency < 1ms).
+  - **Keyboard Direct Control**: Default WASD and keyboard mappings, supporting diagonal analog vector simulation and action keys.
+  - **Screen Touch / Mouse**: Direct clicks on the ghost controller buttons or fluid analog stick dragging (120Hz hardware-accelerated DOM Transform, Pointer Capture, and spring physics).
+  - **Smart Input Merging**: Digital button union (OR logic), analog stick and D-Pad dynamic overrides, and one-click Mute mode to prevent accidental inputs.
+- 👻 **Ghost Controller Live Visualizer & HUD Mode**:
+  - Adorable ghost-themed 2D controller with dynamic Ditto expression feedback and dual-stick angle visualization.
+  - Responsive Auto Scale-to-Fit; automatically transforms into a compact floating HUD widget when resized below 720x460.
+- 🎼 **Live Input Timeline Stream**:
+  - 5-track DAW / reverse Taiko style music score (Actions, D-Pad, Sticks, Shoulders, System keys).
+  - Real-time optical beam trail stretching for long presses, speed presets (10s / 15s / 30s / 60s), and dynamic action counters.
+- 🎬 **Macro Studio & Playback Engine**:
+  - **Real-time Delta Recording**: 3-2-1 countdown buffer, capturing button press durations and stick movement vectors with millisecond precision.
+  - **Visual Timeline & Card Editor**: Fine-tune each action's hold duration (`durationMs`) and delay (`delayAfterMs`), drag & drop step reordering, and one-click idle time trimming.
+  - **Automated Loop Playback**: Single run, loop N times (2–999), or infinite loop (∞). Adjustable speeds (0.5x–2.0x), and global `Esc` key fail-safe abort.
+  - **Preset Library & Backup**: Built-in scripts for Pokémon infinite spin / egg hatching, Animal Crossing meteor star wishing, etc. Supports single `.json` import/export and full library backup.
+- ⚡ **Strict Sequential Hardware Management**:
+  - Automatic ESP32 serial port enumeration and chip detection (CH340 / CP2102 / FTDI), filtering virtual Bluetooth ports.
+  - 60Hz heartbeat packet transmission with safety watchdog (Watchdog Fail-Safe with 200ms timeout protection).
+  - Switch pairing guides, persistent bond memory, and instant A / Home button wake-up reconnection.
+  - Built-in one-click firmware flasher (pre-bundled with `firmware/PRO-UART0.bin`, no extra toolchain setup required).
+- 🌐 **Native Multi-Language Support (i18n)**:
+  - Built-in support for English (`en`), Traditional Chinese (`zh-TW`), and Japanese (`ja`), switchable on the fly.
+
+---
+
+## 📁 Repository Structure
 
 ```
 ghost-pad/
-├── desktop/                  # 🖥️ 主桌面應用程式 (Tauri v2 + React 19 + TypeScript + Rust)
-│   ├── ARCHITECTURE.md       # 詳細技術架構手冊與通訊規格
-│   ├── README.md             # 桌面端使用與編譯教學
-│   ├── src/                  # 前端 React 視覺化與互動 UI
-│   └── src-tauri/            # 後端 Rust (gilrs 手把輪詢、serial 60Hz 心跳、protocol 封包)
-├── firmware/                 # 🔌 ESP32 韌體資源
-│   └── PRO-UART0.bin         # 預設 Switch Pro Controller 藍牙模擬韌體
-└── docs/                     # 📚 開發與規劃文件
-    ├── technical_spec.md     # 底層二進位協定 (CRC8 / XOR) 規格書
-    └── desktop_app_plan.md   # 系統需求與實作清單
+├── desktop/                  # 🖥️ Main Desktop App (Tauri v2 + React 19 + TypeScript + Rust)
+│   ├── ARCHITECTURE.md       # Technical architecture and component design manual
+│   ├── README.md             # Desktop setup, keybindings, and compilation guide
+│   ├── src/                  # React UI frontend (Visualizer, Timeline, Macro Studio, Hardware)
+│   │   ├── components/       # Visualizer, Canvas timeline, Hardware settings, Macro Studio
+│   │   ├── hooks/            # useVirtualGamepad, useStickDrag, useMacroRecorder, useMacroPlayer
+│   │   └── i18n/             # Internationalization files (zh-TW, en, ja)
+│   └── src-tauri/            # Rust backend (gilrs gamepad polling, serial 60Hz loop, packet protocol)
+├── firmware/                 # 🔌 ESP32 Firmware Resources
+│   └── PRO-UART0.bin         # Pre-compiled Switch Pro Controller Bluetooth Classic firmware (flash at 0x0)
+└── docs/                     # 📚 Specifications and Implementation Guides
+    ├── technical_spec.md     # Low-level binary protocol (CRC8 / XOR) and ESP32 Bluetooth specs (Default English)
+    ├── technical_spec.zh-TW.md # Technical protocol specification (Traditional Chinese)
+    ├── desktop_app_plan.md   # Desktop implementation specification and acceptance checklist (Default English)
+    └── desktop_app_plan.zh-TW.md # Desktop implementation specification (Traditional Chinese)
 ```
 
 ---
 
-## 📦 下載與安裝 (Download & Releases)
+## 📦 Download & Releases
 
-一般使用者無需自行安裝開發環境或編譯程式碼：
-- 請前往本專案的 **[GitHub Releases 頁面](https://github.com/shihchi/ghost-pad/releases)**。
-- 下載最新的 **`Ghost-Pad_<version>_universal.dmg`**（通用二進位版本，同時支援 Apple Silicon M1/M2/M3/M4 與 Intel Mac）。
-- 開啟 `.dmg` 檔案，將 **Ghost-Pad** 拖入「應用程式 (Applications)」資料夾即可直接使用！
+End users do not need to install developer toolchains or build from source:
+- Visit the project's **[GitHub Releases Page](https://github.com/shihchi/ghost-pad/releases)**.
+- Download the latest **`Ghost-Pad_<version>_universal.dmg`** (Universal binary supporting both Apple Silicon M1/M2/M3/M4 and Intel Macs).
+- Open the `.dmg` file and drag **Ghost-Pad** into your Applications folder to run immediately!
 
 ---
 
-## 🚀 開發者快速啟動 (Getting Started)
+## 🚀 Developer Quick Start
 
-請確保電腦已安裝 **Node.js 18+** 與 **Rust 工具鏈**，切換至 `desktop` 目錄即可啟動：
+Ensure that **Node.js 18+** and the **Rust toolchain** are installed, then navigate to the `desktop` directory:
 
 ```bash
 cd desktop
 
-# 安裝相依套件
+# Install dependencies
 npm install
 
-# 啟動桌面端完整開發模式 (Tauri 原生桌面視窗 + Rust 後端)
+# Start full desktop development mode (Tauri native window + Rust backend)
 npm run tauri dev
 
-# 或啟動純前端瀏覽器調試模式 (預覽 UI 與畫布)
+# Or start frontend browser preview mode (Vite UI and Canvas dev server)
 npm run dev
 ```
 
-詳細安裝、快捷鍵對照與架構規範請參閱：
-- 📖 [桌面端完整使用手冊 (desktop/README.md)](file:///Users/shihchi/Developer/ghost-pad/desktop/README.md)
-- 📐 [系統架構與通訊協定手冊 (desktop/ARCHITECTURE.md)](file:///Users/shihchi/Developer/ghost-pad/desktop/ARCHITECTURE.md)
+For detailed guides, keyboard shortcuts, and architecture specifications, see:
+- 📖 [Desktop User Guide (desktop/README.md)](desktop/README.md)
+- 📐 [Architecture & Protocol Manual (desktop/ARCHITECTURE.md)](desktop/ARCHITECTURE.md)
+- 🔌 [Technical Protocol Specification (docs/technical_spec.md)](docs/technical_spec.md)
+- 📝 [Implementation & Feature Manual (docs/desktop_app_plan.md)](docs/desktop_app_plan.md)
 
 ---
 
-## 🧪 自動化測試與 CI/CD (Testing & Releases)
+## 🧪 Testing & CI/CD
 
-本專案具備完整的前後端單元測試與 GitHub Actions CI/CD 發布流程：
+This project has complete automated test coverage across both frontend and backend (all 109 tests passing) with GitHub Actions CI/CD workflows:
 
 ```bash
-# 執行前端測試 (90 項全通)
+# Run frontend tests (89 passing)
 cd desktop && npm test
 
-# 執行 Rust 後端通訊與狀態合併測試 (20 項全通)
+# Run Rust backend communication and state merging tests (20 passing)
 cd desktop/src-tauri && cargo test
 ```
 
-### 🏷️ 建立與發布新版本 (Release Tagging)
+### 🏷️ Creating a New Release
 
-每當在 Git 打上版本標籤（例如 `v1.0.0`）並推送到 GitHub 時，CI/CD 會自動啟動：
-1. 自動同步版本號至前端與後端設定檔。
-2. 執行所有前端與後端單元測試。
-3. 在 macOS Runner 上建置 Universal 二進位應用程式（支援 Apple Silicon 與 Intel）。
-4. 自動發布至 **GitHub Releases**，包含 `.dmg` 安裝檔與 `.zip` 壓縮檔供使用者直接下載。
+Pushing a version tag (e.g. `v1.0.0`) to GitHub triggers the release workflow:
+1. Automatically synchronizes version numbers across package manifests.
+2. Runs all 89 frontend and 20 backend unit tests.
+3. Builds the universal macOS binary (Apple Silicon + Intel).
+4. Publishes `.dmg` installer and `.zip` archives directly to **GitHub Releases**.
 
 ```bash
-# 打上版本標籤並推送
 git tag v1.0.0
 git push origin v1.0.0
 ```
+
+---
+
+## 📄 License
+
+This project is open-sourced under the [MIT License](LICENSE).

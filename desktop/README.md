@@ -57,7 +57,7 @@ Ghost-Pad Desktop 是專為 Nintendo Switch 打造的高效能虛擬手把代理
 請先開啟終端機並切換至 `desktop` 目錄：
 
 ```bash
-cd /Users/shihchi/Developer/ghost-pad/desktop
+cd desktop
 ```
 
 ### 1. 安裝相依套件
@@ -132,7 +132,7 @@ npm run tauri build
 
 ## 📁 目錄結構說明
 
-> 詳細架構規格、資料流向圖與通訊協定請參閱完整技術文件：[ARCHITECTURE.md](file:///Users/shihchi/Developer/ghost-pad/desktop/ARCHITECTURE.md)。
+> 詳細架構規格、資料流向圖與通訊協定請參閱完整技術文件：[ARCHITECTURE.md](ARCHITECTURE.md)。
 
 ```
 desktop/
@@ -179,11 +179,14 @@ npm test
 # 啟用監聽模式 (TDD 模式)
 npm run test:watch
 ```
-測試範圍涵蓋：
+測試範圍涵蓋（89 項測試全數通過）：
 - `types.test.ts`：預設手把狀態結構驗證（類比置中、D-Pad 置中、按鍵預設）。
 - `useVirtualGamepad.test.ts`：鍵盤映射表、D-Pad 8 方向演算法、三路輸入並行與靜音機制。
 - `InputTimelineStream.test.ts`：五線譜 5 軌定義、8 方向搖桿角度計算與死區過濾、時間長度切換與清空動作。
 - `components.test.tsx`：側邊欄導航、設備狀態、靜音切換、HUD 模式與鍵盤對照表互動。
+- `MacroStudio.test.tsx` / `useMacroRecorder.test.ts` / `useMacroPlayer.test.ts` / `macroStorage.test.ts`：巨集 3-2-1 倒數錄製、時序差分捕獲、循環回放、時間軸編輯與備份修復。
+- `HardwareSettings.test.tsx`：序列埠管理、三段式握手、Switch 配對引導與韌體燒錄。
+- `i18n.test.ts`：多國語系載入、語系即時切換與文字鍵位完整性。
 
 #### 後端 Rust 測試 (Cargo Test)
 ```bash
@@ -193,19 +196,23 @@ cargo test
 # 或於專案根目錄執行
 cargo test --manifest-path desktop/src-tauri/Cargo.toml
 ```
-測試範圍涵蓋：
+測試範圍涵蓋（20 項測試全數通過）：
 - `protocol.rs`：CRC-8 演算法、UART 9-byte 封包、10-byte XOR 封包校驗、D-Pad 方向序列化/反序列化。
 - `gamepad.rs`：類比軸死區計算（`axis_to_u8`）、十字鍵 8 向狀態映射（`compute_dpad`）、實體與虛擬輸入合併（`merge`）、靜音暫停機制。
+- `serial.rs`：序列埠管理實例化、離線特殊指令安全性、序列埠列表掃描。
+- `error.rs`：跨進程 AppError 錯誤型別序列化與 IPC 回報。
 
 ---
 
 ### 2. GitHub Actions CI/CD 串接
 
-工作流程定義於 [`.github/workflows/desktop-ci.yml`](file:///.github/workflows/desktop-ci.yml)：
+工作流程定義於 [`.github/workflows/desktop-ci.yml`](file:///.github/workflows/desktop-ci.yml) 與 [`.github/workflows/release.yml`](file:///.github/workflows/release.yml)：
 - **觸發時機**：
-  - 只要任何分支有 `desktop/**` 相關變更 `push` 推送即自動執行。
+  - 只要任何分支有 `desktop/**` 相關變更 `push` 推送即自動執行 CI 驗證。
   - 任何分支發起、更新或合併 `pull_request` 時亦自動執行。
-- **測試檢查項目**：
-  1. **Frontend Check**：Node 20 環境快取、`npm ci`、TypeScript 靜態檢查（`tsc`）與 `vite build` 生產編譯驗證、Vitest 36+ 項全數通過。
-  2. **Rust Backend Check**：Ubuntu 系統庫（WebKitGTK、libudev）、Rust toolchain、Cargo 依賴快取、`cargo test` 9+ 項全數通過。
+  - 當建立版本標籤 `v*` 並推送到 GitHub 時，自動觸發 Release 工作流程打包發布。
+- **測試檢查與建置項目**：
+  1. **Frontend Check**：Node 20 環境快取、`npm ci`、TypeScript 靜態檢查（`tsc`）與 `vite build` 生產編譯驗證、Vitest 89 項全數通過。
+  2. **Rust Backend Check**：系統庫、Rust toolchain、Cargo 依賴快取、`cargo test` 20 項全數通過。
+  3. **Universal Release Build**：於 macOS Runner 上自動編譯建置 Apple Silicon (M1/M2/M3/M4) 與 Intel x86_64 通用雙架構 `.dmg` 安裝檔與 `.zip`，自動上傳至 GitHub Releases。
 
