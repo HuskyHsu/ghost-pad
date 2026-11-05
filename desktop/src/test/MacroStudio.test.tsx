@@ -23,8 +23,8 @@ describe('MacroStudio Component (Full-Width Library & Score Sheet)', () => {
     createdAt: 1000,
     updatedAt: 1000,
     actions: [
-      { id: 'act-1', type: 'button', button: 'a', durationMs: 150 },
-      { id: 'act-2', type: 'button', button: 'b', durationMs: 120 },
+      { id: 'act-1', type: 'button', button: 'a', startTimeMs: 0, durationMs: 150 },
+      { id: 'act-2', type: 'button', button: 'b', startTimeMs: 200, durationMs: 120 },
     ],
   };
 

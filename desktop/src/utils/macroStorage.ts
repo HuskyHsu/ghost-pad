@@ -3,7 +3,7 @@ import i18n from '../i18n';
 import { MacroAction, MacroScript } from '../types/macro';
 import { isTauriAvailable } from './tauri';
 
-const STORAGE_KEY = 'ghostpad_macros_v1';
+const STORAGE_KEY = 'ghostpad_macros_v2';
 
 export interface ScheduledAction extends MacroAction {
   startTimeMs: number;
@@ -12,22 +12,24 @@ export interface ScheduledAction extends MacroAction {
 }
 
 export function computeScheduledActions(actions: MacroAction[]): ScheduledAction[] {
-  let currentTime = 0;
-  return actions.map((act, index) => {
-    const start = currentTime;
-    const end = start + (act.durationMs || 100);
-    currentTime = end;
-    return {
-      ...act,
-      startTimeMs: start,
-      endTimeMs: end,
-      index,
-    };
-  });
+  return actions
+    .map((act, index) => {
+      const start = Math.max(0, Number(act.startTimeMs) || 0);
+      const dur = Math.max(10, Number(act.durationMs) || 100);
+      return {
+        ...act,
+        startTimeMs: start,
+        endTimeMs: start + dur,
+        durationMs: dur,
+        index,
+      };
+    })
+    .sort((a, b) => a.startTimeMs - b.startTimeMs);
 }
 
 export function getScriptTotalDurationMs(script: MacroScript): number {
-  return script.actions.reduce((acc, act) => acc + (act.durationMs || 0), 0);
+  if (!script.actions || script.actions.length === 0) return 0;
+  return Math.max(0, ...script.actions.map((act) => (act.startTimeMs || 0) + (act.durationMs || 0)));
 }
 
 export function loadMacros(): MacroScript[] {
@@ -43,7 +45,10 @@ export function loadMacros(): MacroScript[] {
         const cleanedActions = (Array.isArray(m.actions) ? m.actions : []).map((a: any) => {
           if ('note' in a || 'delayAfterMs' in a) needsResave = true;
           const { note, delayAfterMs, ...rest } = a;
-          return rest;
+          return {
+            ...rest,
+            startTimeMs: Math.max(0, Number(rest.startTimeMs) || 0),
+          };
         });
         if ('tags' in m || 'isPreset' in m) {
           needsResave = true;
@@ -222,6 +227,7 @@ function sanitizeMacro(data: any): MacroScript {
         stickX: typeof act.stickX === 'number' ? act.stickX : 128,
         stickY: typeof act.stickY === 'number' ? act.stickY : 128,
         dpad: typeof act.dpad === 'number' ? act.dpad : 8,
+        startTimeMs: Math.max(0, Number(act.startTimeMs) || 0),
         durationMs: Math.max(20, Number(act.durationMs) || 100),
       }))
     : [];
@@ -232,20 +238,32 @@ function sanitizeMacro(data: any): MacroScript {
     description: String(data.description || ''),
     createdAt: typeof data.createdAt === 'number' ? data.createdAt : Date.now(),
     updatedAt: Date.now(),
-    actions: mergeConsecutiveWaitActions(rawActions),
+    actions: (rawActions as MacroAction[]).sort((a, b) => a.startTimeMs - b.startTimeMs),
   };
 }
 
 // Trim excessive leading and trailing delays
 export function trimMacroActions(actions: MacroAction[]): MacroAction[] {
   if (actions.length === 0) return [];
-  const copy = [...actions];
+  let copy = actions.map((a) => ({ ...a }));
 
-  // If first action is wait, remove it
-  if (copy.length > 0 && copy[0].type === 'wait') {
+  // 1. If first action is an explicit wait at start, remove it
+  if (copy.length > 0 && copy[0].type === 'wait' && copy[0].startTimeMs === 0) {
     copy.shift();
   }
-  // If last action is wait, limit to at most 100ms
+
+  // 2. If earliest action starts after 0ms, shift all actions to 0
+  if (copy.length > 0) {
+    const minStart = Math.min(...copy.map((a) => a.startTimeMs));
+    if (minStart > 0) {
+      copy = copy.map((a) => ({
+        ...a,
+        startTimeMs: Math.max(0, a.startTimeMs - minStart),
+      }));
+    }
+  }
+
+  // 3. If last action is wait, limit its duration to at most 100ms
   if (copy.length > 0) {
     const last = copy[copy.length - 1];
     if (last.type === 'wait' && last.durationMs > 100) {

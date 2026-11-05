@@ -42,13 +42,13 @@ function getDemoMacros(lang: string): MacroScript[] {
       createdAt: Date.now() - 3600000,
       updatedAt: Date.now() - 1800000,
       actions: [
-        { id: "act-1", type: "stick", stick: "left", stickX: 255, stickY: 128, durationMs: 250 },
-        { id: "act-2", type: "stick", stick: "left", stickX: 128, stickY: 255, durationMs: 250 },
-        { id: "act-3", type: "stick", stick: "left", stickX: 0, stickY: 128, durationMs: 250 },
-        { id: "act-4", type: "stick", stick: "left", stickX: 128, stickY: 0, durationMs: 250 },
-        { id: "act-5", type: "button", button: "a", durationMs: 140 },
-        { id: "act-6", type: "wait", durationMs: 300 },
-        { id: "act-7", type: "button", button: "b", durationMs: 140 },
+        { id: "act-1", type: "stick", stick: "left", stickX: 255, stickY: 128, startTimeMs: 0, durationMs: 250 },
+        { id: "act-2", type: "stick", stick: "left", stickX: 128, stickY: 255, startTimeMs: 250, durationMs: 250 },
+        { id: "act-3", type: "stick", stick: "left", stickX: 0, stickY: 128, startTimeMs: 500, durationMs: 250 },
+        { id: "act-4", type: "stick", stick: "left", stickX: 128, stickY: 0, startTimeMs: 750, durationMs: 250 },
+        { id: "act-5", type: "button", button: "a", startTimeMs: 1050, durationMs: 140 },
+        { id: "act-6", type: "wait", startTimeMs: 1200, durationMs: 300 },
+        { id: "act-7", type: "button", button: "b", startTimeMs: 1500, durationMs: 140 },
       ],
     },
     {
@@ -62,27 +62,27 @@ function getDemoMacros(lang: string): MacroScript[] {
       createdAt: Date.now() - 7200000,
       updatedAt: Date.now() - 3600000,
       actions: [
-        { id: "act-201", type: "button", button: "a", durationMs: 120 },
-        { id: "act-202", type: "wait", durationMs: 200 },
-        { id: "act-203", type: "button", button: "a", durationMs: 120 },
-        { id: "act-204", type: "wait", durationMs: 500 },
+        { id: "act-201", type: "button", button: "a", startTimeMs: 0, durationMs: 120 },
+        { id: "act-202", type: "wait", startTimeMs: 120, durationMs: 200 },
+        { id: "act-203", type: "button", button: "a", startTimeMs: 320, durationMs: 120 },
+        { id: "act-204", type: "wait", startTimeMs: 440, durationMs: 500 },
       ],
     },
     {
       id: "demo-zelda-shot",
       name: isZh ? "薩爾達：空中林克時間速射" : isJa ? "ゼルダ：空中弓矢連射" : "Zelda: Bullet Time Quick Shot",
       description: isZh
-        ? "自動長按 ZR 進入林克時間並快速連續射擊。"
+        ? "自動長按 ZR 進入林克時間並在按住期間快速連續射擊 A 鍵。"
         : isJa
         ? "ZR長押しでバレットタイムを発動し弓矢を連射します。"
-        : "Holds ZR to enter bullet time and fires arrows consecutively.",
+        : "Holds ZR to enter bullet time while concurrently firing arrows with A.",
       createdAt: Date.now() - 10800000,
       updatedAt: Date.now() - 5400000,
       actions: [
-        { id: "act-301", type: "button", button: "zr", durationMs: 800 },
-        { id: "act-302", type: "button", button: "a", durationMs: 120 },
-        { id: "act-303", type: "wait", durationMs: 150 },
-        { id: "act-304", type: "button", button: "a", durationMs: 120 },
+        { id: "act-301", type: "button", button: "zr", startTimeMs: 0, durationMs: 800 },
+        { id: "act-302", type: "button", button: "a", startTimeMs: 100, durationMs: 120 },
+        { id: "act-303", type: "button", button: "a", startTimeMs: 350, durationMs: 120 },
+        { id: "act-304", type: "button", button: "a", startTimeMs: 600, durationMs: 120 },
       ],
     },
   ];

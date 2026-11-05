@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, Clock, Gamepad2, GitMerge, Sparkles, Trash2, X } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MacroAction, MacroButtonName, MacroPlayerStatus, MacroScript } from '../../types/macro';
 import { computeScheduledActions } from '../../utils/macroStorage';
@@ -473,6 +473,44 @@ const GamepadKeypadMatrix: React.FC<{
   );
 };
 
+interface NumberInputProps {
+  value: number;
+  min?: number;
+  step?: number;
+  onChange: (val: number) => void;
+  className?: string;
+}
+
+const NumberInput: React.FC<NumberInputProps> = ({ value, min = 0, step = 10, onChange, className }) => {
+  const [text, setText] = useState(String(value));
+
+  useEffect(() => {
+    setText(String(value));
+  }, [value]);
+
+  return (
+    <input
+      type='number'
+      min={min}
+      step={step}
+      value={text}
+      onChange={(e) => {
+        const val = e.target.value;
+        setText(val);
+        if (val !== '' && !isNaN(Number(val))) {
+          onChange(Math.max(min, Number(val)));
+        }
+      }}
+      onBlur={() => {
+        const num = Math.max(min, Number(text) || min);
+        setText(String(num));
+        onChange(num);
+      }}
+      className={className}
+    />
+  );
+};
+
 export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -1, playerStatus, onChangeActions }) => {
   const { t } = useTranslation('macro');
   // Line duration setting (e.g. 10s per line, aligned with stream scales up to 30s)
@@ -486,9 +524,52 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
   // Action Picker Modal state
   const [actionPicker, setActionPicker] = useState<ActionPickerState | null>(null);
 
-  // Active Action Editor Modal index (null if closed)
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const currentEditingAction = editingIndex !== null && editingIndex >= 0 && editingIndex < script.actions.length ? script.actions[editingIndex] : null;
+  // Active Action Editor Modal action ID (null if closed)
+  const [editingActionId, setEditingActionId] = useState<string | null>(null);
+  const editingIndex = editingActionId !== null ? script.actions.findIndex((a) => a.id === editingActionId) : -1;
+  const currentEditingAction = editingIndex !== -1 ? script.actions[editingIndex] : null;
+
+  const handleCloseEditor = () => {
+    const sorted = [...script.actions].sort((a, b) => a.startTimeMs - b.startTimeMs);
+    onChangeActions(sorted);
+    setEditingActionId(null);
+  };
+
+  const handleNavigateAction = (direction: -1 | 1) => {
+    if (editingIndex === -1) return;
+    const targetIdx = editingIndex + direction;
+    if (targetIdx >= 0 && targetIdx < script.actions.length) {
+      setEditingActionId(script.actions[targetIdx].id);
+    }
+  };
+
+  const handleUpdateActionField = (id: string, updates: Partial<MacroAction>) => {
+    const next = script.actions.map((act) => (act.id === id ? { ...act, ...updates } : act));
+    onChangeActions(next);
+  };
+
+  const handleDeleteAction = (id: string) => {
+    const next = script.actions.filter((a) => a.id !== id);
+    onChangeActions(next);
+    setEditingActionId(null);
+  };
+
+  const handleInsertWaitAfter = (id: string) => {
+    const targetIdx = script.actions.findIndex((a) => a.id === id);
+    if (targetIdx === -1) return;
+    const prevAct = script.actions[targetIdx];
+    const startMs = prevAct.startTimeMs + prevAct.durationMs;
+    const newAct: MacroAction = {
+      id: `act-wait-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      type: 'wait',
+      startTimeMs: startMs,
+      durationMs: 150,
+    };
+    const next = [...script.actions];
+    next.splice(targetIdx + 1, 0, newAct);
+    onChangeActions(next);
+    setEditingActionId(newAct.id);
+  };
 
   // Compute absolute timestamps
   const scheduled = useMemo(() => computeScheduledActions(script.actions), [script.actions]);
@@ -528,23 +609,22 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
       ...next[firstIndex],
       durationMs: mergedDuration,
     };
+    const removedId = next[firstIndex + 1]?.id;
     next.splice(firstIndex + 1, 1);
-    if (editingIndex === firstIndex + 1) {
-      setEditingIndex(firstIndex);
-    } else if (editingIndex !== null && editingIndex > firstIndex + 1) {
-      setEditingIndex(editingIndex - 1);
+    if (editingActionId === removedId) {
+      setEditingActionId(next[firstIndex].id);
     }
     onChangeActions(next);
   };
 
-  const isCurrentWait = editingIndex !== null && currentEditingAction?.type === 'wait';
+  const isCurrentWait = currentEditingAction?.type === 'wait';
   const hasAdjacentWait =
     isCurrentWait &&
-    editingIndex !== null &&
+    editingIndex !== -1 &&
     ((editingIndex > 0 && script.actions[editingIndex - 1]?.type === 'wait') || (editingIndex < script.actions.length - 1 && script.actions[editingIndex + 1]?.type === 'wait'));
 
   const handleMergeThisWait = () => {
-    if (editingIndex === null || !currentEditingAction || currentEditingAction.type !== 'wait') return;
+    if (!currentEditingAction || currentEditingAction.type !== 'wait' || editingIndex === -1) return;
     const actions = [...script.actions];
     const idx = editingIndex;
     // If next is wait, merge next into current
@@ -560,55 +640,28 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
     // If prev is wait, merge current into prev
     if (idx > 0 && actions[idx - 1].type === 'wait') {
       const prevIdx = idx - 1;
+      const prevId = actions[prevIdx].id;
       actions[prevIdx] = {
         ...actions[prevIdx],
         durationMs: actions[prevIdx].durationMs + actions[idx].durationMs,
       };
       actions.splice(idx, 1);
-      setEditingIndex(prevIdx);
+      setEditingActionId(prevId);
       onChangeActions(actions);
       return;
     }
   };
 
-  const handleDeleteAction = (index: number) => {
-    const next = script.actions.filter((_, i) => i !== index);
-    onChangeActions(next);
-    setEditingIndex(null);
-  };
-
-  const handleInsertWaitAfter = (index: number) => {
-    const next = [...script.actions];
-    const newAct: MacroAction = {
-      id: `act-wait-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-      type: 'wait',
-      durationMs: 150,
-    };
-    next.splice(index + 1, 0, newAct);
-    onChangeActions(next);
-    setEditingIndex(index + 1);
-  };
-
-  const handleMoveAction = (index: number, direction: -1 | 1) => {
-    const targetIdx = index + direction;
-    if (targetIdx < 0 || targetIdx >= script.actions.length) return;
-    const next = [...script.actions];
-    const temp = next[index];
-    next[index] = next[targetIdx];
-    next[targetIdx] = temp;
-    onChangeActions(next);
-    setEditingIndex(targetIdx);
-  };
-
-  const handleUpdateActionField = (index: number, updates: Partial<MacroAction>) => {
-    const next = [...script.actions];
-    next[index] = { ...next[index], ...updates };
-    onChangeActions(next);
-  };
-
   const handleSelectPickerAction = (opt: ActionPresetOption) => {
     if (!actionPicker) return;
     const id = `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const startMs =
+      actionPicker.insertIndex !== undefined && script.actions[actionPicker.insertIndex]
+        ? script.actions[actionPicker.insertIndex].startTimeMs + script.actions[actionPicker.insertIndex].durationMs
+        : script.actions.length > 0
+          ? Math.max(...script.actions.map((a) => a.startTimeMs + a.durationMs))
+          : 0;
+
     const newAct: MacroAction = {
       id,
       type: opt.type,
@@ -617,27 +670,33 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
       stick: opt.stick,
       stickX: opt.stickX,
       stickY: opt.stickY,
+      startTimeMs: startMs,
       durationMs: actionPicker.durationMs,
     };
 
     if (actionPicker.insertIndex !== undefined && actionPicker.insertIndex >= 0) {
       const next = [...script.actions];
       next.splice(actionPicker.insertIndex + 1, 0, newAct);
+      next.sort((a, b) => a.startTimeMs - b.startTimeMs);
       onChangeActions(next);
     } else {
-      onChangeActions([...script.actions, newAct]);
+      const next = [...script.actions, newAct].sort((a, b) => a.startTimeMs - b.startTimeMs);
+      onChangeActions(next);
     }
     setActionPicker(null);
   };
 
   const handleAppendWait = () => {
     const id = `act-wait-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const startMs = script.actions.length > 0 ? Math.max(...script.actions.map((a) => a.startTimeMs + a.durationMs)) : 0;
     const newAct: MacroAction = {
       id,
       type: 'wait',
+      startTimeMs: startMs,
       durationMs: 200,
     };
-    onChangeActions([...script.actions, newAct]);
+    const next = [...script.actions, newAct].sort((a, b) => a.startTimeMs - b.startTimeMs);
+    onChangeActions(next);
   };
 
   return (
@@ -824,10 +883,10 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
                           return (
                             <div
                               key={act.id}
-                              onClick={() => setEditingIndex(act.index)}
+                              onClick={() => setEditingActionId(act.id)}
                               onContextMenu={(e) => {
                                 e.preventDefault();
-                                setEditingIndex(act.index);
+                                setEditingActionId(act.id);
                               }}
                               style={{
                                 left: `${leftPct}%`,
@@ -937,8 +996,8 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
       </div>
 
       {/* Unified Action Editor Modal */}
-      {editingIndex !== null && currentEditingAction && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-150' onClick={() => setEditingIndex(null)}>
+      {currentEditingAction && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-150' onClick={handleCloseEditor}>
           <div className='w-full max-w-2xl rounded-xl bg-surface-modal border border-border-element p-5 shadow-2xl flex flex-col gap-3.5 select-none' onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className='flex items-center justify-between border-b border-border-subtle pb-3'>
@@ -962,26 +1021,26 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
                 <div className='flex items-center gap-0.5 bg-surface-input p-0.5 rounded-md border border-border-subtle'>
                   <button
                     type='button'
-                    disabled={editingIndex === 0}
-                    onClick={() => handleMoveAction(editingIndex, -1)}
+                    disabled={editingIndex <= 0}
+                    onClick={() => handleNavigateAction(-1)}
                     className='p-1 rounded text-text-muted hover:text-text-primary hover:bg-surface-card disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer transition-colors'
-                    title={t('score_sheet.move_forward', '向前移動順序')}
+                    title={t('score_sheet.move_forward', '移至上一動作')}
                   >
                     <ArrowUp className='w-3.5 h-3.5' />
                   </button>
                   <button
                     type='button'
-                    disabled={editingIndex === script.actions.length - 1}
-                    onClick={() => handleMoveAction(editingIndex, 1)}
+                    disabled={editingIndex < 0 || editingIndex >= script.actions.length - 1}
+                    onClick={() => handleNavigateAction(1)}
                     className='p-1 rounded text-text-muted hover:text-text-primary hover:bg-surface-card disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer transition-colors'
-                    title={t('score_sheet.move_backward', '向後移動順序')}
+                    title={t('score_sheet.move_backward', '移至下一動作')}
                   >
                     <ArrowDown className='w-3.5 h-3.5' />
                   </button>
                 </div>
                 <button
                   type='button'
-                  onClick={() => setEditingIndex(null)}
+                  onClick={handleCloseEditor}
                   className='p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-input transition-colors cursor-pointer'
                   title={t('actions.close', '關閉')}
                 >
@@ -1008,38 +1067,60 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
               </div>
             )}
 
-            {/* Hold / Wait Duration Setting */}
-            <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 rounded-lg bg-surface-input border border-border-subtle'>
-              <div className='flex items-center gap-2'>
-                <Clock className='w-3.5 h-3.5 text-text-muted' />
-                <span className='text-xs font-medium text-text-secondary'>
-                  {currentEditingAction.type === 'wait' ? t('score_sheet.wait_duration_label', '空白等待時間：') : t('score_sheet.hold_duration_label', '按壓持續時間：')}
-                </span>
-                <div className='flex items-center gap-1'>
-                  <input
-                    type='number'
-                    min={10}
-                    step={10}
-                    value={currentEditingAction.durationMs}
-                    onChange={(e) =>
-                      handleUpdateActionField(editingIndex, {
-                        durationMs: Math.max(10, Number(e.target.value) || 10),
-                      })
-                    }
-                    className='w-16 px-2 py-0.5 rounded-md bg-surface-card border border-border-element text-xs font-mono font-bold text-text-primary text-center focus:outline-none focus:border-border-focus shadow-xs'
-                  />
-                  <span className='text-xs text-text-muted font-mono'>ms</span>
+            {/* Start Time & Duration Setting */}
+            <div className='flex flex-col gap-2 p-2.5 rounded-lg bg-surface-input border border-border-subtle'>
+              <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-2'>
+                <div className='flex items-center gap-2'>
+                  <Clock className='w-3.5 h-3.5 text-text-muted' />
+                  <span className='text-xs font-medium text-text-secondary'>起點時間：</span>
+                  <div className='flex items-center gap-1'>
+                    <NumberInput
+                      key={`start-${currentEditingAction.id}`}
+                      min={0}
+                      step={50}
+                      value={currentEditingAction.startTimeMs}
+                      onChange={(val) =>
+                        handleUpdateActionField(currentEditingAction.id, {
+                          startTimeMs: val,
+                        })
+                      }
+                      className='w-20 px-2 py-0.5 rounded-md bg-surface-card border border-border-element text-xs font-mono font-bold text-text-primary text-center focus:outline-none focus:border-border-focus shadow-xs'
+                    />
+                    <span className='text-xs text-text-muted font-mono'>ms</span>
+                  </div>
+                </div>
+
+                <div className='flex items-center gap-2'>
+                  <span className='text-xs font-medium text-text-secondary'>
+                    {currentEditingAction.type === 'wait' ? t('score_sheet.wait_duration_label', '空白等待：') : t('score_sheet.hold_duration_label', '持續時間：')}
+                  </span>
+                  <div className='flex items-center gap-1'>
+                    <NumberInput
+                      key={`dur-${currentEditingAction.id}`}
+                      min={10}
+                      step={10}
+                      value={currentEditingAction.durationMs}
+                      onChange={(val) =>
+                        handleUpdateActionField(currentEditingAction.id, {
+                          durationMs: val,
+                        })
+                      }
+                      className='w-16 px-2 py-0.5 rounded-md bg-surface-card border border-border-element text-xs font-mono font-bold text-text-primary text-center focus:outline-none focus:border-border-focus shadow-xs'
+                    />
+                    <span className='text-xs text-text-muted font-mono'>ms</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Quick Preset Pills */}
-              <div className='flex items-center gap-1'>
+              {/* Quick Preset Pills for Duration */}
+              <div className='flex items-center justify-end gap-1 pt-1 border-t border-border-subtle/50'>
+                <span className='text-[10px] text-text-muted mr-1'>快速持續時長:</span>
                 {[60, 100, 150, 300, 500].map((presetMs) => (
                   <button
                     key={presetMs}
                     type='button'
                     onClick={() =>
-                      handleUpdateActionField(editingIndex, {
+                      handleUpdateActionField(currentEditingAction.id, {
                         durationMs: presetMs,
                       })
                     }
@@ -1060,7 +1141,7 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
               <GamepadKeypadMatrix
                 currentAction={currentEditingAction}
                 onSelectAction={(item) =>
-                  handleUpdateActionField(editingIndex, {
+                  handleUpdateActionField(currentEditingAction.id, {
                     type: item.type,
                     button: item.button,
                     dpad: item.dpad,
@@ -1071,7 +1152,7 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
                 }
                 showWaitOption={currentEditingAction.type !== 'wait'}
                 onSetWait={() =>
-                  handleUpdateActionField(editingIndex, {
+                  handleUpdateActionField(currentEditingAction.id, {
                     type: 'wait',
                     button: undefined,
                     dpad: undefined,
@@ -1087,7 +1168,7 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
             <div className='flex flex-wrap items-center justify-between border-t border-border-subtle pt-3 gap-2'>
               <button
                 type='button'
-                onClick={() => handleDeleteAction(editingIndex)}
+                onClick={() => handleDeleteAction(currentEditingAction.id)}
                 className='flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0 whitespace-nowrap'
               >
                 <Trash2 className='w-3.5 h-3.5 shrink-0' />
@@ -1097,7 +1178,7 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
               <div className='flex items-center gap-2 flex-wrap shrink-0'>
                 <button
                   type='button'
-                  onClick={() => handleInsertWaitAfter(editingIndex)}
+                  onClick={() => handleInsertWaitAfter(currentEditingAction.id)}
                   className='flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface-card hover:bg-interactive-hover border border-border-subtle text-xs font-medium text-text-primary transition-colors cursor-pointer shadow-xs whitespace-nowrap shrink-0'
                 >
                   <Clock className='w-3.5 h-3.5 text-text-muted shrink-0' />
@@ -1108,7 +1189,7 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
                   type='button'
                   onClick={() => {
                     const idx = editingIndex;
-                    setEditingIndex(null);
+                    handleCloseEditor();
                     setActionPicker({ visible: true, insertIndex: idx, durationMs: 150 });
                   }}
                   className='flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface-card hover:bg-interactive-hover border border-border-subtle text-xs font-medium text-text-primary transition-colors cursor-pointer shadow-xs whitespace-nowrap shrink-0'
@@ -1119,7 +1200,7 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
 
                 <button
                   type='button'
-                  onClick={() => setEditingIndex(null)}
+                  onClick={handleCloseEditor}
                   className='px-4 py-1.5 rounded-md text-xs font-medium bg-accent hover:bg-accent/90 text-accent-foreground shadow-xs cursor-pointer transition-colors whitespace-nowrap shrink-0'
                 >
                   {t('actions.done', '完成')}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MacroPlaybackConfig, MacroPlayerStatus, MacroScript } from '../types/macro';
+import { getScriptTotalDurationMs } from '../utils/macroStorage';
 
 export const DEFAULT_PLAYBACK_CONFIG: MacroPlaybackConfig = {
   loopMode: 'once',
@@ -37,28 +38,43 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
   const activeScriptRef = useRef<MacroScript | null>(null);
   const isPlayingRef = useRef<boolean>(false);
   const isPausedRef = useRef<boolean>(false);
-  const currentActionIndexRef = useRef<number>(0);
   const currentLoopRef = useRef<number>(1);
   const configRef = useRef<MacroPlaybackConfig>(DEFAULT_PLAYBACK_CONFIG);
   configRef.current = config;
 
-  // Timers
-  const stepTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const releaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Active leases to prevent button release race conditions
+  const activeButtonCountsRef = useRef<Map<string, number>>(new Map());
+  const activeSticksRef = useRef<{ left: number; right: number }>({ left: 0, right: 0 });
+  const activeDpadCountRef = useRef<number>(0);
+
+  // Timers and playhead
+  const pendingTimeoutsRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
   const playheadTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const loopStartTimeRef = useRef<number>(0);
-  const pausedAtRef = useRef<number>(0);
+  const pausedOffsetMsRef = useRef<number>(0);
+
+  const clearAllScheduled = useCallback(() => {
+    pendingTimeoutsRef.current.forEach((t) => clearTimeout(t));
+    pendingTimeoutsRef.current = [];
+  }, []);
+
+  const resetActiveLeasesAndOutputs = useCallback(() => {
+    activeButtonCountsRef.current.clear();
+    activeSticksRef.current = { left: 0, right: 0 };
+    activeDpadCountRef.current = 0;
+
+    if (optionsRef.current?.onResetInputs) {
+      optionsRef.current.onResetInputs();
+    } else {
+      optionsRef.current?.onTriggerStick?.('left', 128, 128);
+      optionsRef.current?.onTriggerStick?.('right', 128, 128);
+      optionsRef.current?.onTriggerDpad?.(8);
+    }
+  }, []);
 
   // Emergency Fail-Safe Stop
   const stop = useCallback(() => {
-    if (stepTimeoutRef.current) {
-      clearTimeout(stepTimeoutRef.current);
-      stepTimeoutRef.current = null;
-    }
-    if (releaseTimeoutRef.current) {
-      clearTimeout(releaseTimeoutRef.current);
-      releaseTimeoutRef.current = null;
-    }
+    clearAllScheduled();
     if (playheadTimerRef.current) {
       clearInterval(playheadTimerRef.current);
       playheadTimerRef.current = null;
@@ -67,19 +83,10 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
     isPlayingRef.current = false;
     isPausedRef.current = false;
     activeScriptRef.current = null;
-    currentActionIndexRef.current = 0;
     currentLoopRef.current = 1;
-    pausedAtRef.current = 0;
+    pausedOffsetMsRef.current = 0;
 
-    // Reset physical & virtual outputs to neutral immediately
-    if (optionsRef.current?.onResetInputs) {
-      optionsRef.current.onResetInputs();
-    } else {
-      // Fallback neutral triggers
-      optionsRef.current?.onTriggerStick?.('left', 128, 128);
-      optionsRef.current?.onTriggerStick?.('right', 128, 128);
-      optionsRef.current?.onTriggerDpad?.(8);
-    }
+    resetActiveLeasesAndOutputs();
 
     setStatus({
       isPlaying: false,
@@ -91,7 +98,7 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
       progressPercent: 0,
       elapsedMs: 0,
     });
-  }, []);
+  }, [clearAllScheduled, resetActiveLeasesAndOutputs]);
 
   // Global ESC shortcut to trigger emergency stop
   useEffect(() => {
@@ -103,99 +110,126 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
-      if (releaseTimeoutRef.current) clearTimeout(releaseTimeoutRef.current);
+      clearAllScheduled();
     };
-  }, [stop]);
+  }, [stop, clearAllScheduled]);
 
-  // Execute single action step
-  const executeStep = useCallback(
-    (script: MacroScript, actionIndex: number, loopIndex: number) => {
+  // Schedule all timeline events for the current loop starting from offsetMs
+  const scheduleLoopTimeline = useCallback(
+    (script: MacroScript, loopIndex: number, offsetMs: number) => {
       if (!isPlayingRef.current || isPausedRef.current) return;
 
-      const actions = script.actions;
-      if (actions.length === 0) {
-        stop();
-        return;
-      }
+      clearAllScheduled();
+      const speed = configRef.current.speedMultiplier || 1.0;
+      const totalDuration = Math.max(50, getScriptTotalDurationMs(script));
 
-      // Check if finished this loop
-      if (actionIndex >= actions.length) {
+      // 1. Schedule each action's press and release events
+      script.actions.forEach((act) => {
+        const actStart = act.startTimeMs;
+        const actEnd = act.startTimeMs + act.durationMs;
+
+        // Press (Activate)
+        if (actStart >= offsetMs) {
+          const delayStart = Math.max(0, Math.round((actStart - offsetMs) / speed));
+          const activate = () => {
+            if (!isPlayingRef.current || isPausedRef.current) return;
+
+            if (act.type === 'button' && act.button) {
+              const count = (activeButtonCountsRef.current.get(act.button) || 0) + 1;
+              activeButtonCountsRef.current.set(act.button, count);
+              if (count === 1) {
+                optionsRef.current?.onTriggerButton?.(act.button, true);
+              }
+            } else if (act.type === 'stick' && act.stick) {
+              const sx = typeof act.stickX === 'number' ? act.stickX : 128;
+              const sy = typeof act.stickY === 'number' ? act.stickY : 128;
+              if (act.stick === 'left') activeSticksRef.current.left++;
+              else activeSticksRef.current.right++;
+              optionsRef.current?.onTriggerStick?.(act.stick, sx, sy);
+            } else if (act.type === 'dpad') {
+              activeDpadCountRef.current++;
+              const d = typeof act.dpad === 'number' ? act.dpad : 8;
+              optionsRef.current?.onTriggerDpad?.(d);
+            }
+          };
+
+          if (delayStart === 0) {
+            activate();
+          } else {
+            const tId = setTimeout(activate, delayStart);
+            pendingTimeoutsRef.current.push(tId);
+          }
+        }
+
+        // Release (Deactivate)
+        if (actEnd > offsetMs) {
+          const delayEnd = Math.max(10, Math.round((actEnd - offsetMs) / speed));
+          const tId = setTimeout(() => {
+            if (!isPlayingRef.current || isPausedRef.current) return;
+
+            if (act.type === 'button' && act.button) {
+              const count = (activeButtonCountsRef.current.get(act.button) || 1) - 1;
+              if (count <= 0) {
+                activeButtonCountsRef.current.delete(act.button);
+                optionsRef.current?.onTriggerButton?.(act.button, false);
+              } else {
+                activeButtonCountsRef.current.set(act.button, count);
+              }
+            } else if (act.type === 'stick' && act.stick) {
+              if (act.stick === 'left') activeSticksRef.current.left = Math.max(0, activeSticksRef.current.left - 1);
+              else activeSticksRef.current.right = Math.max(0, activeSticksRef.current.right - 1);
+
+              const stillActive = act.stick === 'left' ? activeSticksRef.current.left > 0 : activeSticksRef.current.right > 0;
+              if (!stillActive) {
+                optionsRef.current?.onTriggerStick?.(act.stick, 128, 128);
+              }
+            } else if (act.type === 'dpad') {
+              activeDpadCountRef.current = Math.max(0, activeDpadCountRef.current - 1);
+              if (activeDpadCountRef.current <= 0) {
+                optionsRef.current?.onTriggerDpad?.(8);
+              }
+            }
+          }, delayEnd);
+          pendingTimeoutsRef.current.push(tId);
+        }
+      });
+
+      // 2. Schedule Loop Completion
+      const delayLoopEnd = Math.max(20, Math.round((totalDuration - offsetMs) / speed));
+      const endTimeoutId = setTimeout(() => {
+        if (!isPlayingRef.current || isPausedRef.current) return;
+
+        resetActiveLeasesAndOutputs();
+
         const loopMode = configRef.current.loopMode;
         const maxLoops = configRef.current.loopCount;
-        const speed = configRef.current.speedMultiplier || 1.0;
-        const delayBetween = Math.max(50, configRef.current.loopDelayMs / speed);
-
         const shouldContinue = loopMode === 'infinite' || (loopMode === 'count' && loopIndex < maxLoops);
 
         if (shouldContinue) {
-          stepTimeoutRef.current = setTimeout(() => {
+          const delayBetween = Math.max(50, Math.round((configRef.current.loopDelayMs || 500) / speed));
+          const nextLoopId = setTimeout(() => {
             if (!isPlayingRef.current || isPausedRef.current) return;
             loopStartTimeRef.current = performance.now();
             currentLoopRef.current = loopIndex + 1;
-            currentActionIndexRef.current = 0;
             setStatus((prev) => ({
               ...prev,
               currentLoop: loopIndex + 1,
-              currentActionIndex: 0,
               progressPercent: 0,
               elapsedMs: 0,
             }));
-            executeStep(script, 0, loopIndex + 1);
+            scheduleLoopTimeline(script, loopIndex + 1, 0);
           }, delayBetween);
-          return;
+          pendingTimeoutsRef.current.push(nextLoopId);
         } else {
           // Playback finished completely
           stop();
           optionsRef.current?.onPlaybackComplete?.(script);
-          return;
         }
-      }
+      }, delayLoopEnd);
 
-      const action = actions[actionIndex];
-      const speed = configRef.current.speedMultiplier || 1.0;
-      const duration = Math.max(10, Math.round(action.durationMs / speed));
-
-      // Update progress
-      const progress = Math.round(((actionIndex + 1) / actions.length) * 100);
-      currentActionIndexRef.current = actionIndex;
-      setStatus((prev) => ({
-        ...prev,
-        currentActionIndex: actionIndex,
-        progressPercent: progress,
-      }));
-
-      // Trigger input based on action type
-      if (action.type === 'button' && action.button) {
-        const btn = action.button;
-        optionsRef.current?.onTriggerButton?.(btn, true);
-
-        releaseTimeoutRef.current = setTimeout(() => {
-          optionsRef.current?.onTriggerButton?.(btn, false);
-        }, duration);
-      } else if (action.type === 'stick' && action.stick) {
-        const sx = typeof action.stickX === 'number' ? action.stickX : 128;
-        const sy = typeof action.stickY === 'number' ? action.stickY : 128;
-        optionsRef.current?.onTriggerStick?.(action.stick, sx, sy);
-
-        releaseTimeoutRef.current = setTimeout(() => {
-          optionsRef.current?.onTriggerStick?.(action.stick!, 128, 128);
-        }, duration);
-      } else if (action.type === 'dpad') {
-        const d = typeof action.dpad === 'number' ? action.dpad : 8;
-        optionsRef.current?.onTriggerDpad?.(d);
-
-        releaseTimeoutRef.current = setTimeout(() => {
-          optionsRef.current?.onTriggerDpad?.(8);
-        }, duration);
-      }
-
-      // Schedule next step after duration
-      stepTimeoutRef.current = setTimeout(() => {
-        executeStep(script, actionIndex + 1, loopIndex);
-      }, duration);
+      pendingTimeoutsRef.current.push(endTimeoutId);
     },
-    [stop],
+    [clearAllScheduled, resetActiveLeasesAndOutputs, stop],
   );
 
   const play = useCallback(
@@ -212,10 +246,11 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
       activeScriptRef.current = script;
       isPlayingRef.current = true;
       isPausedRef.current = false;
-      currentActionIndexRef.current = 0;
       currentLoopRef.current = 1;
+      pausedOffsetMsRef.current = 0;
 
       const totalLoops = effectiveConfig.loopMode === 'infinite' ? Infinity : effectiveConfig.loopMode === 'count' ? effectiveConfig.loopCount : 1;
+      const totalDuration = Math.max(50, getScriptTotalDurationMs(script));
 
       loopStartTimeRef.current = performance.now();
       if (playheadTimerRef.current) clearInterval(playheadTimerRef.current);
@@ -224,8 +259,23 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
         const now = performance.now();
         const speed = configRef.current.speedMultiplier || 1.0;
         const elapsed = Math.round((now - loopStartTimeRef.current) * speed);
+
+        // Find currently active action index for UI feedback
+        let activeIdx = 0;
+        const idx = script.actions.findIndex((a) => elapsed >= a.startTimeMs && elapsed < a.startTimeMs + a.durationMs);
+        if (idx !== -1) {
+          activeIdx = idx;
+        } else {
+          // Closest past action
+          const past = script.actions.filter((a) => a.startTimeMs <= elapsed);
+          activeIdx = Math.max(0, past.length - 1);
+        }
+
+        const pct = Math.min(100, Math.round((elapsed / totalDuration) * 100));
         setStatus((prev) => ({
           ...prev,
+          currentActionIndex: activeIdx,
+          progressPercent: pct,
           elapsedMs: elapsed,
         }));
       }, 16);
@@ -241,37 +291,36 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
         elapsedMs: 0,
       });
 
-      executeStep(script, 0, 1);
+      scheduleLoopTimeline(script, 1, 0);
     },
-    [executeStep],
+    [scheduleLoopTimeline],
   );
 
   const pause = useCallback(() => {
     if (!isPlayingRef.current || isPausedRef.current) return;
-    if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
-    if (releaseTimeoutRef.current) clearTimeout(releaseTimeoutRef.current);
+    clearAllScheduled();
+
+    const speed = configRef.current.speedMultiplier || 1.0;
+    const elapsed = Math.round((performance.now() - loopStartTimeRef.current) * speed);
+    pausedOffsetMsRef.current = elapsed;
 
     isPausedRef.current = true;
-    pausedAtRef.current = performance.now();
-    options?.onResetInputs?.();
+    resetActiveLeasesAndOutputs();
 
     setStatus((prev) => ({ ...prev, isPaused: true }));
-  }, [options]);
+  }, [clearAllScheduled, resetActiveLeasesAndOutputs]);
 
   const resume = useCallback(() => {
     if (!isPlayingRef.current || !isPausedRef.current || !activeScriptRef.current) return;
 
-    if (pausedAtRef.current > 0) {
-      const pauseDuration = performance.now() - pausedAtRef.current;
-      loopStartTimeRef.current += pauseDuration;
-      pausedAtRef.current = 0;
-    }
+    const speed = configRef.current.speedMultiplier || 1.0;
+    loopStartTimeRef.current = performance.now() - pausedOffsetMsRef.current / speed;
 
     isPausedRef.current = false;
     setStatus((prev) => ({ ...prev, isPaused: false }));
 
-    executeStep(activeScriptRef.current, currentActionIndexRef.current, currentLoopRef.current);
-  }, [executeStep]);
+    scheduleLoopTimeline(activeScriptRef.current, currentLoopRef.current, pausedOffsetMsRef.current);
+  }, [scheduleLoopTimeline]);
 
   return {
     status,

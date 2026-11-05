@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp, Clock, Compass, Plus, Scissors, Trash2 } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MacroAction, MacroButtonName } from '../../types/macro';
 import { trimMacroActions } from '../../utils/macroStorage';
 
@@ -8,6 +8,44 @@ interface Props {
   activeActionIndex?: number;
   onChangeActions: (actions: MacroAction[]) => void;
 }
+
+interface NumberInputProps {
+  value: number;
+  min?: number;
+  step?: number;
+  onChange: (val: number) => void;
+  className?: string;
+}
+
+const NumberInput: React.FC<NumberInputProps> = ({ value, min = 0, step = 10, onChange, className }) => {
+  const [text, setText] = useState(String(value));
+
+  useEffect(() => {
+    setText(String(value));
+  }, [value]);
+
+  return (
+    <input
+      type='number'
+      min={min}
+      step={step}
+      value={text}
+      onChange={(e) => {
+        const val = e.target.value;
+        setText(val);
+        if (val !== '' && !isNaN(Number(val))) {
+          onChange(Math.max(min, Number(val)));
+        }
+      }}
+      onBlur={() => {
+        const num = Math.max(min, Number(text) || min);
+        setText(String(num));
+        onChange(num);
+      }}
+      className={className}
+    />
+  );
+};
 
 const AVAILABLE_BUTTONS: { value: MacroButtonName; label: string }[] = [
   { value: 'a', label: 'A 按鍵' },
@@ -58,6 +96,7 @@ export const MacroStepList: React.FC<Props> = ({ actions, activeActionIndex = -1
 
   const handleAddDefaultAction = (type: 'button' | 'stick' | 'wait') => {
     const id = `act-new-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const nextStart = actions.length > 0 ? Math.max(...actions.map((a) => a.startTimeMs + a.durationMs)) : 0;
     let newAct: MacroAction;
 
     if (type === 'button') {
@@ -65,6 +104,7 @@ export const MacroStepList: React.FC<Props> = ({ actions, activeActionIndex = -1
         id,
         type: 'button',
         button: 'a',
+        startTimeMs: nextStart,
         durationMs: 120,
       };
     } else if (type === 'stick') {
@@ -74,12 +114,14 @@ export const MacroStepList: React.FC<Props> = ({ actions, activeActionIndex = -1
         stick: 'left',
         stickX: 128,
         stickY: 0,
+        startTimeMs: nextStart,
         durationMs: 300,
       };
     } else {
       newAct = {
         id,
         type: 'wait',
+        startTimeMs: nextStart,
         durationMs: 200,
       };
     }
@@ -255,18 +297,34 @@ export const MacroStepList: React.FC<Props> = ({ actions, activeActionIndex = -1
                 )}
               </div>
 
-              {/* Middle Section: Hold Duration & Delay After */}
-              <div className='flex items-center gap-3'>
+              {/* Middle Section: Start Time & Hold Duration */}
+              <div className='flex items-center gap-3 flex-wrap'>
+                <div className='flex items-center gap-1.5'>
+                  <span className='text-[10px] text-text-muted font-medium'>起點:</span>
+                  <NumberInput
+                    key={`step-start-${act.id}`}
+                    min={0}
+                    step={50}
+                    value={act.startTimeMs}
+                    onChange={(val) =>
+                      handleUpdateAction(index, {
+                        startTimeMs: val,
+                      })
+                    }
+                    className='w-16 px-2 py-1 rounded bg-surface-card border border-border-element text-xs font-mono font-bold text-text-primary text-right focus:outline-none focus:border-border-focus shadow-xs'
+                  />
+                  <span className='text-[10px] text-text-muted font-mono'>ms</span>
+                </div>
                 <div className='flex items-center gap-1.5'>
                   <span className='text-[10px] text-text-muted font-medium'>{act.type === 'wait' ? '等待:' : '持續:'}</span>
-                  <input
-                    type='number'
+                  <NumberInput
+                    key={`step-dur-${act.id}`}
                     min={10}
                     step={10}
                     value={act.durationMs}
-                    onChange={(e) =>
+                    onChange={(val) =>
                       handleUpdateAction(index, {
-                        durationMs: Math.max(10, Number(e.target.value) || 10),
+                        durationMs: val,
                       })
                     }
                     className='w-16 px-2 py-1 rounded bg-surface-card border border-border-element text-xs font-mono font-bold text-text-primary text-right focus:outline-none focus:border-border-focus shadow-xs'

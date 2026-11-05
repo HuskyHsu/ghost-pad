@@ -20,8 +20,8 @@ describe('useMacroPlayer Hook', () => {
     createdAt: 0,
     updatedAt: 0,
     actions: [
-      { id: '1', type: 'button', button: 'a', durationMs: 100 },
-      { id: '2', type: 'button', button: 'b', durationMs: 100 },
+      { id: '1', type: 'button', button: 'a', startTimeMs: 0, durationMs: 100 },
+      { id: '2', type: 'button', button: 'b', startTimeMs: 150, durationMs: 100 },
     ],
   };
 
@@ -40,7 +40,7 @@ describe('useMacroPlayer Hook', () => {
     });
 
     expect(result.current.status.isPlaying).toBe(true);
-    // Button A down
+    // Button A down at t=0
     expect(onButton).toHaveBeenCalledWith('a', true);
 
     // Advance 100ms -> Button A up
@@ -49,16 +49,71 @@ describe('useMacroPlayer Hook', () => {
     });
     expect(onButton).toHaveBeenCalledWith('a', false);
 
-    // Advance 50ms delay -> Button B down
+    // Advance 50ms (at 150ms) -> Button B down
     act(() => {
       vi.advanceTimersByTime(50);
     });
     expect(onButton).toHaveBeenCalledWith('b', true);
 
-    // Advance 100ms + 50ms -> finishes playback
+    // Advance 100ms (at 250ms) -> Button B up & finishes playback
     act(() => {
-      vi.advanceTimersByTime(150);
+      vi.advanceTimersByTime(100);
     });
+    expect(onButton).toHaveBeenCalledWith('b', false);
+    expect(result.current.status.isPlaying).toBe(false);
+    expect(onComplete).toHaveBeenCalled();
+  });
+
+  it('plays concurrent overlapping button presses simultaneously', () => {
+    const onButton = vi.fn();
+    const onComplete = vi.fn();
+
+    const concurrentScript: MacroScript = {
+      id: 'concurrent-script',
+      name: '同時按鍵腳本',
+      description: '',
+      createdAt: 0,
+      updatedAt: 0,
+      actions: [
+        { id: '1', type: 'button', button: 'zl', startTimeMs: 0, durationMs: 300 },
+        { id: '2', type: 'button', button: 'a', startTimeMs: 100, durationMs: 100 },
+      ],
+    };
+
+    const { result } = renderHook(() =>
+      useMacroPlayer({
+        onTriggerButton: onButton,
+        onPlaybackComplete: onComplete,
+      }),
+    );
+
+    act(() => {
+      result.current.play(concurrentScript, { loopMode: 'once' });
+    });
+
+    // At t=0: ZL down
+    expect(onButton).toHaveBeenCalledWith('zl', true);
+    expect(onButton).not.toHaveBeenCalledWith('a', true);
+
+    // Advance 100ms: A down (ZL is still down!)
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(onButton).toHaveBeenCalledWith('a', true);
+    expect(onButton).not.toHaveBeenCalledWith('zl', false);
+
+    // Advance 100ms (at 200ms): A up (ZL is still down!)
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(onButton).toHaveBeenCalledWith('a', false);
+    expect(onButton).not.toHaveBeenCalledWith('zl', false);
+
+    // Advance 100ms (at 300ms): ZL up and finishes
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(onButton).toHaveBeenCalledWith('zl', false);
     expect(result.current.status.isPlaying).toBe(false);
     expect(onComplete).toHaveBeenCalled();
   });
@@ -101,9 +156,9 @@ describe('useMacroPlayer Hook', () => {
 
     expect(result.current.status.currentLoop).toBe(1);
 
-    // Run through loop 1 (100+50+100+50 = 300ms)
+    // Run through loop 1 (total duration 250ms)
     act(() => {
-      vi.advanceTimersByTime(300);
+      vi.advanceTimersByTime(250);
     });
 
     // Advance loop delay (200ms)
@@ -112,9 +167,9 @@ describe('useMacroPlayer Hook', () => {
     });
     expect(result.current.status.currentLoop).toBe(2);
 
-    // Run through loop 2 (300ms)
+    // Run through loop 2 (250ms)
     act(() => {
-      vi.advanceTimersByTime(300);
+      vi.advanceTimersByTime(250);
     });
     expect(result.current.status.isPlaying).toBe(false);
     expect(onComplete).toHaveBeenCalled();

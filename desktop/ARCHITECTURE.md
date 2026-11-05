@@ -235,21 +235,25 @@ git push origin v1.0.0
 
 ## 9. Macro Studio & Playback Engine
 
-### 9.1 Delta Recording Algorithm (`useMacroRecorder.ts`)
+### 9.1 Timeline Relative Offset Recording (`useMacroRecorder.ts`)
 - **3-2-1 Countdown Buffer**: Triggers a 3-second animated countdown before recording begins, allowing the user to prepare hands on the physical controller or keyboard.
-- **Delta / Action-Based Capture**:
-  - Digital Buttons: Records timestamp on press; computes duration (`durationMs`) on release.
-  - Analog Sticks: Begins tracking once deflection exceeds deadzone (`STICK_DEADZONE = 25`), packing vector and duration into a `MacroAction` when returning to neutral.
-  - D-Pad: Captures direction and hold duration whenever non-neutral (0~7).
+- **Timeline Relative Offset & Concurrent Capture**:
+  - Digital Buttons: Records relative `startTimeMs` on press; computes duration (`durationMs`) on release. Supports multiple simultaneous buttons down with overlapping intervals.
+  - Analog Sticks: Begins tracking once deflection exceeds deadzone, storing vector, `startTimeMs`, and duration into a `MacroAction` when returning to neutral.
+  - D-Pad: Captures relative timestamp, direction, and hold duration whenever non-neutral (0~7).
+- **Concurrent Timeline Preservation**: Preserves exact temporal overlap across all tracks without flattening inputs into artificial sequential wait steps.
 - **Save Modal (`SaveMacroModal.tsx`)**: Allows custom name, description notes, and metadata tags upon recording completion.
 
 ### 9.2 Script Persistence & Management (`macroStorage.ts`)
-- **Built-in Presets**: Pre-packaged automation routines (Infinite Spin for Pokemon egg hatching, Auto-A Spam for Animal Crossing, Bullet Time Aim for Zelda).
+- **Built-in Presets**: Pre-packaged automation routines (Infinite Spin for Pokemon egg hatching, Auto-A Spam for Animal Crossing, Concurrent ZR + Rapid A Aim for Zelda).
 - **JSON Import / Export**: Supports individual `.json` script downloads, batch backup files (`ghostpad_macros_backup_*.json`), and drag-and-drop validation.
-- **Idle Optimization**: Merges consecutive wait delays and trims idle frames from script start/end.
+- **Timeline Scheduling**: Computes start/end timestamps directly from `startTimeMs` and `durationMs`, supporting simultaneous actions across tracks.
 
-### 9.3 Loop Playback & Fail-Safe Protection (`useMacroPlayer.ts`)
-- **Playback Controls**: Supports Single Play, N-Iteration Loops (2~999), and Infinite ($\infty$) Loop modes.
+### 9.3 Concurrent Playback Engine & Fail-Safe Protection (`useMacroPlayer.ts`)
+- **Concurrent Event Scheduler**:
+  - Dispatches discrete activate and deactivate events at `startTimeMs / speedMultiplier` and `(startTimeMs + durationMs) / speedMultiplier`.
+  - **Button Lease Counting**: Tracks active concurrent references for each button. A release signal is only issued when the active lease count drops to zero, preventing race conditions during overlapping presses.
+- **Playback Controls**: Supports Single Play, N-Iteration Loops (2~999), and Infinite ($\infty$) Loop modes with configurable `loopDelayMs`.
 - **Speed Multipliers**: Configurable playback speeds (0.5x, 1.0x, 1.5x, 2.0x).
 - **Emergency Fail-Safe Abort**:
   - Pressing the `Esc` key on the keyboard or clicking the "Emergency Abort" button immediately clears all pending timers and issues `reset_virtual_inputs`, releasing all controller keys to prevent sticky inputs.

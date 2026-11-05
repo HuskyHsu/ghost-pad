@@ -1,5 +1,6 @@
 import React from "react";
 import { MacroAction, MacroScript } from "../../types/macro";
+import { getScriptTotalDurationMs } from "../../utils/macroStorage";
 import { Layers } from "lucide-react";
 
 interface Props {
@@ -63,6 +64,7 @@ export const MacroTimelineTrack: React.FC<Props> = ({
   onSelectStep,
 }) => {
   const actions = script.actions;
+  const totalDuration = Math.max(1000, getScriptTotalDurationMs(script));
 
   return (
     <div className="w-full flex flex-col rounded-2xl bg-zinc-950 border border-zinc-800/80 overflow-hidden shadow-inner">
@@ -72,14 +74,18 @@ export const MacroTimelineTrack: React.FC<Props> = ({
           <Layers className="w-3.5 h-3.5 text-violet-400" />
           <span>多軌動作時間軸 (Multi-Track Timeline View)</span>
         </div>
-        <div className="text-[10px] text-zinc-500">
-          總計 {actions.length} 個時序動作區塊
+        <div className="text-[10px] text-zinc-500 font-mono">
+          總時長 {(totalDuration / 1000).toFixed(2)}s • {actions.length} 個時序動作
         </div>
       </div>
 
       {/* Tracks Container */}
-      <div className="p-3 space-y-2 overflow-x-auto min-h-[140px] select-none">
+      <div className="p-3 space-y-2 select-none">
         {TRACKS.map((track) => {
+          const trackActionsWithIdx = actions
+            .map((act, index) => ({ act, index }))
+            .filter(({ act }) => track.matches(act));
+
           return (
             <div key={track.id} className="flex items-center gap-2">
               {/* Track Label */}
@@ -88,48 +94,43 @@ export const MacroTimelineTrack: React.FC<Props> = ({
               </div>
 
               {/* Lane */}
-              <div className="flex-1 h-8 rounded-lg bg-zinc-900/60 border border-zinc-800/60 relative flex items-center px-1 gap-1 overflow-x-auto scrollbar-none">
-                {actions.map((act, index) => {
-                  const isMatch = track.matches(act);
+              <div className="flex-1 h-8 rounded-lg bg-zinc-900/60 border border-zinc-800/60 relative overflow-hidden flex items-center">
+                {trackActionsWithIdx.map(({ act, index }) => {
                   const isActive = activeActionIndex === index;
+                  const leftPct = (Math.max(0, act.startTimeMs) / totalDuration) * 100;
+                  const widthPct = Math.max(2.5, (act.durationMs / totalDuration) * 100);
 
-                  if (!isMatch) {
-                    // Empty spacer slot for alignment
-                    return (
-                      <div
-                        key={act.id}
-                        className="h-5 rounded min-w-[20px] opacity-20 border border-dashed border-zinc-700/50"
-                        title={`步驟 #${index + 1} (非本軌)`}
-                      />
-                    );
-                  }
-
-                  let label = act.button?.toUpperCase() || (act.type === "stick" ? `${act.stick === "left" ? "L" : "R"}搖桿` : "D-Pad");
+                  const label =
+                    act.button?.toUpperCase() ||
+                    (act.type === "stick" ? `${act.stick === "left" ? "L" : "R"}搖桿` : "D-Pad");
 
                   return (
                     <button
                       key={act.id}
                       onClick={() => onSelectStep?.(index)}
-                      className={`h-6 rounded px-2 text-[10px] font-bold border transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+                      style={{
+                        left: `${leftPct}%`,
+                        width: `${widthPct}%`,
+                      }}
+                      className={`absolute top-1 bottom-1 rounded px-1.5 text-[9px] font-bold border transition-all cursor-pointer flex items-center justify-between overflow-hidden shrink-0 ${
                         track.color
                       } ${
                         isActive
                           ? "ring-2 ring-white scale-105 shadow-[0_0_12px_rgba(255,255,255,0.7)] z-10"
-                          : "hover:scale-102"
+                          : "hover:brightness-125 z-0"
                       }`}
-                      title={`#${index + 1} ${label} (持續 ${act.durationMs}ms)`}
+                      title={`#${index + 1} ${label} (${act.startTimeMs}ms ~ ${act.startTimeMs + act.durationMs}ms)`}
                     >
-                      <span>#{index + 1}</span>
-                      <span>{label}</span>
-                      <span className="text-[8px] opacity-75 font-mono">
+                      <span className="truncate">{label}</span>
+                      <span className="text-[7px] opacity-75 font-mono ml-0.5 truncate hidden sm:inline">
                         {act.durationMs}ms
                       </span>
                     </button>
                   );
                 })}
 
-                {actions.length === 0 && (
-                  <div className="text-[10px] text-zinc-600 italic px-2">無動作</div>
+                {trackActionsWithIdx.length === 0 && (
+                  <div className="text-[10px] text-zinc-700 italic px-3 select-none">空</div>
                 )}
               </div>
             </div>

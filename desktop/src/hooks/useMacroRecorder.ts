@@ -116,10 +116,12 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
     // 1. Finalize any currently held down buttons
     activeButtonsRef.current.forEach((startTime, btn) => {
       const dur = Math.max(30, Math.round(now - startTime));
+      const startMs = Math.max(0, Math.round(startTime - recordingStartTimeRef.current));
       completedActionsRef.current.push({
         id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         type: 'button',
         button: btn,
+        startTimeMs: startMs,
         durationMs: dur,
         _startedAt: startTime,
         _endedAt: now,
@@ -130,12 +132,14 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
     // 2. Finalize active Left Stick
     if (activeStickLeftRef.current) {
       const { startedAt, x, y } = activeStickLeftRef.current;
+      const startMs = Math.max(0, Math.round(startedAt - recordingStartTimeRef.current));
       completedActionsRef.current.push({
         id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         type: 'stick',
         stick: 'left',
         stickX: x,
         stickY: y,
+        startTimeMs: startMs,
         durationMs: Math.max(40, Math.round(now - startedAt)),
         _startedAt: startedAt,
         _endedAt: now,
@@ -146,12 +150,14 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
     // 3. Finalize active Right Stick
     if (activeStickRightRef.current) {
       const { startedAt, x, y } = activeStickRightRef.current;
+      const startMs = Math.max(0, Math.round(startedAt - recordingStartTimeRef.current));
       completedActionsRef.current.push({
         id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         type: 'stick',
         stick: 'right',
         stickX: x,
         stickY: y,
+        startTimeMs: startMs,
         durationMs: Math.max(40, Math.round(now - startedAt)),
         _startedAt: startedAt,
         _endedAt: now,
@@ -162,10 +168,12 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
     // 4. Finalize active D-Pad
     if (activeDpadRef.current) {
       const { startedAt, direction } = activeDpadRef.current;
+      const startMs = Math.max(0, Math.round(startedAt - recordingStartTimeRef.current));
       completedActionsRef.current.push({
         id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         type: 'dpad',
         dpad: direction,
+        startTimeMs: startMs,
         durationMs: Math.max(40, Math.round(now - startedAt)),
         _startedAt: startedAt,
         _endedAt: now,
@@ -173,14 +181,9 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
       activeDpadRef.current = null;
     }
 
-    // 5. Sort all actions STRICTLY chronologically by _startedAt
-    const sorted = [...completedActionsRef.current].sort((a, b) => a._startedAt - b._startedAt);
-
-    // 6. Split gaps into independent 'wait' actions
-    const finalActions: MacroAction[] = [];
-    for (let idx = 0; idx < sorted.length; idx++) {
-      const item = sorted[idx];
-      finalActions.push({
+    // 5. Clean timeline actions sorted by startTimeMs
+    const finalActions: MacroAction[] = completedActionsRef.current
+      .map((item) => ({
         id: item.id,
         type: item.type,
         button: item.button,
@@ -188,30 +191,20 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
         stickX: item.stickX,
         stickY: item.stickY,
         dpad: item.dpad,
+        startTimeMs: item.startTimeMs,
         durationMs: item.durationMs,
-      });
+      }))
+      .sort((a, b) => a.startTimeMs - b.startTimeMs);
 
-      // If gap before next action >= 10ms, insert an independent wait action
-      if (idx < sorted.length - 1) {
-        const gap = Math.round(sorted[idx + 1]._startedAt - item._endedAt);
-        if (gap >= 10) {
-          finalActions.push({
-            id: `act-wait-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-            type: 'wait',
-            durationMs: gap,
-          });
-        }
-      }
-    }
-
-    // Preserve trailing idle blank wait if user waited before stopping
-    if (sorted.length > 0) {
-      const lastEnded = Math.max(...sorted.map((s) => s._endedAt));
-      const trailingGap = Math.round(now - lastEnded);
-      if (trailingGap >= 40) {
+    // 6. Preserve trailing idle pause if user waited before stopping
+    if (finalActions.length > 0) {
+      const lastEnded = Math.max(...finalActions.map((s) => s.startTimeMs + s.durationMs));
+      const trailingGap = Math.round(finalDuration - lastEnded);
+      if (trailingGap >= 50) {
         finalActions.push({
           id: `act-wait-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
           type: 'wait',
+          startTimeMs: lastEnded,
           durationMs: trailingGap,
         });
       }
@@ -246,18 +239,20 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
           const startTime = activeButtonsRef.current.get(btn)!;
           activeButtonsRef.current.delete(btn);
           const duration = Math.max(20, Math.round(now - startTime));
+          const startMs = Math.max(0, Math.round(startTime - recordingStartTimeRef.current));
 
           completedActionsRef.current.push({
             id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
             type: 'button',
             button: btn,
+            startTimeMs: startMs,
             durationMs: duration,
             _startedAt: startTime,
             _endedAt: now,
           });
 
           // Live preview in sorted chronological order
-          const liveSorted = [...completedActionsRef.current].sort((a, b) => a._startedAt - b._startedAt).map((item) => ({ ...item }));
+          const liveSorted = [...completedActionsRef.current].sort((a, b) => a.startTimeMs - b.startTimeMs).map((item) => ({ ...item }));
           setRecordedActions(liveSorted);
         }
       }
@@ -270,12 +265,14 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
         // Finalize previous direction if was active
         if (activeStickLeftRef.current) {
           const { startedAt, x, y } = activeStickLeftRef.current;
+          const startMs = Math.max(0, Math.round(startedAt - recordingStartTimeRef.current));
           completedActionsRef.current.push({
             id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
             type: 'stick',
             stick: 'left',
             stickX: x,
             stickY: y,
+            startTimeMs: startMs,
             durationMs: Math.max(30, Math.round(now - startedAt)),
             _startedAt: startedAt,
             _endedAt: now,
@@ -293,7 +290,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
           };
         }
 
-        const liveSorted = [...completedActionsRef.current].sort((a, b) => a._startedAt - b._startedAt).map((item) => ({ ...item }));
+        const liveSorted = [...completedActionsRef.current].sort((a, b) => a.startTimeMs - b.startTimeMs).map((item) => ({ ...item }));
         setRecordedActions(liveSorted);
       }
 
@@ -304,12 +301,14 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
       if (currRDir !== prevRDir) {
         if (activeStickRightRef.current) {
           const { startedAt, x, y } = activeStickRightRef.current;
+          const startMs = Math.max(0, Math.round(startedAt - recordingStartTimeRef.current));
           completedActionsRef.current.push({
             id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
             type: 'stick',
             stick: 'right',
             stickX: x,
             stickY: y,
+            startTimeMs: startMs,
             durationMs: Math.max(30, Math.round(now - startedAt)),
             _startedAt: startedAt,
             _endedAt: now,
@@ -326,7 +325,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
           };
         }
 
-        const liveSorted = [...completedActionsRef.current].sort((a, b) => a._startedAt - b._startedAt).map((item) => ({ ...item }));
+        const liveSorted = [...completedActionsRef.current].sort((a, b) => a.startTimeMs - b.startTimeMs).map((item) => ({ ...item }));
         setRecordedActions(liveSorted);
       }
 
@@ -337,10 +336,12 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
       if (dpadVal !== prevDpadVal) {
         if (activeDpadRef.current) {
           const { startedAt, direction } = activeDpadRef.current;
+          const startMs = Math.max(0, Math.round(startedAt - recordingStartTimeRef.current));
           completedActionsRef.current.push({
             id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
             type: 'dpad',
             dpad: direction,
+            startTimeMs: startMs,
             durationMs: Math.max(30, Math.round(now - startedAt)),
             _startedAt: startedAt,
             _endedAt: now,
@@ -355,7 +356,7 @@ export function useMacroRecorder(options?: UseMacroRecorderOptions) {
           };
         }
 
-        const liveSorted = [...completedActionsRef.current].sort((a, b) => a._startedAt - b._startedAt).map((item) => ({ ...item }));
+        const liveSorted = [...completedActionsRef.current].sort((a, b) => a.startTimeMs - b.startTimeMs).map((item) => ({ ...item }));
         setRecordedActions(liveSorted);
       }
     },

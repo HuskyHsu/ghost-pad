@@ -13,7 +13,8 @@ export interface MacroAction {
   stickY?: number; // 0..255 (128 center)
   // For dpad action
   dpad?: number; // 0..8
-  // Timing parameters
+  // Timing parameters (Timeline relative offset & hold duration)
+  startTimeMs: number; // Offset from script start in ms
   durationMs: number; // how long to hold this state or wait duration (ms)
 }
 
