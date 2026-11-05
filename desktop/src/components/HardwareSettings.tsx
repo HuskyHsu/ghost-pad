@@ -18,24 +18,50 @@ const COMMON_BAUDRATES = [19200, 115200, 921600];
 
 export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairingChange, onStep0Change }) => {
   const { t } = useTranslation('hardware');
-  const [ports, setPorts] = useState<SerialPortDetail[]>([]);
-  const [selectedPort, setSelectedPort] = useState<string>('');
+  const isDemo = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('demo') === 'true';
+  const [ports, setPorts] = useState<SerialPortDetail[]>(() => {
+    if (isDemo) {
+      return [
+        {
+          port_name: '/dev/cu.usbserial-0001',
+          product_name: 'USB-Serial Controller (CH340)',
+          description: 'USB-Serial Controller (CH340)',
+          manufacturer: 'WCH.CN',
+          is_esp32: true,
+        },
+      ];
+    }
+    return [];
+  });
+  const [selectedPort, setSelectedPort] = useState<string>(() => (isDemo ? '/dev/cu.usbserial-0001' : ''));
   const [selectedBaudrate, setSelectedBaudrate] = useState<number>(19200);
 
   // Firmware status: idle | checking | compatible | recognized | incompatible
-  const [firmwareStatus, setFirmwareStatus] = useState<'idle' | 'checking' | 'compatible' | 'recognized' | 'incompatible'>('idle');
-  const [probeDetails, setProbeDetails] = useState<string>('');
+  const [firmwareStatus, setFirmwareStatus] = useState<'idle' | 'checking' | 'compatible' | 'recognized' | 'incompatible'>(() => (isDemo ? 'recognized' : 'idle'));
+  const [probeDetails, setProbeDetails] = useState<string>(() => (isDemo ? 'PRO-UART0.bin v1.0.0 (ACK 0x90 Verified)' : ''));
 
   // Progressive Disclosure: Toggle Firmware Flasher utility
   const [showFlasher, setShowFlasher] = useState<boolean>(false);
 
-  const [status, setStatus] = useState<SerialStatus>({
-    is_connected: false,
-    port_name: undefined,
-    baudrate: 19200,
-    packets_sent: 0,
-    tx_fps: 0,
-    switch_pairing_state: 'disconnected',
+  const [status, setStatus] = useState<SerialStatus>(() => {
+    if (isDemo) {
+      return {
+        is_connected: true,
+        port_name: '/dev/cu.usbserial-0001',
+        baudrate: 19200,
+        packets_sent: 1842,
+        tx_fps: 60,
+        switch_pairing_state: 'connected',
+      };
+    }
+    return {
+      is_connected: false,
+      port_name: undefined,
+      baudrate: 19200,
+      packets_sent: 0,
+      tx_fps: 0,
+      switch_pairing_state: 'disconnected',
+    };
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -237,15 +263,22 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
 
   // Dedicated probe trigger: only runs when selectedPort or selectedBaudrate strictly changes
   useEffect(() => {
+    if (isDemo) return;
     if (!selectedPort) return;
     const key = `${selectedPort}@${selectedBaudrate}`;
     if (lastProbedRef.current === key) return;
     lastProbedRef.current = key;
     probeFirmware(selectedPort, selectedBaudrate);
-  }, [selectedPort, selectedBaudrate, probeFirmware]);
+  }, [selectedPort, selectedBaudrate, probeFirmware, isDemo]);
 
   // Single mount effect: fetches initial ports, status, and registers event listener
   useEffect(() => {
+    if (isDemo) {
+      onStep0Change?.(true);
+      onConnectionChange?.(true);
+      onPairingChange?.('connected');
+      return;
+    }
     fetchPorts();
     if (isTauri) {
       invoke<SerialStatus>('get_serial_status')

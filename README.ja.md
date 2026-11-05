@@ -20,6 +20,26 @@ Nintendo Switch 向け高性能 PC 仮想コントローラープロキシ・リ
 Ghost-Pad は、Nintendo Switch 向けに開発された高性能仮想コントローラーブリッジ、リアルタイムビジュアライザー、およびマクロ自動化スタジオです。  
 PC をスマートコントローラーの中核とし、USB シリアル通信を通じて ESP32 開発ボードにコマンドを送信し、Bluetooth Classic 経由で純正 **Nintendo Switch Pro コントローラー**（VID: `0x057E`、PID: `0x2009`）を正確にエミュレートします。
 
+<div align="center">
+  <img src="docs/assets/screenshots/ja/dashboard.png" alt="Ghost-Pad Visualizer & Live Timeline" width="820" />
+</div>
+
+---
+
+## 📸 スクリーンショット (Screenshots)
+
+<div align="center">
+
+| ゴーストビジュアライザー & 五線譜タイムライン | マクロスタジオ & ループ再生エンジン |
+| :---: | :---: |
+| <img src="docs/assets/screenshots/ja/dashboard.png" width="400" alt="Ghost Visualizer & Timeline" /> | <img src="docs/assets/screenshots/ja/macro-studio.png" width="400" alt="Macro Studio" /> |
+
+| ESP32 シリアル接続 & Switch 3ステップペアリング設定 |
+| :---: |
+| <img src="docs/assets/screenshots/ja/hardware.png" width="500" alt="Hardware Settings" /> |
+
+</div>
+
 ---
 
 ## 🌟 主な特徴
@@ -84,55 +104,13 @@ ghost-pad/
 
 ---
 
-## 🚀 開発者向けクイックスタート (Getting Started)
+## 🛠️ 開発とコントリビューション (Contributing)
 
-PC に **Node.js 18+** と **Rust ツールチェーン** がインストールされていることを確認し、`desktop` ディレクトリに移動します：
-
-```bash
-cd desktop
-
-# 依存パッケージのインストール
-npm install
-
-# フルデスクトップ開発モード起動 (Tauri ネイティブウィンドウ + Rust バックエンド)
-npm run tauri dev
-
-# フロントエンド開発サーバー単体起動 (UI および Canvas 調整用)
-npm run dev
-```
-
-詳細なキーバインド一覧、ショートカット、アーキテクチャについては以下をご覧ください：
-- 📖 [デスクトップ利用マニュアル (desktop/README.md)](desktop/README.md)
-- 📐 [アーキテクチャ・プロトコル設計書 (desktop/ARCHITECTURE.md)](desktop/ARCHITECTURE.md)
-- 🔌 [通信プロトコル・ハードウェア仕様書 (docs/technical_spec.md)](docs/technical_spec.md)
-- 📝 [システム実装仕様書 (docs/desktop_app_plan.md)](docs/desktop_app_plan.md)
-
----
-
-## 🧪 自動テストと CI/CD (Testing & Releases)
-
-本プロジェクトはフロントエンドとバックエンドの両方で完全な単体テスト（全 109 件すべて合格）と GitHub Actions CI/CD パイプラインを備えています：
-
-```bash
-# フロントエンドテストの実行 (89 件すべて合格)
-cd desktop && npm test
-
-# Rust バックエンドテストの実行 (20 件すべて合格)
-cd desktop/src-tauri && cargo test
-```
-
-### 🏷️ 新しいバージョンのリリース手順
-
-Git でバージョンタグ（例: `v1.0.0`）を作成して GitHub にプッシュすると、CI/CD が自動起動します：
-1. バージョン番号を各設定ファイルに自動同期。
-2. フロントエンド（89 件）およびバックエンド（20 件）のテストを実行。
-3. macOS Runner 上で Universal バイナリをビルド。
-4. **GitHub Releases** に `.dmg` および `.zip` を自動アップロードしてリリース公開。
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
+ソースコードからのビルドや開発への参加については、以下の詳細ガイドをご覧ください：
+- 📖 [デスクトップ開発・環境構築ガイド (desktop/README.md)](desktop/README.md)：必要環境、開発モード（Tauri / ブラウザ）、キーボード対照表、自動テスト（109件すべて合格）。
+- 📐 [アーキテクチャ・プロトコル設計書 (desktop/ARCHITECTURE.md)](desktop/ARCHITECTURE.md)：3系統入力マージアルゴリズム、通信仕様書。
+- 🔌 [通信プロトコル・ハードウェア仕様書 (docs/technical_spec.md)](docs/technical_spec.md)：バイナリパケット仕様、CRC8/XOR アルゴリズム、Bluetooth HID エミュレーション。
+- 📝 [システム実装仕様書 (docs/desktop_app_plan.md)](docs/desktop_app_plan.md)：機能ロードマップ、モジュール仕様、検証チェックリスト。
 
 ---
 

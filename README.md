@@ -20,6 +20,26 @@ High-performance PC-to-Nintendo Switch virtual controller bridge, live visualize
 Ghost-Pad is a high-performance virtual controller bridge, live visualizer dashboard, and macro automation studio built for the Nintendo Switch.  
 Using your computer as an intelligent controller core, it sends commands via USB Serial to an ESP32 development board, which emulates an authentic **Nintendo Switch Pro Controller** over Bluetooth Classic (VID: `0x057E`, PID: `0x2009`).
 
+<div align="center">
+  <img src="docs/assets/screenshots/en/dashboard.png" alt="Ghost-Pad Visualizer & Live Timeline" width="820" />
+</div>
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+
+| Ghost Visualizer & Live Timeline | Macro Studio & Loop Engine |
+| :---: | :---: |
+| <img src="docs/assets/screenshots/en/dashboard.png" width="400" alt="Ghost Visualizer & Timeline" /> | <img src="docs/assets/screenshots/en/macro-studio.png" width="400" alt="Macro Studio" /> |
+
+| ESP32 Hardware & Switch Pairing Setup |
+| :---: |
+| <img src="docs/assets/screenshots/en/hardware.png" width="500" alt="Hardware Settings" /> |
+
+</div>
+
 ---
 
 ## 🌟 Key Features
@@ -67,8 +87,10 @@ ghost-pad/
 └── docs/                     # 📚 Specifications and Implementation Guides
     ├── technical_spec.md     # Low-level binary protocol (CRC8 / XOR) and ESP32 Bluetooth specs (Default English)
     ├── technical_spec.zh-TW.md # Technical protocol specification (Traditional Chinese)
+    ├── technical_spec.ja.md  # Technical protocol specification (Japanese)
     ├── desktop_app_plan.md   # Desktop implementation specification and acceptance checklist (Default English)
-    └── desktop_app_plan.zh-TW.md # Desktop implementation specification (Traditional Chinese)
+    ├── desktop_app_plan.zh-TW.md # Desktop implementation specification (Traditional Chinese)
+    └── desktop_app_plan.ja.md # Desktop implementation specification (Japanese)
 ```
 
 ---
@@ -82,55 +104,13 @@ End users do not need to install developer toolchains or build from source:
 
 ---
 
-## 🚀 Developer Quick Start
+## 🛠️ Contributing & Development
 
-Ensure that **Node.js 18+** and the **Rust toolchain** are installed, then navigate to the `desktop` directory:
-
-```bash
-cd desktop
-
-# Install dependencies
-npm install
-
-# Start full desktop development mode (Tauri native window + Rust backend)
-npm run tauri dev
-
-# Or start frontend browser preview mode (Vite UI and Canvas dev server)
-npm run dev
-```
-
-For detailed guides, keyboard shortcuts, and architecture specifications, see:
-- 📖 [Desktop User Guide (desktop/README.md)](desktop/README.md)
-- 📐 [Architecture & Protocol Manual (desktop/ARCHITECTURE.md)](desktop/ARCHITECTURE.md)
-- 🔌 [Technical Protocol Specification (docs/technical_spec.md)](docs/technical_spec.md)
-- 📝 [Implementation & Feature Manual (docs/desktop_app_plan.md)](docs/desktop_app_plan.md)
-
----
-
-## 🧪 Testing & CI/CD
-
-This project has complete automated test coverage across both frontend and backend (all 109 tests passing) with GitHub Actions CI/CD workflows:
-
-```bash
-# Run frontend tests (89 passing)
-cd desktop && npm test
-
-# Run Rust backend communication and state merging tests (20 passing)
-cd desktop/src-tauri && cargo test
-```
-
-### 🏷️ Creating a New Release
-
-Pushing a version tag (e.g. `v1.0.0`) to GitHub triggers the release workflow:
-1. Automatically synchronizes version numbers across package manifests.
-2. Runs all 89 frontend and 20 backend unit tests.
-3. Builds the universal macOS binary (Apple Silicon + Intel).
-4. Publishes `.dmg` installer and `.zip` archives directly to **GitHub Releases**.
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
+Interested in building Ghost-Pad from source or contributing to development?
+- 📖 [Desktop Developer Guide & Setup](desktop/README.md) - Node/Rust prerequisites, development modes, keyboard shortcuts, and automated tests (109 passing).
+- 📐 [Architecture & Protocol Specification](desktop/ARCHITECTURE.md) - System architecture, tri-input state merging, and ESP32 UART protocols.
+- 🔌 [Technical Protocol Specification](docs/technical_spec.md) - Low-level packet formats, CRC8 / XOR algorithms, and Bluetooth HID emulation.
+- 📝 [Implementation & Feature Checklist](docs/desktop_app_plan.md) - Development roadmap, module specifications, and verification benchmarks.
 
 ---
 

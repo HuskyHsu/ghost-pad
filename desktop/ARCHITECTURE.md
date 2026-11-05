@@ -1,249 +1,255 @@
-# 👻 Ghost-Pad Desktop 架構設計與開發指南 (Architecture & Maintenance Guide)
+# 👻 Ghost-Pad Desktop Architecture & Developer Guide
 
-本文件詳細記錄 **Ghost-Pad Desktop** 的系統架構、資料流、核心演算法、前端元件拆分設計與硬體通訊協議，供日後維護、功能擴充與問題排查查閱。
-
----
-
-## 📑 目錄
-
-1. [系統全景架構 (System Architecture)](#1-系統全景架構-system-architecture)
-2. [三路輸入並行橋接 (Tri-Input Bridge)](#2-三路輸入並行橋接-tri-input-bridge)
-3. [狀態合併演算法 (State Merging Logic)](#3-狀態合併演算法-state-merging-logic)
-4. [前端架構與自訂 Hooks (Frontend Architecture & Custom Hooks)](#4-前端架構與自訂-hooks-frontend-architecture--custom-hooks)
-5. [即時時序流畫布 (InputTimelineStream Canvas Architecture)](#5-即時時序流畫布-inputtimelinestream-canvas-architecture)
-6. [ESP32 序列埠與 Switch 握手狀態機 (Hardware & Protocol State Machine)](#6-esp32-序列埠與-switch-握手狀態機-hardware--protocol-state-machine)
-7. [通訊封包格式規格 (Protocol Specifications)](#7-通訊封包格式規格-protocol-specifications)
-8. [測試規範與維護指引 (Testing & Maintenance Guidelines)](#8-測試規範與維護指引-testing--maintenance-guidelines)
+This document provides a comprehensive technical overview of **Ghost-Pad Desktop**, detailing its system architecture, data flow, core algorithms, frontend component design, and hardware communication protocols for maintenance, future extension, and debugging.
 
 ---
 
-## 1. 系統全景架構 (System Architecture)
+## 📑 Table of Contents
 
-Ghost-Pad Desktop 採用 **Tauri v2 (Rust 後端)** 結合 **React 19 + TypeScript (前端)** 的混合架構：
+1. [System Architecture](#1-system-architecture)
+2. [Tri-Input Bridge](#2-tri-input-bridge)
+3. [State Merging Logic](#3-state-merging-logic)
+4. [Frontend Architecture & Custom Hooks](#4-frontend-architecture--custom-hooks)
+5. [Live Timeline Stream Canvas Architecture](#5-live-timeline-stream-canvas-architecture)
+6. [ESP32 Serial Port & Switch Handshake State Machine](#6-esp32-serial-port--switch-handshake-state-machine)
+7. [Protocol Specifications](#7-protocol-specifications)
+8. [Testing & Maintenance Guidelines](#8-testing--maintenance-guidelines)
+9. [Macro Studio & Playback Engine](#9-macro-studio--playback-engine)
+
+---
+
+## 1. System Architecture
+
+Ghost-Pad Desktop employs a hybrid architecture built upon **Tauri v2 (Rust backend)** and **React 19 + TypeScript (frontend)**:
 
 ```mermaid
 graph TD
-    subgraph Input Sources
-        GP[實體手把\n8BitDo / Pro / JoyCon] -->|OS HID API| GILRS[Rust gilrs 輪詢線程]
-        KB[電腦鍵盤\nWASD + 鍵位映射] -->|Web Key Events| VGP[useVirtualGamepad Hook]
-        UI[畫面點擊 / 拖曳\nGhost-Pad / HUD] -->|Pointer Events| DRAG[useStickDrag / usePulsedButtonPress]
+    subgraph InputSources ["Input Sources"]
+        GP["Physical Gamepad<br/>8BitDo / Pro / Joy-Con"] -->|OS HID API| GILRS["Rust gilrs Polling Thread"]
+        KB["Computer Keyboard<br/>WASD + Key Mapping"] -->|Web Key Events| VGP["useVirtualGamepad Hook"]
+        UI["Screen Tap / Drag<br/>Ghost-Pad / HUD"] -->|Pointer Events| DRAG["useStickDrag / usePulsedButtonPress"]
     end
 
-    subgraph Rust Backend (desktop/src-tauri)
-        GILRS -->|實體輸入| MERGE[GamepadManager::merge]
-        VGP -->|Tauri IPC| VIRT[虛擬輸入狀態庫]
+    subgraph RustBackend ["Rust Backend (desktop/src-tauri)"]
+        GILRS -->|Physical Input| MERGE["GamepadManager::merge"]
+        VGP -->|Tauri IPC| VIRT["Virtual State Storage"]
         DRAG -->|Tauri IPC| VIRT
-        VIRT -->|虛擬輸入| MERGE
-        MERGE --> STATE[最終合併狀態\nControllerState]
-        STATE -->|Tauri Event 60Hz| FE[前端即時渲染\nVisualizer & Timeline]
-        STATE -->|60Hz 發送迴圈| SER[SerialManager 心跳執行緒]
+        VIRT -->|Virtual Input| MERGE
+        MERGE --> STATE["Merged ControllerState"]
+        STATE -->|Tauri Event 60Hz| FE["Frontend Rendering<br/>Visualizer & Timeline"]
+        STATE -->|60Hz Heartbeat Loop| SER["SerialManager Worker Thread"]
     end
 
-    subgraph Hardware Target
-        SER -->|UART 19200 baud| ESP[ESP32 開發板]
-        ESP -->|藍牙 HID| SW[Nintendo Switch 主機]
+    subgraph HardwareTarget ["Hardware Target"]
+        SER -->|UART 19200 baud| ESP["ESP32 Development Board"]
+        ESP -->|Bluetooth HID| SW["Nintendo Switch Console"]
     end
 ```
 
 ---
 
-## 2. 三路輸入並行橋接 (Tri-Input Bridge)
+## 2. Tri-Input Bridge
 
-系統支援三種輸入方式無縫同時作用，不會互相覆蓋或產生競爭狀態：
+The system seamlessly combines three concurrent input sources without race conditions or state overwriting:
 
-| 輸入來源 | 捕捉機制 | 傳輸管道 | 延遲目標 |
+| Input Source | Capture Mechanism | Transport Channel | Latency Target |
 | :--- | :--- | :--- | :--- |
-| **實體手把** | Rust `gilrs` 後端多線程輪詢 | 內部 Arc/RwLock 讀寫鎖 | < 1 ms |
-| **電腦鍵盤** | 前端 `keydown` / `keyup` 事件監聽 | Tauri IPC `send_virtual_button` | < 3 ms (包含樂觀 UI 零延遲更新) |
-| **螢幕觸控 / 滑鼠** | Pointer Events + Pointer Capture | Tauri IPC `send_virtual_stick` (RAF 合併) | < 3 ms (直接 DOM Transform 120Hz) |
+| **Physical Gamepad** | Multi-threaded polling via Rust `gilrs` | Internal `Arc<RwLock<...>>` lock | < 1 ms |
+| **Computer Keyboard** | Frontend `keydown` / `keyup` event listeners | Tauri IPC `send_virtual_button` | < 3 ms (with optimistic zero-latency UI update) |
+| **Touch / Mouse Pointer** | Pointer Events + Pointer Capture | Tauri IPC `send_virtual_stick` (RAF throttled) | < 3 ms (direct 120Hz DOM transforms) |
 
 ---
 
-## 3. 狀態合併演算法 (State Merging Logic)
+## 3. State Merging Logic
 
-位於 `desktop/src-tauri/src/gamepad.rs` 的 `GamepadManager::merge` 實作了雙路輸入合併規則：
+Located in `desktop/src-tauri/src/gamepad.rs`, `GamepadManager::merge` implements multi-source merging rules:
 
-1. **數位按鍵 (ABXY, L/R, ZL/ZR, 系統鍵, Stick Clicks)**：
+1. **Digital Buttons (ABXY, L/R, ZL/ZR, System Buttons, Stick Clicks)**:
    $$\text{Output Button} = \text{Physical Button} \lor \text{Virtual Button}$$
-   只要任一路按下，輸出即為按下（OR 邏輯）。
+   If a button is pressed from either source, the output state is pressed (logical OR).
 
-2. **方向鍵 (D-Pad)**：
-   - 若虛擬鍵盤或螢幕輸入產生非置中方向（`v.dpad != Center`），優先使用虛擬輸入。
-   - 否則沿用實體手把方向（`p.dpad`）。
+2. **D-Pad Direction**:
+   - If virtual inputs (keyboard or UI) report a non-neutral direction (`v.dpad != Center`), virtual input takes precedence.
+   - Otherwise, the physical controller direction (`p.dpad`) is preserved.
 
-3. **類比搖桿 (Left Stick & Right Stick, 0~255, 128 為中心點)**：
-   - 若虛擬端數值脫離中心區間（`v.stick != 128`），優先採用虛擬搖桿偏移。
-   - 否則沿用實體手把類比量（`p.stick`）。
+3. **Analog Sticks (Left Stick & Right Stick: 0~255, 128 is center)**:
+   - If the virtual stick deflects away from neutral (`v.stick != 128`), the virtual offset takes precedence.
+   - Otherwise, the physical analog magnitude (`p.stick`) is used.
 
-4. **靜音機制 (Mute Mode)**：
-   - 若啟用靜音 (`is_muted = true`)，輸出狀態重置為完全中立的預設狀態 (`DEFAULT_CONTROLLER_STATE`)，停止向 Switch 傳輸任何按鍵動作。
+4. **Mute Mode**:
+   - When muted (`is_muted = true`), the output state is forced to a completely neutral state (`DEFAULT_CONTROLLER_STATE`), stopping all inputs to the Switch.
 
 ---
 
-## 4. 前端架構與自訂 Hooks (Frontend Architecture & Custom Hooks)
+## 4. Frontend Architecture & Custom Hooks
 
-為避免複雜的指標事件、觸控捕捉與計時器在元件間重複實作，前端抽取了共用 Hooks：
+To avoid duplicate implementations of pointer capture, gesture tracking, and asynchronous timers across components, the frontend encapsulates reusable hooks:
 
 ### 4.1 `usePulsedButtonPress` (`src/hooks/usePulsedButtonPress.ts`)
-- **目的**：處理畫面上按鍵點擊與鍵盤輔助點擊（`Space` / `Enter`）。
-- **保證最小脈衝時長 (`minHoldMs = 140ms`)**：
-  使用者超快速點擊（例如 20ms）時，自動拉長保持時間至 140ms，確保 Switch 主機端能正確讀取到按鈕封包，且螢幕視覺有完整光暈回饋。
-- **生命週期安全性**：元件卸載（Unmount）時自動清空所有尚未執行的 `setTimeout`，杜絕記憶體洩漏與未掛載狀態更新。
-- **提供方法**：
+- **Purpose**: Handles on-screen button taps and accessibility keyboard triggers (`Space` / `Enter`).
+- **Guaranteed Minimum Pulse Duration (`minHoldMs = 140ms`)**:
+  When a user performs an ultra-fast tap (e.g., 20ms), the duration is automatically extended to 140ms to guarantee that the Switch console registers the packet and the UI displays full glow feedback.
+- **Lifecycle Safety**: Cancels all pending `setTimeout` callbacks upon component unmount to prevent memory leaks and state updates on unmounted components.
+- **Provided API**:
   - `handleButtonPress(buttonName: string, pressed: boolean)`
-  - `bindButton(buttonName: string)`：回傳包含 `onPointerDown`, `onPointerUp`, `onPointerCancel`, `onClick` 的屬性包。
+  - `bindButton(buttonName: string)`: Returns props containing `onPointerDown`, `onPointerUp`, `onPointerCancel`, and `onClick`.
 
 ### 4.2 `useStickDrag` (`src/hooks/useStickDrag.ts`)
-- **目的**：提供滑鼠 / 觸控於類比搖桿底座上的拖曳體驗。
-- **功能特點**：
-  - **Pointer Capture**：拖曳超出搖桿範圍時不中斷追蹤。
-  - **120Hz 直接硬體加速 DOM 更新**：不透過 React setState，以 `translate3d` 達成零延遲跟手感。
-  - **RAF IPC 節流**：在 60Hz requestAnimationFrame 內合併位移量，避免高頻拖曳時塞滿 Tauri IPC 佇列。
-  - **彈力回彈動畫**：釋放時透過 `cubic-bezier(0.18, 0.89, 0.32, 1.28)` 達成真實手把彈回的物理微彈跳。
-  - **原地點擊判定 (L3/R3 Click)**：若點擊移動位移小於門檻值（5~6px），自動觸發一次搖桿下壓（L3/R3）。
-  - **RWD 縮放補償 (`getScale`)**：支援外層 CSS scale 自動補償滑鼠移動距離。
+- **Purpose**: Delivers smooth mouse/touch dragging on the analog stick bases.
+- **Key Features**:
+  - **Pointer Capture**: Ensures continuous tracking even when dragging extends beyond the stick bounds.
+  - **120Hz Direct Hardware-Accelerated DOM Updates**: Bypasses React `setState` during active dragging, applying `translate3d` directly for zero-latency tracking.
+  - **RAF IPC Throttling**: Batches coordinate changes within a 60Hz `requestAnimationFrame` loop to prevent overloading the Tauri IPC channel.
+  - **Spring-Back Physics**: Smoothly animates release back to center with `cubic-bezier(0.18, 0.89, 0.32, 1.28)`.
+  - **In-Place Click Detection (L3/R3)**: If displacement upon release is under threshold (5~6px), it triggers a stick press (L3/R3 click).
+  - **RWD Scale Compensation (`getScale`)**: Compensates for CSS scale transforms on the parent container when calculating pointer coordinates.
 
 ### 4.3 `useVirtualGamepad` (`src/hooks/useVirtualGamepad.ts`)
-- **目的**：鍵盤事件至手把按鍵的映射與 WASD 類比搖桿推動計算。
-- **D-Pad 8 向演算法 (`computeDpadVal`)**：
+- **Purpose**: Maps keyboard events to virtual gamepad inputs and computes WASD analog stick emulation.
+- **D-Pad 8-Way Algorithm (`computeDpadVal`)**:
   ```
-  0: 上, 1: 右上, 2: 右, 3: 右下, 4: 下, 5: 左下, 6: 左, 7: 左上, 8: 中立
+  0: Up, 1: Up-Right, 2: Right, 3: Down-Right, 4: Down, 5: Down-Left, 6: Left, 7: Up-Left, 8: Neutral
   ```
-  若同時按下相反方向（如上+下或左+右），演算法自動消除衝突回傳中立 (8)。
+  Conflicting opposing keys (such as Up + Down or Left + Right) automatically resolve to Neutral (8).
 
 ---
 
-## 5. 即時時序流畫布 (InputTimelineStream Canvas Architecture)
+## 5. Live Timeline Stream Canvas Architecture
 
-`InputTimelineStream.tsx` 提供仿 DAW / 節奏遊戲音樂五線譜的 60~120Hz 畫布：
+`InputTimelineStream.tsx` provides a 60~120Hz canvas visualizer reminiscent of a DAW piano roll or rhythm game score sheet:
 
 ```
-[頂部時間標尺] 0s ─── 5s ─── 10s ─── 15s ─── 20s ─── 25s ─── 30s
+[Time Ruler] 0s ─── 5s ─── 10s ─── 15s ─── 20s ─── 25s ─── 30s
 ┌──────────────────────────────────────────────────────────────┐
-│ [ABXY]  │  (A)======     (B)   (X)========                   │
-│ [十字鍵] │         [▲]====                                   │
-│ [搖桿]  │   [L▶]======       [L▲]========                    │
-│ [肩鍵]  │  (ZL)===                                           │
-│ [系統]  │              (⌂)                                   │
+│ [ABXY]     │  (A)======     (B)   (X)========                │
+│ [D-Pad]    │         [▲]====                                 │
+│ [Sticks]   │   [L▶]======       [L▲]========                 │
+│ [Shoulder] │  (ZL)===                                        │
+│ [System]   │              (⌂)                                │
 └──────────────────────────────────────────────────────────────┘
-[左側軌道名]  ▲ 0s 打擊線 (Playhead Line)
+[Track Names] ▲ 0s Playhead Line
 ```
 
-- **軌道結構**：
-  - 第 0 軌：ABXY 動作鍵（綠/紅/天藍/琥珀黃）
-  - 第 1 軌：十字鍵 D-Pad（紫色）
-  - 第 2 軌：搖桿與下壓 L3/R3（青色/藍綠）
-  - 第 3 軌：肩鍵 L/R/ZL/ZR（粉紅/玫瑰紅）
-  - 第 4 軌：系統鍵 Minus/Plus/Home/Capture（石板灰/天藍）
-- **渲染優化**：
-  - 純靜態 `getButtonStates` 提取器移至元件外部，避免每次渲染重複配置。
-  - Canvas 針對 Retina 螢幕支援 `devicePixelRatio` 縮放，線條極致銳利。
-  - 邊緣漸層遮罩 (`fadeGrad`) 確保音符流出邊界時自然淡出。
+- **Track Layout**:
+  - Track 0: Action Buttons ABXY (Green / Red / Sky Blue / Amber)
+  - Track 1: D-Pad Directions (Purple)
+  - Track 2: Analog Sticks & Clicks L3/R3 (Cyan / Teal)
+  - Track 3: Shoulder Buttons L / R / ZL / ZR (Pink / Rose)
+  - Track 4: System Buttons Minus / Plus / Home / Capture (Slate / Sky Blue)
+- **Rendering Optimizations**:
+  - Pure static `getButtonStates` extractor is placed outside the component to prevent allocations during render loops.
+  - Supports Retina high-DPI rendering via `devicePixelRatio` scaling.
+  - Edge gradient mask (`fadeGrad`) smoothly dissolves notes as they pass beyond the viewport boundary.
 
 ---
 
-## 6. ESP32 序列埠與 Switch 握手狀態機 (Hardware & Protocol State Machine)
+## 6. ESP32 Serial Port & Switch Handshake State Machine
 
-硬體連線採「嚴格順序式三步管理 (Sequential Three-Step Management)」：
+Hardware communication follows a strict three-stage sequential flow:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Step0: 插入 ESP32 USB
-    Step0 --> Step1: 晶片識別 / 韌體握手通過 (PRO-UART0.bin)
-    Step1 --> Step2: 開啟虛擬手把服務 (序列埠連線 19200 baud)
+    [*] --> Step0: Insert ESP32 USB
+    Step0 --> Step1: Chip Identification & Firmware Handshake (PRO-UART0.bin)
+    Step1 --> Step2: Start Virtual Gamepad Service (19200 baud Serial)
     
     state Step2 {
         [*] --> Disconnected
-        Disconnected --> Pairing: 首次配對 (發送 L+R 封包)
-        Pairing --> Connected: Switch 配對確認 (寫入 localStorage)
-        Connected --> Reconnecting: 斷線或重開 (A鍵快速喚醒)
+        Disconnected --> Pairing: First Pairing (Send L+R Pulse)
+        Pairing --> Connected: Switch Pairing Confirmed (Saved to localStorage)
+        Connected --> Reconnecting: Reconnect / Wakeup (Quick A-Button Wakeup)
         Reconnecting --> Connected
     }
 ```
 
-- **步驟 0**：自動過濾無效序列埠（macOS 藍牙虛擬埠、tty 重複埠），優先識別 CH340 / CP2102 / FTDI 等 ESP32 晶片。
-- **步驟 1**：開關 60Hz 心跳封包傳輸線程。
-- **步驟 2**：
-  - 首次配對：發送 `pair_lr` 指令，成功後將狀態記憶於 `localStorage`。
-  - 後續開機：連線後自動送出 `wake_reconnect` 指令喚醒 Switch。
+- **Step 0**: Automatically filters out invalid ports (macOS virtual Bluetooth ports, duplicate tty entries) and prioritizes ESP32 chips (CH340, CP2102, FTDI).
+- **Step 1**: Controls the 60Hz heartbeat transmission worker thread.
+- **Step 2**:
+  - **First-time Pairing**: Sends `pair_lr` command, saving state to `localStorage` upon success.
+  - **Subsequent Boot**: Sends `wake_reconnect` command upon serial connection to wake up the Switch.
 
 ---
 
-## 7. 通訊封包格式規格 (Protocol Specifications)
+## 7. Protocol Specifications
 
-本專案支援兩種 PC 至 ESP32 封包協定（定義於 `desktop/src-tauri/src/protocol.rs`）：
+The project supports two PC-to-ESP32 protocols (defined in `desktop/src-tauri/src/protocol.rs`):
 
-### 7.1 UARTSwitchCon 9-Byte 封包 (預設標準)
+### 7.1 UARTSwitchCon 9-Byte Packet (Default Standard)
 
-| Offset | 欄位 | 說明 |
+| Offset | Field | Description |
 | :--- | :--- | :--- |
-| `0` | Header | `0xFF` 固定開頭碼 |
-| `1` | Button Low | 按鍵狀態低位元（按鍵按下為 `0` 反向邏輯） |
-| `2` | Button High | 按鍵狀態高位元 |
-| `3` | D-Pad | 十字鍵 0~8 |
-| `4` | Left Stick X | 0~255 (128 置中) |
-| `5` | Left Stick Y | 0~255 (128 置中) |
-| `6` | Right Stick X | 0~255 (128 置中) |
-| `7` | Right Stick Y | 0~255 (128 置中) |
-| `8` | CRC-8 | 多項式 `0x07` (初始值 `0x00`) 校驗和 |
+| `0` | Header | Fixed identifier `0xFF` |
+| `1` | Button Low | Lower action button bitmask (active low `0`) |
+| `2` | Button High | Upper action and system button bitmask |
+| `3` | D-Pad | Directional index (0~8) |
+| `4` | Left Stick X | 0~255 (128 centered) |
+| `5` | Left Stick Y | 0~255 (128 centered) |
+| `6` | Right Stick X | 0~255 (128 centered) |
+| `7` | Right Stick Y | 0~255 (128 centered) |
+| `8` | CRC-8 | Polynomial `0x07` (initial value `0x00`) checksum |
 
-### 7.2 Custom 10-Byte XOR 封包
+### 7.2 Custom 10-Byte XOR Packet (Legacy Compatibility)
 
-| Offset | 欄位 | 說明 |
+| Offset | Field | Description |
 | :--- | :--- | :--- |
-| `0` | Header 0 | `0xAA` |
-| `1` | Header 1 | `0x55` |
-| `2` | Button Low | 按鈕位元遮罩 |
-| `3` | Button High | 系統鍵與 Stick Click 遮罩 |
-| `4` | D-Pad | 0~8 |
+| `0` | Header 0 | Fixed header byte `0xAA` |
+| `1` | Header 1 | Fixed header byte `0x55` |
+| `2` | Button Low | Action button bitmask |
+| `3` | Button High | System and stick click bitmask |
+| `4` | D-Pad | Directional index (0~8) |
 | `5..8` | Sticks | LX, LY, RX, RY (0~255) |
-| `9` | Checksum | 前 9 位元組之 XOR 逐位異或值 |
+| `9` | Checksum | Bitwise XOR sum across the first 9 bytes |
 
 ---
 
-## 8. 測試規範與維護指引 (Testing & Maintenance Guidelines)
+## 8. Testing & Maintenance Guidelines
 
-### 8.1 執行測試
+### 8.1 Running Test Suites
 
 ```bash
-# 1. 前端測試 (71 項全通)
+# 1. Frontend Tests (89 tests passing)
 cd desktop
 npm test
 
-# 2. 前端編譯檢查
+# 2. Frontend Production Build Check
 npm run build
 
-# 3. Rust 後端測試 (18 項全通)
-cd src-tauri
-cargo test
+# 3. Rust Backend Tests (20 tests passing)
+cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-### 8.2 開發維護注意事項
+### 8.3 Release & Tagging Workflow
 
-1. **不可修改現有測試檔斷言**：所有重構必須在維持既有單元測試完全相容的前提下進行。
-2. **非同步卸載保護**：任何含有 `setTimeout` 或非同步 IPC 呼叫的 React 元件，必須確認掛載狀態或於卸載回呼中清理計時器。
-3. **高頻 IPC 控制**：搖桿類比量更新務必透過 `requestAnimationFrame` 進行節流，切勿於每一像素移動時直接呼叫 IPC。
+Pushing a version tag (e.g. `v1.0.0`) triggers the automated GitHub Actions release workflow:
+1. Synchronizes version numbers across `package.json` and `Cargo.toml`.
+2. Runs all 89 frontend and 20 backend unit tests.
+3. Builds the universal macOS binary (`.dmg` supporting both Apple Silicon and Intel).
+4. Publishes installer and `.zip` archives directly to **GitHub Releases**.
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
 
 ---
 
-## 9. 巨集腳本庫與回放系統 (Phase 3: Macro Studio & Playback)
+## 9. Macro Studio & Playback Engine
 
-### 9.1 動作差分側錄演算法 (`useMacroRecorder.ts`)
-- **倒數緩衝 (3-2-1 Countdown)**：按下側錄按鈕後觸發 3 秒倒數計時，讓操作者握妥實體手把或就位鍵盤。
-- **差分捕捉 (Delta/Action-Based Recording)**：
-  - 數位鍵：按壓瞬間記錄 `startTime`，鬆開時結算持續時長 `durationMs` 與間隔時間 `delayAfterMs`。
-  - 類比搖桿：超出死區門檻 (`STICK_DEADZONE = 25`) 時開始計時並記錄推動向量，回彈時打包為 `MacroAction`。
-  - 十字鍵：非中立 (8) 時記錄方向與持長。
-- **儲存對話框 (`SaveMacroModal.tsx`)**：錄製完成後可自訂名稱、備註說明與分類標籤（如 `#寶可夢`、`#動森`、`#連點`）。
+### 9.1 Delta Recording Algorithm (`useMacroRecorder.ts`)
+- **3-2-1 Countdown Buffer**: Triggers a 3-second animated countdown before recording begins, allowing the user to prepare hands on the physical controller or keyboard.
+- **Delta / Action-Based Capture**:
+  - Digital Buttons: Records timestamp on press; computes duration (`durationMs`) on release.
+  - Analog Sticks: Begins tracking once deflection exceeds deadzone (`STICK_DEADZONE = 25`), packing vector and duration into a `MacroAction` when returning to neutral.
+  - D-Pad: Captures direction and hold duration whenever non-neutral (0~7).
+- **Save Modal (`SaveMacroModal.tsx`)**: Allows custom name, description notes, and metadata tags upon recording completion.
 
-### 9.2 腳本庫管理與持久化 (`macroStorage.ts`)
-- **預設腳本 (Presets)**：內建寶可夢自動孵蛋 (Infinite Spin)、動森流星許願 (Auto A Spam)、薩爾達林克時間 (Bullet Time Aim)。
-- **JSON 匯入/匯出**：支援單一腳本匯出 (`.json`) 與全腳本備份 (`ghostpad_macros_backup_*.json`)，支援拖曳上傳與自動驗證修復。
-- **修剪頭尾 (Trim Actions)**：一鍵清除無效空檔與頭尾靜止幀。
+### 9.2 Script Persistence & Management (`macroStorage.ts`)
+- **Built-in Presets**: Pre-packaged automation routines (Infinite Spin for Pokemon egg hatching, Auto-A Spam for Animal Crossing, Bullet Time Aim for Zelda).
+- **JSON Import / Export**: Supports individual `.json` script downloads, batch backup files (`ghostpad_macros_backup_*.json`), and drag-and-drop validation.
+- **Idle Optimization**: Merges consecutive wait delays and trims idle frames from script start/end.
 
-### 9.3 循環回放與安全中斷 (`useMacroPlayer.ts`)
-- **循環控制**：支援「單次播放」、「循環 N 次 (2~999 次)」與「∞ 無限循環」。
-- **倍速調控**：支援 0.5x、1.0x、1.5x、2.0x 動作調速。
-- **緊急保護 (Emergency Fail-Safe)**：
-  - 鍵盤按下 `Esc` 或點擊「緊急中止」按鈕，立即清除所有 pending timers 並調用 `reset_virtual_inputs`，防止手把卡鍵。
-
+### 9.3 Loop Playback & Fail-Safe Protection (`useMacroPlayer.ts`)
+- **Playback Controls**: Supports Single Play, N-Iteration Loops (2~999), and Infinite ($\infty$) Loop modes.
+- **Speed Multipliers**: Configurable playback speeds (0.5x, 1.0x, 1.5x, 2.0x).
+- **Emergency Fail-Safe Abort**:
+  - Pressing the `Esc` key on the keyboard or clicking the "Emergency Abort" button immediately clears all pending timers and issues `reset_virtual_inputs`, releasing all controller keys to prevent sticky inputs.

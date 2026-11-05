@@ -1,68 +1,66 @@
-# 👻 Ghost-Pad Desktop (桌面端手把視覺化與代理儀表板)
+# 👻 Ghost-Pad Desktop (Virtual Gamepad Visualizer & Bridge Dashboard)
 
-Ghost-Pad Desktop 是專為 Nintendo Switch 打造的高效能虛擬手把代理與即時視覺化監控桌面應用程式。  
-基於 **Tauri v2 + React 19 + TypeScript + Tailwind CSS** 開發，兼具極低資源佔用、毫秒級反應速度與精美流暢的視覺體驗。
-
----
-
-## 🌟 核心特色
-
-- 🎮 **即時手把視覺化 (Ghost-Pad Visualizer)**：
-  - 可愛幽靈造型控制器，支援雙類比搖桿 120Hz 絲滑拖曳與動態百變怪表情回饋。
-  - 完整支援 Nintendo Switch 鍵位：ABXY、十字鍵 (D-Pad)、L/R、ZL/ZR、Minus(-)、Plus(+)、Home、Capture 及 L3/R3 搖桿下壓。
-- 🎼 **反向太鼓 / DAW 五線譜即時操作時序流 (Live Timeline Stream)**：
-  - 5 軌專業音符架構（動作鍵、十字鍵、搖桿、肩鍵、系統鍵）。
-  - 長按光帶即時拉伸，支援 10s / 15s / 30s / 60s 速度調控與 5s / 1s 時間刻度網格。
-  - 動態即時統計螢幕可見操作次數。
-- ⌨️ **三路並行操作輸入 (Tri-Input Bridge)**：
-  - **實體手把**：藍牙或 USB 連接 8BitDo Micro、Switch Pro Controller、Joy-Con 等。
-  - **鍵盤直控**：預設映射鍵盤鍵位，支援按鍵與 WASD 類比搖桿推動。
-  - **螢幕觸控 / 點擊**：直接於畫面上點擊或拖曳手把按鈕。
-- 📐 **全面響應式佈局 (RWD) & 迷你懸浮 HUD 模式**：
-  - 手把本體智慧自動等比縮放（Auto Scale-to-Fit），在任何筆電與外接螢幕皆零破版。
-  - 視窗縮小（< 720x460）自動切換為長方形極簡精簡版 HUD 浮動視窗。
-- 🎬 **Phase 3：即時側錄與巨集時間軸編輯器 (Macro Studio & Playback)**：
-  - **即時儀表板一鍵側錄**：點擊「側錄巨集」即時觸發 3-2-1 醒目倒數動畫，精確捕捉按鍵持續時間與搖桿微操向量。
-  - **多軌時序視覺化畫布**：ABXY、十字鍵、類比搖桿、肩鍵與系統鍵 5 軌時間軸，直觀對齊動作與空檔。
-  - **腳本編輯與修剪**：調整每步動作持長 (ms)、間隔延遲 (delay ms)、上下調動步驟、一鍵修剪無效空白。
-  - **靈活循環播放控制**：單次播放、指定 N 次循環或 ∞ 無限循環，支援 0.5x~2.0x 動作調速，全域 Esc 鍵即時 Fail-Safe 緊急中斷卡鍵保護。
-  - **JSON 匯入匯出備份**：單一腳本即時下載匯出，支援拖曳上傳 JSON 與全庫一鍵打包備份，內建寶可夢自動孵蛋、動森流星許願等實用範本。
+Ghost-Pad Desktop is a high-performance virtual controller bridge, live visualizer dashboard, and macro automation studio built for the Nintendo Switch.  
+Powered by **Tauri v2 + React 19 + TypeScript + Tailwind CSS**, it delivers ultra-low system resource utilization, sub-millisecond responsiveness, and a fluid, aesthetically polished interface.
 
 ---
 
-## 🛠️ 環境需求 (Prerequisites)
+## 🌟 Core Features
 
-在啟動專案前，請確認電腦已安裝以下環境：
+- 🎮 **Ghost-Pad Visualizer**:
+  - Whimsical ghost-shaped controller supporting 120Hz smooth dual-analog stick dragging and dynamic facial expression feedback.
+  - Full Nintendo Switch button layout support: ABXY, D-Pad, L/R, ZL/ZR, Minus (-), Plus (+), Home, Capture, and L3/R3 stick clicks.
+- 🎼 **Live Multi-Track Timeline Stream (Reverse Taiko / DAW Score Sheet)**:
+  - 5-track musical notation architecture (Action, D-Pad, Sticks, Shoulders, System).
+  - Real-time stretched ribbons for button holds, configurable time windows (10s / 15s / 30s / 60s), and 5s / 1s time division grid lines.
+  - Live onscreen action counter statistics.
+- ⌨️ **Tri-Input Bridge**:
+  - **Physical Gamepad**: Bluetooth or USB connection for 8BitDo Micro, Switch Pro Controller, Joy-Cons, etc.
+  - **Keyboard Mapping**: Preconfigured keyboard controls supporting WASD analog stick emulation and action buttons.
+  - **Touch & Mouse HUD**: Direct pointer clicks and analog drag interaction on screen.
+- 📐 **Responsive Layout & Mini Floating HUD Mode**:
+  - Intelligent auto scale-to-fit layout ensuring zero clipping on any laptop screen or external display.
+  - Automatically switches to a compact HUD widget mode when the window is resized below 720×460.
+- 🎬 **Macro Studio & Loop Playback Engine**:
+  - **Real-Time Delta Recording**: 3-2-1 countdown sequence with millisecond-precision capture of hold durations and analog vector movements.
+  - **Multi-Track Score Sheet Editor**: 5 visual tracks for ABXY, D-Pad, Sticks, Shoulders, and System buttons to visually align actions and pauses.
+  - **Step-by-Step Script Editing**: Tweak hold duration (ms), reorder steps, and trim idle frames with one click.
+  - **Flexible Playback & Speed Adjustment**: Single play, N-repeat loops, or infinite loop playback with 0.5x~2.0x playback speed and a global `Esc` fail-safe abort.
+  - **JSON Backup & Presets**: Export individual scripts, drag-and-drop import, and full-library backup, with built-in templates (Pokemon egg hatching, Animal Crossing shooting star wishing, etc.).
 
-1. **Node.js**：建議 `v18.0.0` 或更高版本（包含 `npm`）。
-2. **Rust 工具鏈**（Tauri 後端編譯所需）：
-   - 若尚未安裝，請於終端機執行：
+---
+
+## 🛠️ Prerequisites
+
+Ensure the following dependencies are installed before getting started:
+
+1. **Node.js**: `v18.0.0` or higher (includes `npm`).
+2. **Rust Toolchain** (required for Tauri backend compilation):
+   - Install via terminal if not present:
      ```bash
      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
      ```
-   - 確認環境變數生效：
+   - Ensure environment variables are loaded:
      ```bash
      source "$HOME/.cargo/env"
      cargo --version
      ```
-3. **系統相依套件**（macOS 通常內建完整環境，Xcode Command Line Tools 即可）：
+3. **Build Essentials** (macOS Xcode Command Line Tools):
    ```bash
    xcode-select --install
    ```
 
 ---
 
-## 🚀 專案啟動方式 (Getting Started)
+## 🚀 Getting Started
 
-請先開啟終端機並切換至 `desktop` 目錄：
+Open your terminal and navigate to the `desktop` directory:
 
 ```bash
 cd desktop
 ```
 
-### 1. 安裝相依套件
-
-初次使用或套件更新時執行：
+### 1. Install Dependencies
 
 ```bash
 npm install
@@ -70,149 +68,153 @@ npm install
 
 ---
 
-### 2. 開發模式啟動 (Dev Mode)
+### 2. Development Mode
 
-#### 模式 A：完整桌面應用程式模式（推薦）
-啟動 Tauri 原生桌面視窗，包含 Rust 後端手把輪詢（gilrs）與前端熱重載（Hot Reload）：
+#### Mode A: Full Desktop Application Mode (Recommended)
+Launches the native Tauri desktop window with the Rust backend gamepad polling (`gilrs`) and frontend Hot Reload:
 
 ```bash
 npm run tauri dev
 ```
 
-> **提示**：若終端機提示找不到 `cargo` 或 `cargo metadata` 錯誤，請先執行 `source "$HOME/.cargo/env"` 載入 Rust 環境變數後再執行。
+> **Tip**: If your terminal cannot find `cargo` or reports a `cargo metadata` error, execute `source "$HOME/.cargo/env"` first to load your Rust environment variables.
 
-#### 模式 B：純前端瀏覽器調試模式
-若僅需調整前端 UI、CSS 樣式或畫布動畫，可直接啟動 Vite 本地網頁伺服器：
+#### Mode B: Frontend-Only Browser Mode
+To tweak UI components, styles, or canvas animations without hardware/Tauri bindings:
 
 ```bash
 npm run dev
 ```
-啟動後於瀏覽器開啟：`http://localhost:1420/`
+Open your browser at `http://localhost:1420/`.
 
 ---
 
-### 3. 編譯與打包 (Build & Release)
+### 3. Build & Release
 
-#### 檢查前端類型與編譯
+#### Frontend Type Checking & Production Build
 ```bash
 npm run build
 ```
 
-#### 打包正式版桌面安裝檔 (.dmg / .app)
+#### Package Production Desktop Installer (.dmg / .app)
 ```bash
 npm run tauri build
 ```
-打包完成後，安裝檔將產生於 `src-tauri/target/release/bundle/` 目錄中。
+The packaged bundles will be generated under `src-tauri/target/release/bundle/`.
 
 ---
 
-## ⌨️ 鍵盤操控手把快捷鍵對照表
+## ⌨️ Default Keyboard Mapping
 
-開啟應用程式後，點擊右上角 **「鍵盤對照表」** 亦可隨時查閱：
+Click the **Keyboard Map** button in the top-right corner of the application to view the shortcuts at any time:
 
-| 手把鍵位 | 電腦鍵盤按鍵 | 備註說明 |
+| Switch Button | Keyboard Key | Description |
 | :--- | :--- | :--- |
-| **左類比搖桿** | `W` / `A` / `S` / `D` | 上 / 左 / 下 / 右（支援斜向推動） |
-| **十字鍵 (D-Pad)** | `↑` / `↓` / `←` / `→` | 方向鍵上下左右 |
-| **A 鍵** | `L` | 確認 / 東側鍵 |
-| **B 鍵** | `K` | 取消 / 南側鍵 |
-| **X 鍵** | `I` | 選單 / 北側鍵 |
-| **Y 鍵** | `J` | 功能 / 西側鍵 |
-| **L 鍵** | `Q` | 左肩鍵 |
-| **R 鍵** | `E` | 右肩鍵 |
-| **ZL 鍵** | `U` 或 `1` | 左板機鍵 |
-| **ZR 鍵** | `O` 或 `2` | 右板機鍵 |
-| **Minus (-)** | `M` 或 `-` | 減號鍵 / Select |
-| **Plus (+)** | `P` 或 `=` | 加號鍵 / Start |
-| **Home (⌂)** | `H` | 主畫面鍵 |
-| **Capture (◉)** | `N` | 截圖錄影鍵 |
-| **L3 / R3** | `F` / `G` | 左右類比下壓 |
+| **Left Analog Stick** | `W` / `A` / `S` / `D` | Up / Left / Down / Right (supports diagonals) |
+| **D-Pad** | `↑` / `↓` / `←` / `→` | Up / Down / Left / Right directional arrows |
+| **A Button** | `L` | Confirm / East button |
+| **B Button** | `K` | Cancel / South button |
+| **X Button** | `I` | Menu / North button |
+| **Y Button** | `J` | Function / West button |
+| **L Button** | `Q` | Left Shoulder |
+| **R Button** | `E` | Right Shoulder |
+| **ZL Trigger** | `U` or `1` | Left Trigger |
+| **ZR Trigger** | `O` or `2` | Right Trigger |
+| **Minus (-)** | `M` or `-` | Minus / Select |
+| **Plus (+)** | `P` or `=` | Plus / Start |
+| **Home (⌂)** | `H` | Home Button |
+| **Capture (◉)** | `N` | Capture / Screenshot |
+| **L3 / R3** | `F` / `G` | Left / Right Stick Click |
 
 ---
 
-## 📁 目錄結構說明
+## 📁 Project Directory Structure
 
-> 詳細架構規格、資料流向圖與通訊協定請參閱完整技術文件：[ARCHITECTURE.md](ARCHITECTURE.md)。
+> For in-depth architectural specifications, data flow diagrams, and protocol details, refer to [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ```
 desktop/
-├── ARCHITECTURE.md           # 系統架構、三路輸入橋接與協定設計手冊
-├── src/                      # 前端 React + TypeScript 原始碼
-│   ├── components/           # UI 元件庫
-│   │   ├── GamepadVisualizer.tsx   # 幽靈手把主舞台與拖曳邏輯
-│   │   ├── InputTimelineStream.tsx # 60~120Hz 五線譜時序流 Canvas
-│   │   ├── CompactWidget.tsx       # 迷你浮動 HUD 模式視窗
-│   │   ├── HardwareSettings.tsx    # ESP32 硬體序列埠與韌體管理
-│   │   └── Sidebar.tsx             # 側邊導航與手把連線管理
-│   ├── hooks/                # 自訂 React Hooks
-│   │   ├── useVirtualGamepad.ts    # 鍵盤映射與虛擬手把狀態
-│   │   ├── useStickDrag.ts         # 類比搖桿拖曳、RAF IPC 節流與彈力回彈
-│   │   └── usePulsedButtonPress.ts # 按鍵脈衝延遲保證與指標捕捉管理
-│   ├── utils/                # 輔助函式庫
-│   │   └── tauri.ts          # Tauri 桌面環境識別工具
-│   ├── types.ts              # 手把狀態與協定型別定義
-│   ├── App.tsx               # 根應用與自適應視窗模式切換
-│   └── index.css             # Tailwind CSS 設計樣式
-├── src-tauri/                # Tauri Rust 後端
+├── ARCHITECTURE.md           # System architecture, tri-input bridge, and protocol reference
+├── src/                      # Frontend React + TypeScript source code
+│   ├── components/           # UI component library
+│   │   ├── GamepadVisualizer.tsx   # Ghost gamepad interactive canvas and drag handlers
+│   │   ├── InputTimelineStream.tsx # 60~120Hz musical score timeline stream canvas
+│   │   ├── CompactWidget.tsx       # Floating mini HUD mode window
+│   │   ├── HardwareSettings.tsx    # ESP32 serial port and firmware manager
+│   │   ├── MacroStudio.tsx         # Macro recorder, timeline editor, and player
+│   │   └── Sidebar.tsx             # Navigation sidebar and controller status
+│   ├── hooks/                # Custom React hooks
+│   │   ├── useVirtualGamepad.ts    # Keyboard mapping and virtual controller state
+│   │   ├── useStickDrag.ts         # Analog stick dragging, RAF IPC throttling, and spring physics
+│   │   ├── usePulsedButtonPress.ts # Button pulse duration guarantee and pointer capture
+│   │   ├── useMacroRecorder.ts     # Real-time 3-2-1 delta recording hook
+│   │   └── useMacroPlayer.ts       # Loop playback engine with Esc fail-safe abort
+│   ├── utils/                # Utility helpers
+│   │   ├── macroStorage.ts   # Macro library persistence and JSON import/export
+│   │   └── tauri.ts          # Tauri desktop environment detection
+│   ├── types/                # TypeScript type definitions (controller, macros)
+│   ├── App.tsx               # Root application entry and adaptive window controller
+│   └── index.css             # Tailwind CSS design system styles
+├── src-tauri/                # Tauri Rust backend
 │   ├── src/
-│   │   ├── gamepad.rs        # gilrs 手把輪詢、實體虛擬狀態合併
-│   │   ├── protocol.rs       # Switch 協定定義 (9-Byte CRC8 / 10-Byte XOR)
-│   │   ├── serial.rs         # 序列通訊與 60Hz 心跳封包管理
-│   │   └── lib.rs            # Tauri IPC 指令橋接
-│   └── tauri.conf.json       # 視窗外觀與打包設定
-└── package.json              # 專案相依套件與指令設定
+│   │   ├── gamepad.rs        # gilrs polling and physical/virtual state merging
+│   │   ├── protocol.rs       # Switch protocol definitions (9-Byte CRC8 & 10-Byte XOR)
+│   │   ├── serial.rs         # Serial communication and 60Hz heartbeat worker thread
+│   │   ├── error.rs          # Unified AppError serialization and IPC reporting
+│   │   └── lib.rs            # Tauri IPC command bridge registration
+│   └── tauri.conf.json       # Tauri window configuration and bundler settings
+└── package.json              # Frontend dependencies and npm scripts
 ```
 
 ---
 
-## 🧪 自動化測試與 CI/CD (Testing & CI/CD)
+## 🧪 Testing & CI/CD
 
-本專案具備完整的前後端自動化測試與 GitHub Actions 持續整合流程：
+The project includes automated frontend and backend testing suites integrated with GitHub Actions:
 
-### 1. 本地執行測試 (Local Testing)
+### 1. Running Tests Locally
 
-#### 前端單元與元件測試 (Vitest + React Testing Library)
+#### Frontend Unit & Component Tests (Vitest + React Testing Library)
 ```bash
-# 單次執行全部前端測試
+# Run all frontend tests once
 npm test
 
-# 啟用監聽模式 (TDD 模式)
+# Run tests in watch mode (TDD mode)
 npm run test:watch
 ```
-測試範圍涵蓋（89 項測試全數通過）：
-- `types.test.ts`：預設手把狀態結構驗證（類比置中、D-Pad 置中、按鍵預設）。
-- `useVirtualGamepad.test.ts`：鍵盤映射表、D-Pad 8 方向演算法、三路輸入並行與靜音機制。
-- `InputTimelineStream.test.ts`：五線譜 5 軌定義、8 方向搖桿角度計算與死區過濾、時間長度切換與清空動作。
-- `components.test.tsx`：側邊欄導航、設備狀態、靜音切換、HUD 模式與鍵盤對照表互動。
-- `MacroStudio.test.tsx` / `useMacroRecorder.test.ts` / `useMacroPlayer.test.ts` / `macroStorage.test.ts`：巨集 3-2-1 倒數錄製、時序差分捕獲、循環回放、時間軸編輯與備份修復。
-- `HardwareSettings.test.tsx`：序列埠管理、三段式握手、Switch 配對引導與韌體燒錄。
-- `i18n.test.ts`：多國語系載入、語系即時切換與文字鍵位完整性。
+Test coverage spans (89 tests passing):
+- `types.test.ts`: Verifies default controller structures (neutral stick, centered D-Pad, unpressed buttons).
+- `useVirtualGamepad.test.ts`: Keyboard mapping, D-Pad 8-way resolution, tri-input concurrency, and muting.
+- `InputTimelineStream.test.ts`: 5-track layout, 8-way stick angle calculation, deadzone filtering, and duration controls.
+- `components.test.tsx`: Sidebar navigation, device status badges, mute toggle, HUD mode, and keyboard mapping dialog.
+- `MacroStudio.test.tsx` / `useMacroRecorder.test.ts` / `useMacroPlayer.test.ts` / `macroStorage.test.ts`: 3-2-1 delta recording, timeline editing, loop playback, and backup sanitization.
+- `HardwareSettings.test.tsx`: Serial port manager, 3-stage handshake, Switch pairing guide, and firmware flashing.
+- `i18n.test.ts`: Localization loading, runtime language switching, and translation completeness.
 
-#### 後端 Rust 測試 (Cargo Test)
+#### Backend Rust Tests (Cargo Test)
 ```bash
-# 於 desktop/src-tauri 目錄下執行
+# Run within desktop/src-tauri
 cargo test
 
-# 或於專案根目錄執行
+# Or run from workspace root
 cargo test --manifest-path desktop/src-tauri/Cargo.toml
 ```
-測試範圍涵蓋（20 項測試全數通過）：
-- `protocol.rs`：CRC-8 演算法、UART 9-byte 封包、10-byte XOR 封包校驗、D-Pad 方向序列化/反序列化。
-- `gamepad.rs`：類比軸死區計算（`axis_to_u8`）、十字鍵 8 向狀態映射（`compute_dpad`）、實體與虛擬輸入合併（`merge`）、靜音暫停機制。
-- `serial.rs`：序列埠管理實例化、離線特殊指令安全性、序列埠列表掃描。
-- `error.rs`：跨進程 AppError 錯誤型別序列化與 IPC 回報。
+Test coverage spans (20 tests passing):
+- `protocol.rs`: CRC-8 calculation, UART 9-byte packet encoding, 10-byte XOR verification, D-Pad direction serialization.
+- `gamepad.rs`: Analog axis deadzone scaling (`axis_to_u8`), 8-way D-Pad mapping (`compute_dpad`), state merging (`merge`), and mute mode.
+- `serial.rs`: Serial manager instantiation, offline safe-command handling, and port scanning.
+- `error.rs`: Cross-process `AppError` type serialization and IPC reporting.
 
 ---
 
-### 2. GitHub Actions CI/CD 串接
+### 2. GitHub Actions CI/CD Pipeline
 
-工作流程定義於 [`.github/workflows/desktop-ci.yml`](file:///.github/workflows/desktop-ci.yml) 與 [`.github/workflows/release.yml`](file:///.github/workflows/release.yml)：
-- **觸發時機**：
-  - 只要任何分支有 `desktop/**` 相關變更 `push` 推送即自動執行 CI 驗證。
-  - 任何分支發起、更新或合併 `pull_request` 時亦自動執行。
-  - 當建立版本標籤 `v*` 並推送到 GitHub 時，自動觸發 Release 工作流程打包發布。
-- **測試檢查與建置項目**：
-  1. **Frontend Check**：Node 20 環境快取、`npm ci`、TypeScript 靜態檢查（`tsc`）與 `vite build` 生產編譯驗證、Vitest 89 項全數通過。
-  2. **Rust Backend Check**：系統庫、Rust toolchain、Cargo 依賴快取、`cargo test` 20 項全數通過。
-  3. **Universal Release Build**：於 macOS Runner 上自動編譯建置 Apple Silicon (M1/M2/M3/M4) 與 Intel x86_64 通用雙架構 `.dmg` 安裝檔與 `.zip`，自動上傳至 GitHub Releases。
-
+The workflows are defined in [`.github/workflows/desktop-ci.yml`](file:///.github/workflows/desktop-ci.yml) and [`.github/workflows/release.yml`](file:///.github/workflows/release.yml):
+- **Triggers**:
+  - Automatically runs CI verification on pushes to any branch affecting `desktop/**`.
+  - Runs on pull requests targeting `main`.
+  - Automatically packages and publishes multi-platform releases when a `v*` version tag is pushed.
+- **Workflow Jobs**:
+  1. **Frontend Check**: Node 20 cache, `npm ci`, TypeScript static analysis (`tsc`), `vite build` production compilation, and all 89 Vitest tests.
+  2. **Rust Backend Check**: System libraries, Rust toolchain, Cargo cache, and all 20 Cargo tests.
+  3. **Universal Release Build**: Builds universal dual-architecture `.dmg` installers (Apple Silicon M1/M2/M3/M4 + Intel x86_64) on macOS runners and attaches artifacts to GitHub Releases.

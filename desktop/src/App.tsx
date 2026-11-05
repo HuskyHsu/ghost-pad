@@ -27,27 +27,123 @@ import { ToastProvider } from "./context/ToastContext";
 
 const PAIRING_STORAGE_KEY = "ghostpad_switch_paired";
 
+function getDemoMacros(lang: string): MacroScript[] {
+  const isZh = lang === "zh-TW";
+  const isJa = lang === "ja";
+  return [
+    {
+      id: "demo-pokemon-spin",
+      name: isZh ? "寶可夢：自動無限旋轉孵蛋" : isJa ? "ポケモン：自動無限回転孵化" : "Pokemon: Infinite Spin & Hatch",
+      description: isZh
+        ? "自動推動左類比搖桿持續旋轉 5 秒，快速孵化寶可夢蛋。"
+        : isJa
+        ? "左スティックを回転させて高速でタマゴを孵化させます。"
+        : "Simulates continuous left analog stick rotation to quickly hatch eggs.",
+      createdAt: Date.now() - 3600000,
+      updatedAt: Date.now() - 1800000,
+      actions: [
+        { id: "act-1", type: "stick", stick: "left", stickX: 255, stickY: 128, durationMs: 250 },
+        { id: "act-2", type: "stick", stick: "left", stickX: 128, stickY: 255, durationMs: 250 },
+        { id: "act-3", type: "stick", stick: "left", stickX: 0, stickY: 128, durationMs: 250 },
+        { id: "act-4", type: "stick", stick: "left", stickX: 128, stickY: 0, durationMs: 250 },
+        { id: "act-5", type: "button", button: "a", durationMs: 140 },
+        { id: "act-6", type: "wait", durationMs: 300 },
+        { id: "act-7", type: "button", button: "b", durationMs: 140 },
+      ],
+    },
+    {
+      id: "demo-acnh-stars",
+      name: isZh ? "動森：流星群自動許願" : isJa ? "あつ森：流星群祈願" : "Animal Crossing: Meteor Wishing",
+      description: isZh
+        ? "連續自動按 A 鍵向流星許願，收集星座碎片。"
+        : isJa
+        ? "流星群に向かって自動でAボタンを連打し祈願します。"
+        : "Spams A button with periodic pauses to collect star fragments.",
+      createdAt: Date.now() - 7200000,
+      updatedAt: Date.now() - 3600000,
+      actions: [
+        { id: "act-201", type: "button", button: "a", durationMs: 120 },
+        { id: "act-202", type: "wait", durationMs: 200 },
+        { id: "act-203", type: "button", button: "a", durationMs: 120 },
+        { id: "act-204", type: "wait", durationMs: 500 },
+      ],
+    },
+    {
+      id: "demo-zelda-shot",
+      name: isZh ? "薩爾達：空中林克時間速射" : isJa ? "ゼルダ：空中弓矢連射" : "Zelda: Bullet Time Quick Shot",
+      description: isZh
+        ? "自動長按 ZR 進入林克時間並快速連續射擊。"
+        : isJa
+        ? "ZR長押しでバレットタイムを発動し弓矢を連射します。"
+        : "Holds ZR to enter bullet time and fires arrows consecutively.",
+      createdAt: Date.now() - 10800000,
+      updatedAt: Date.now() - 5400000,
+      actions: [
+        { id: "act-301", type: "button", button: "zr", durationMs: 800 },
+        { id: "act-302", type: "button", button: "a", durationMs: 120 },
+        { id: "act-303", type: "wait", durationMs: 150 },
+        { id: "act-304", type: "button", button: "a", durationMs: 120 },
+      ],
+    },
+  ];
+}
+
 export function App() {
+  const isDemo = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "true";
   const { t } = useTranslation("common");
-  const [activeTab, setActiveTab] = useState<"dashboard" | "macro" | "hardware">("dashboard");
-  const [controllerState, setControllerState] = useState<ControllerState>(DEFAULT_CONTROLLER_STATE);
-  const [gamepads, setGamepads] = useState<GamepadInfo[]>([]);
+  const [activeTab, setActiveTab] = useState<"dashboard" | "macro" | "hardware">(() => {
+    if (typeof window !== "undefined") {
+      const tab = new URLSearchParams(window.location.search).get("tab");
+      if (tab === "macro" || tab === "hardware" || tab === "dashboard") return tab;
+    }
+    return "dashboard";
+  });
+  const [controllerState, setControllerState] = useState<ControllerState>(() => {
+    if (isDemo) {
+      return {
+        ...DEFAULT_CONTROLLER_STATE,
+        a: true,
+        l_stick_x: 215,
+        l_stick_y: 50,
+      };
+    }
+    return DEFAULT_CONTROLLER_STATE;
+  });
+  const [gamepads, setGamepads] = useState<GamepadInfo[]>(() => {
+    if (isDemo) {
+      return [{ id: 0, name: "8BitDo Micro Gamepad", is_connected: true, is_active: true }];
+    }
+    return [];
+  });
   const [isMuted, setIsMuted] = useState(false);
-  const [fps, setFps] = useState(0);
-  const [esp32Connected, setEsp32Connected] = useState(false);
-  const [switchPairingState, setSwitchPairingState] = useState("disconnected");
+  const [fps, setFps] = useState(() => (isDemo ? 60 : 0));
+  const [esp32Connected, setEsp32Connected] = useState(() => (isDemo ? true : false));
+  const [switchPairingState, setSwitchPairingState] = useState(() => (isDemo ? "connected" : "disconnected"));
 
   // Step 0 Hardware readiness & Serial status
-  const [isStep0Ready, setIsStep0Ready] = useState(false);
-  const [serialStatus, setSerialStatus] = useState<SerialStatus>({
-    is_connected: false,
-    port_name: undefined,
-    baudrate: 19200,
-    packets_sent: 0,
-    tx_fps: 0,
-    switch_pairing_state: "disconnected",
+  const [isStep0Ready, setIsStep0Ready] = useState(() => (isDemo ? true : false));
+  const [serialStatus, setSerialStatus] = useState<SerialStatus>(() => {
+    if (isDemo) {
+      return {
+        is_connected: true,
+        port_name: "/dev/cu.usbserial-0001 (CH340)",
+        baudrate: 19200,
+        packets_sent: 2486,
+        tx_fps: 60,
+        switch_pairing_state: "connected",
+      };
+    }
+    return {
+      is_connected: false,
+      port_name: undefined,
+      baudrate: 19200,
+      packets_sent: 0,
+      tx_fps: 0,
+      switch_pairing_state: "disconnected",
+    };
   });
   const [hasPairedSwitch, setHasPairedSwitch] = useState<boolean>(() => {
+    if (isDemo) return true;
     try {
       return localStorage.getItem(PAIRING_STORAGE_KEY) === "true";
     } catch {
@@ -197,8 +293,17 @@ export function App() {
   const { sendButton, sendStick, sendDpad, resetInputs } = useVirtualGamepad(isMuted, setControllerState);
 
   // Phase 3: Macro Scripts, Recorder & Player
-  const [macros, setMacros] = useState<MacroScript[]>(loadMacros);
+  const [macros, setMacros] = useState<MacroScript[]>(() => {
+    if (isDemo) {
+      const urlLang = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("lang") || "en" : "en";
+      return getDemoMacros(urlLang);
+    }
+    return loadMacros();
+  });
   const [selectedScriptId, setSelectedScriptId] = useState<string | null>(() => {
+    if (isDemo) {
+      return "demo-pokemon-spin";
+    }
     const list = loadMacros();
     return list.length > 0 ? list[0].id : null;
   });
@@ -406,6 +511,7 @@ export function App() {
 
   // Combined refresh for both gamepads and serial ports
   const refreshAllDevices = async () => {
+    if (isDemo) return;
     await Promise.all([refreshGamepads(), refreshSerialPorts()]);
   };
 

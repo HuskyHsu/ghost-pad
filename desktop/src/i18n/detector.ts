@@ -21,6 +21,15 @@ export function mapLocaleToSupported(locale: string): SupportedLanguage {
 }
 
 export function detectInitialLanguage(): SupportedLanguage {
+  if (typeof window !== "undefined") {
+    try {
+      const urlLang = new URLSearchParams(window.location.search).get("lang");
+      if (urlLang) {
+        return mapLocaleToSupported(urlLang);
+      }
+    } catch {}
+  }
+
   try {
     const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (saved && (SUPPORTED_LANGUAGES as readonly string[]).includes(saved)) {

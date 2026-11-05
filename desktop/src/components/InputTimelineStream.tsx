@@ -108,6 +108,34 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
   const prevStateRef = useRef<ControllerState>(state);
   const heldNotesMapRef = useRef<Map<string, NoteEvent>>(new Map());
 
+  // Prepopulate demo notes if running in demo mode
+  useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "true") {
+      const now = performance.now();
+      if (notesRef.current.length === 0) {
+        notesRef.current = [
+          // Lane 0: Action buttons
+          { id: 1, buttonId: "a", label: "A", lane: 0, color: "#10b981", glowColor: "rgba(16,185,129,0.7)", startTime: now - 800, endTime: null },
+          { id: 2, buttonId: "b", label: "B", lane: 0, color: "#ef4444", glowColor: "rgba(239,68,68,0.7)", startTime: now - 2800, endTime: now - 2500 },
+          { id: 3, buttonId: "x", label: "X", lane: 0, color: "#38bdf8", glowColor: "rgba(56,189,248,0.7)", startTime: now - 5200, endTime: now - 4800 },
+          { id: 4, buttonId: "y", label: "Y", lane: 0, color: "#f59e0b", glowColor: "rgba(245,158,11,0.7)", startTime: now - 8500, endTime: now - 8350 },
+          // Lane 1: D-Pad
+          { id: 5, buttonId: "dpad_up", label: "▲", lane: 1, color: "#c084fc", glowColor: "rgba(192,132,252,0.7)", startTime: now - 4200, endTime: now - 3900 },
+          { id: 6, buttonId: "dpad_right", label: "▶", lane: 1, color: "#c084fc", glowColor: "rgba(192,132,252,0.7)", startTime: now - 10500, endTime: now - 10200 },
+          // Lane 2: Sticks
+          { id: 7, buttonId: "stick_l_ur", label: "L↗", lane: 2, color: "#06b6d4", glowColor: "rgba(6,182,212,0.7)", startTime: now - 1200, endTime: null },
+          { id: 8, buttonId: "stick_l_r", label: "L▶", lane: 2, color: "#06b6d4", glowColor: "rgba(6,182,212,0.7)", startTime: now - 6400, endTime: now - 5800 },
+          // Lane 3: Shoulders
+          { id: 9, buttonId: "zl", label: "ZL", lane: 3, color: "#f43f5e", glowColor: "rgba(244,63,94,0.7)", startTime: now - 3400, endTime: now - 3100 },
+          { id: 10, buttonId: "r", label: "R", lane: 3, color: "#ec4899", glowColor: "rgba(236,72,153,0.7)", startTime: now - 7500, endTime: now - 7200 },
+          // Lane 4: System
+          { id: 11, buttonId: "plus", label: "+", lane: 4, color: "#94a3b8", glowColor: "rgba(148,163,184,0.7)", startTime: now - 12000, endTime: now - 11800 },
+        ];
+        setOperationCount(14);
+      }
+    }
+  }, []);
+
   // Detect state transitions and spawn / finalize notes
   useEffect(() => {
     const now = performance.now();

@@ -20,6 +20,26 @@
 Ghost-Pad 是專為 Nintendo Switch 打造的高效能虛擬手把代理、視覺化儀表板與巨集自動化控制系統。  
 透過電腦作為智慧控制器核心，經由 USB 序列埠傳輸指令給 ESP32 開發板，以原廠藍牙無線模擬 **Nintendo Switch Pro Controller**（VID: `0x057E`，PID: `0x2009`）。
 
+<div align="center">
+  <img src="docs/assets/screenshots/zh-TW/dashboard.png" alt="Ghost-Pad Visualizer & Live Timeline" width="820" />
+</div>
+
+---
+
+## 📸 軟體畫面預覽 (Screenshots)
+
+<div align="center">
+
+| 幽靈手把動態視覺化與五線譜時序流 | 巨集工作坊與循環播放引擎 |
+| :---: | :---: |
+| <img src="docs/assets/screenshots/zh-TW/dashboard.png" width="400" alt="Ghost Visualizer & Timeline" /> | <img src="docs/assets/screenshots/zh-TW/macro-studio.png" width="400" alt="Macro Studio" /> |
+
+| ESP32 序列埠與 Switch 三步配對設定 |
+| :---: |
+| <img src="docs/assets/screenshots/zh-TW/hardware.png" width="500" alt="Hardware Settings" /> |
+
+</div>
+
 ---
 
 ## 🌟 核心特色
@@ -67,8 +87,10 @@ ghost-pad/
 └── docs/                     # 📚 規格與實作文件
     ├── technical_spec.md     # 底層二進位協定 (CRC8 / XOR) 與 ESP32 藍牙規格書 (預設英文)
     ├── technical_spec.zh-TW.md # 底層二進位協定規格書 (繁體中文版)
+    ├── technical_spec.ja.md  # 底層二進位協定規格書 (日文版)
     ├── desktop_app_plan.md   # 桌面系統完整實作規格與模組驗收手冊 (預設英文)
-    └── desktop_app_plan.zh-TW.md # 桌面系統實作規格手冊 (繁體中文版)
+    ├── desktop_app_plan.zh-TW.md # 桌面系統實作規格手冊 (繁體中文版)
+    └── desktop_app_plan.ja.md # 桌面系統實作規格手冊 (日文版)
 ```
 
 ---
@@ -82,56 +104,13 @@ ghost-pad/
 
 ---
 
-## 🚀 開發者快速啟動 (Getting Started)
+## 🛠️ 開發與貢獻指南 (Contributing)
 
-請確保電腦已安裝 **Node.js 18+** 與 **Rust 工具鏈**，切換至 `desktop` 目錄即可啟動：
-
-```bash
-cd desktop
-
-# 安裝相依套件
-npm install
-
-# 啟動桌面端完整開發模式 (Tauri 原生桌面視窗 + Rust 後端)
-npm run tauri dev
-
-# 或啟動純前端瀏覽器調試模式 (預覽 UI 與畫布)
-npm run dev
-```
-
-詳細安裝、快捷鍵對照與架構規範請參閱：
-- 📖 [桌面端完整使用手冊 (desktop/README.md)](desktop/README.md)
-- 📐 [系統架構與通訊協定手冊 (desktop/ARCHITECTURE.md)](desktop/ARCHITECTURE.md)
-- 🔌 [底層通訊與硬體協定規範 (docs/technical_spec.zh-TW.md)](docs/technical_spec.zh-TW.md)
-- 📝 [系統實作規格手冊 (docs/desktop_app_plan.zh-TW.md)](docs/desktop_app_plan.zh-TW.md)
-
----
-
-## 🧪 自動化測試與 CI/CD (Testing & Releases)
-
-本專案具備完整的前後端單元測試（共 109 項測試全數通過）與 GitHub Actions CI/CD 發布流程：
-
-```bash
-# 執行前端測試 (89 項全通)
-cd desktop && npm test
-
-# 執行 Rust 後端通訊與狀態合併測試 (20 項全通)
-cd desktop/src-tauri && cargo test
-```
-
-### 🏷️ 建立與發布新版本 (Release Tagging)
-
-每當在 Git 打上版本標籤（例如 `v1.0.0`）並推送到 GitHub 時，CI/CD 會自動啟動：
-1. 自動同步版本號至前端與後端設定檔。
-2. 執行所有前端（89 項）與後端（20 項）單元測試。
-3. 在 macOS Runner 上建置 Universal 二進位應用程式（支援 Apple Silicon 與 Intel）。
-4. 自動發布至 **GitHub Releases**，包含 `.dmg` 安裝檔與 `.zip` 壓縮檔供使用者直接下載。
-
-```bash
-# 打上版本標籤並推送
-git tag v1.0.0
-git push origin v1.0.0
-```
+若想自行從原始碼建置 Ghost-Pad 或參與專案開發，請參閱詳細指引：
+- 📖 [桌面端開發與使用手冊 (desktop/README.md)](desktop/README.md)：環境需求、開發模式（Tauri / 瀏覽器）、鍵盤對照表與自動化測試（109 項全數通過）。
+- 📐 [系統架構與通訊協定手冊 (desktop/ARCHITECTURE.md)](desktop/ARCHITECTURE.md)：三路輸入並行橋接、狀態合併演算法與 ESP32 序列協定規範。
+- 🔌 [底層通訊與硬體協定規範 (docs/technical_spec.zh-TW.md)](docs/technical_spec.zh-TW.md)：封包結構、CRC8/XOR 校驗演算法與藍牙 HID 模擬細節。
+- 📝 [系統實作規格手冊 (docs/desktop_app_plan.zh-TW.md)](docs/desktop_app_plan.zh-TW.md)：功能開發驗收清單、模組架構與版本里程碑。
 
 ---
 

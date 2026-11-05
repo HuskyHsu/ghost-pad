@@ -43,7 +43,13 @@ export const MacroStudio: React.FC<Props> = ({
   const { t } = useTranslation('macro');
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'edit'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'edit'>(() => {
+    if (typeof window !== 'undefined') {
+      const mode = new URLSearchParams(window.location.search).get('macroView');
+      if (mode === 'edit') return 'edit';
+    }
+    return 'list';
+  });
 
   const handleExportSingle = async (script: MacroScript) => {
     const savedPath = await exportMacroAsJson(script);
