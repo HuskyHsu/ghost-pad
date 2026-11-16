@@ -1,14 +1,27 @@
-import { ArrowDown, ArrowUp, Clock, Gamepad2, GitMerge, Sparkles, Trash2, X } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowDown, ArrowUp, Clock, Gamepad2, GitMerge, Redo2, Sparkles, Trash2, Undo2, X } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MacroAction, MacroButtonName, MacroPlayerStatus, MacroScript } from '../../types/macro';
 import { computeScheduledActions } from '../../utils/macroStorage';
+import {
+  assignSubRows,
+  clampStartTimeWithoutOverlap,
+  computeSnappedDuration,
+  computeSnappedLeftResize,
+  computeSnappedStartTime,
+  findEmptyGaps,
+  resizeGapFromLeft,
+  resizeGapInterval,
+  TimelineGap,
+} from '../../utils/macroTimelineEdit';
 import { LANES, getStickDirection } from '../InputTimelineStream';
 
 interface Props {
   script: MacroScript;
   activeActionIndex?: number;
   playerStatus?: MacroPlayerStatus;
+  playbackStartMs?: number;
+  onChangePlaybackStartMs?: (ms: number) => void;
   onChangeActions: (actions: MacroAction[]) => void;
 }
 
@@ -29,6 +42,14 @@ interface ActionPresetOption {
   stickX?: number;
   stickY?: number;
   style: string;
+}
+
+function formatDurationLabel(ms: number): string {
+  if (ms >= 1000) {
+    const sec = Number((ms / 1000).toFixed(3));
+    return `${sec}s`;
+  }
+  return `${ms}ms`;
 }
 
 function getActionVisual(act: MacroAction) {
@@ -502,7 +523,8 @@ const NumberInput: React.FC<NumberInputProps> = ({ value, min = 0, step = 10, on
         }
       }}
       onBlur={() => {
-        const num = Math.max(min, Number(text) || min);
+        const parsed = Number(text);
+        const num = text.trim() === '' || Number.isNaN(parsed) ? min : Math.max(min, parsed);
         setText(String(num));
         onChange(num);
       }}
@@ -511,7 +533,14 @@ const NumberInput: React.FC<NumberInputProps> = ({ value, min = 0, step = 10, on
   );
 };
 
-export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -1, playerStatus, onChangeActions }) => {
+export const MacroScoreSheet: React.FC<Props> = ({
+  script,
+  activeActionIndex = -1,
+  playerStatus,
+  playbackStartMs = 0,
+  onChangePlaybackStartMs,
+  onChangeActions,
+}) => {
   const { t } = useTranslation('macro');
   // Line duration setting (e.g. 10s per line, aligned with stream scales up to 30s)
   const [lineDurationSec, setLineDurationSec] = useState<number>(10);
@@ -521,13 +550,265 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
   const isScriptPlaying = Boolean(playerStatus?.isPlaying || playerStatus?.isPaused) && playerStatus?.currentScriptId === script.id;
   const currentElapsedMs = isScriptPlaying ? (playerStatus?.elapsedMs ?? 0) : null;
 
+  // Undo / Redo history stacks
+  const [undoStack, setUndoStack] = useState<MacroAction[][]>([]);
+  const [redoStack, setRedoStack] = useState<MacroAction[][]>([]);
+  const actionsRef = useRef<MacroAction[]>(script.actions);
+  actionsRef.current = script.actions;
+
+  // Reset history when switching scripts
+  useEffect(() => {
+    setUndoStack([]);
+    setRedoStack([]);
+  }, [script.id]);
+
+  const commitActions = useCallback(
+    (nextActions: MacroAction[], prevSnapshot?: MacroAction[]) => {
+      const snapshot = prevSnapshot ?? actionsRef.current;
+      setUndoStack((prev) => [...prev.slice(-49), snapshot]);
+      setRedoStack([]);
+      onChangeActions(nextActions);
+    },
+    [onChangeActions],
+  );
+
+  const handleUndo = useCallback(() => {
+    if (undoStack.length === 0) return;
+    const previous = undoStack[undoStack.length - 1];
+    setUndoStack((prev) => prev.slice(0, -1));
+    setRedoStack((r) => [...r, actionsRef.current]);
+    onChangeActions(previous);
+  }, [undoStack, onChangeActions]);
+
+  const handleRedo = useCallback(() => {
+    if (redoStack.length === 0) return;
+    const next = redoStack[redoStack.length - 1];
+    setRedoStack((prev) => prev.slice(0, -1));
+    setUndoStack((u) => [...u, actionsRef.current]);
+    onChangeActions(next);
+  }, [redoStack, onChangeActions]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
+      const isMod = e.metaKey || e.ctrlKey;
+      if (!isMod) return;
+      if (e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      } else if ((e.key.toLowerCase() === 'z' && e.shiftKey) || e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [handleUndo, handleRedo]);
+
+  // Snap guide & drag tooltip state (always-on smart snap with 10ms grid; hold Alt to bypass)
+  const [activeSnapGuideMs, setActiveSnapGuideMs] = useState<number | null>(null);
+  const [dragNoteTooltip, setDragNoteTooltip] = useState<{
+    actionId: string;
+    mode: 'move' | 'resize-left' | 'resize-right';
+    startTimeMs: number;
+    durationMs: number;
+    deltaMs: number;
+  } | null>(null);
+  const suppressNextNoteClickRef = useRef<boolean>(false);
+
+  const dragNoteRef = useRef<{
+    actionId: string;
+    mode: 'move' | 'resize-left' | 'resize-right';
+    startClientX: number;
+    containerWidth: number;
+    initialStartMs: number;
+    initialDurationMs: number;
+    initialActions: MacroAction[];
+    hasMoved: boolean;
+  } | null>(null);
+
   // Action Picker Modal state
   const [actionPicker, setActionPicker] = useState<ActionPickerState | null>(null);
+
+  // Gap Rectangle Edit Modal & Edge Drag state
+  const [editingGap, setEditingGap] = useState<TimelineGap | null>(null);
+  const [dragGapPreview, setDragGapPreview] = useState<{ startMs: number; endMs: number; durationMs: number } | null>(null);
+  const dragGapRef = useRef<{
+    edge: 'left' | 'right';
+    startClientX: number;
+    containerWidth: number;
+    initialGap: TimelineGap;
+    initialActions: MacroAction[];
+    hasMoved: boolean;
+  } | null>(null);
 
   // Active Action Editor Modal action ID (null if closed)
   const [editingActionId, setEditingActionId] = useState<string | null>(null);
   const editingIndex = editingActionId !== null ? script.actions.findIndex((a) => a.id === editingActionId) : -1;
   const currentEditingAction = editingIndex !== -1 ? script.actions[editingIndex] : null;
+
+  const emptyGaps = useMemo(() => findEmptyGaps(script.actions, 20), [script.actions]);
+
+  useEffect(() => {
+    const handlePointerMove = (ev: PointerEvent) => {
+      // 1. Handle Note Block Horizontal Dragging
+      const noteDrag = dragNoteRef.current;
+      if (noteDrag && noteDrag.containerWidth > 0) {
+        const deltaPx = ev.clientX - noteDrag.startClientX;
+        if (!noteDrag.hasMoved && Math.abs(deltaPx) < 4) return;
+        noteDrag.hasMoved = true;
+        suppressNextNoteClickRef.current = true;
+
+        const rawDeltaMs = (deltaPx / noteDrag.containerWidth) * lineDurationMs;
+        const others = noteDrag.initialActions.filter((a) => a.id !== noteDrag.actionId);
+        const draggedAct = noteDrag.initialActions.find((a) => a.id === noteDrag.actionId);
+
+        if (noteDrag.mode === 'resize-left') {
+          const rawStartMs = noteDrag.initialStartMs + rawDeltaMs;
+          const res = draggedAct
+            ? computeSnappedLeftResize(draggedAct, noteDrag.initialStartMs, noteDrag.initialDurationMs, rawStartMs, others, {
+                gridMs: 10,
+                snapThresholdMs: 25,
+                disableSnap: ev.altKey,
+              })
+            : {
+                startTimeMs: Math.max(0, Math.round(rawStartMs)),
+                durationMs: Math.max(10, noteDrag.initialDurationMs - Math.round(rawDeltaMs)),
+                guideTimeMs: null,
+              };
+
+          const next = noteDrag.initialActions.map((act) =>
+            act.id === noteDrag.actionId ? { ...act, startTimeMs: res.startTimeMs, durationMs: res.durationMs } : act,
+          );
+          onChangeActions(next);
+          setActiveSnapGuideMs(res.guideTimeMs);
+          setDragNoteTooltip({
+            actionId: noteDrag.actionId,
+            mode: 'resize-left',
+            startTimeMs: res.startTimeMs,
+            durationMs: res.durationMs,
+            deltaMs: res.durationMs - noteDrag.initialDurationMs,
+          });
+          return;
+        }
+
+        if (noteDrag.mode === 'resize-right') {
+          const rawDurationMs = Math.max(10, noteDrag.initialDurationMs + rawDeltaMs);
+          const initialEndMs = noteDrag.initialStartMs + noteDrag.initialDurationMs;
+          const res = draggedAct
+            ? computeSnappedDuration(draggedAct, initialEndMs, rawDurationMs, others, {
+                gridMs: 10,
+                snapThresholdMs: 25,
+                disableSnap: ev.altKey,
+              })
+            : { durationMs: Math.round(rawDurationMs), guideTimeMs: null };
+
+          const next = noteDrag.initialActions.map((act) =>
+            act.id === noteDrag.actionId ? { ...act, durationMs: res.durationMs } : act,
+          );
+          onChangeActions(next);
+          setActiveSnapGuideMs(res.guideTimeMs);
+          setDragNoteTooltip({
+            actionId: noteDrag.actionId,
+            mode: 'resize-right',
+            startTimeMs: noteDrag.initialStartMs,
+            durationMs: res.durationMs,
+            deltaMs: res.durationMs - noteDrag.initialDurationMs,
+          });
+          return;
+        }
+
+        const rawStartMs = Math.max(0, noteDrag.initialStartMs + rawDeltaMs);
+        const snap = computeSnappedStartTime(rawStartMs, noteDrag.initialDurationMs, others, {
+          gridMs: 10,
+          snapThresholdMs: 25,
+          disableSnap: ev.altKey,
+        });
+        const finalStartMs = draggedAct
+          ? clampStartTimeWithoutOverlap(draggedAct, noteDrag.initialStartMs, snap.startTimeMs, others)
+          : snap.startTimeMs;
+
+        const next = noteDrag.initialActions.map((act) =>
+          act.id === noteDrag.actionId ? { ...act, startTimeMs: finalStartMs } : act,
+        );
+        onChangeActions(next);
+        setActiveSnapGuideMs(finalStartMs === snap.startTimeMs ? snap.guideTimeMs : null);
+        setDragNoteTooltip({
+          actionId: noteDrag.actionId,
+          mode: 'move',
+          startTimeMs: finalStartMs,
+          durationMs: noteDrag.initialDurationMs,
+          deltaMs: finalStartMs - noteDrag.initialStartMs,
+        });
+        return;
+      }
+
+      // 2. Handle Gap Edge Dragging
+      const drag = dragGapRef.current;
+      if (!drag || drag.containerWidth <= 0) return;
+      const deltaPx = ev.clientX - drag.startClientX;
+      if (!drag.hasMoved && Math.abs(deltaPx) < 2) return;
+      drag.hasMoved = true;
+      const deltaMs = Math.round(((deltaPx / drag.containerWidth) * lineDurationMs) / 10) * 10;
+
+      if (drag.edge === 'right') {
+        const newDuration = Math.max(0, drag.initialGap.durationMs + deltaMs);
+        const next = resizeGapInterval(drag.initialActions, drag.initialGap.startMs, drag.initialGap.endMs, newDuration);
+        onChangeActions(next);
+        setDragGapPreview({
+          startMs: drag.initialGap.startMs,
+          endMs: drag.initialGap.startMs + newDuration,
+          durationMs: newDuration,
+        });
+      } else {
+        const next = resizeGapFromLeft(drag.initialActions, drag.initialGap.startMs, drag.initialGap.endMs, deltaMs);
+        onChangeActions(next);
+        const updatedGaps = findEmptyGaps(next, 1);
+        const matched = updatedGaps.find((g) => g.endMs === drag.initialGap.endMs);
+        setDragGapPreview(
+          matched ?? {
+            startMs: drag.initialGap.endMs,
+            endMs: drag.initialGap.endMs,
+            durationMs: 0,
+          },
+        );
+      }
+    };
+
+    const handlePointerUp = () => {
+      if (dragNoteRef.current) {
+        const noteDrag = dragNoteRef.current;
+        dragNoteRef.current = null;
+        setActiveSnapGuideMs(null);
+        setDragNoteTooltip(null);
+        if (noteDrag.hasMoved) {
+          const sorted = [...actionsRef.current].sort((a, b) => a.startTimeMs - b.startTimeMs);
+          commitActions(sorted, noteDrag.initialActions);
+          setTimeout(() => {
+            suppressNextNoteClickRef.current = false;
+          }, 0);
+        }
+      }
+
+      if (dragGapRef.current) {
+        const gapDrag = dragGapRef.current;
+        dragGapRef.current = null;
+        setDragGapPreview(null);
+        if (gapDrag.hasMoved) {
+          const sorted = [...actionsRef.current].sort((a, b) => a.startTimeMs - b.startTimeMs);
+          commitActions(sorted, gapDrag.initialActions);
+        }
+      }
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [lineDurationMs, onChangeActions, commitActions]);
 
   const handleCloseEditor = () => {
     const sorted = [...script.actions].sort((a, b) => a.startTimeMs - b.startTimeMs);
@@ -545,12 +826,28 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
 
   const handleUpdateActionField = (id: string, updates: Partial<MacroAction>) => {
     const next = script.actions.map((act) => (act.id === id ? { ...act, ...updates } : act));
-    onChangeActions(next);
+    commitActions(next);
+  };
+
+  const handleUpdateEditingGapDuration = (newDurationMs: number) => {
+    if (!editingGap) return;
+    const clamped = Math.max(0, newDurationMs);
+    const next = resizeGapInterval(script.actions, editingGap.startMs, editingGap.endMs, clamped).sort((a, b) => a.startTimeMs - b.startTimeMs);
+    commitActions(next);
+    if (clamped === 0) {
+      setEditingGap(null);
+    } else {
+      setEditingGap({
+        startMs: editingGap.startMs,
+        endMs: editingGap.startMs + clamped,
+        durationMs: clamped,
+      });
+    }
   };
 
   const handleDeleteAction = (id: string) => {
     const next = script.actions.filter((a) => a.id !== id);
-    onChangeActions(next);
+    commitActions(next);
     setEditingActionId(null);
   };
 
@@ -558,17 +855,30 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
     const targetIdx = script.actions.findIndex((a) => a.id === id);
     if (targetIdx === -1) return;
     const prevAct = script.actions[targetIdx];
-    const startMs = prevAct.startTimeMs + prevAct.durationMs;
+    const insertAtMs = prevAct.startTimeMs + prevAct.durationMs;
+    const defaultWaitMs = 150;
     const newAct: MacroAction = {
       id: `act-wait-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       type: 'wait',
-      startTimeMs: startMs,
-      durationMs: 150,
+      startTimeMs: insertAtMs,
+      durationMs: defaultWaitMs,
     };
-    const next = [...script.actions];
-    next.splice(targetIdx + 1, 0, newAct);
-    onChangeActions(next);
-    setEditingActionId(newAct.id);
+    const shifted = script.actions.map((act) =>
+      act.startTimeMs >= insertAtMs
+        ? { ...act, startTimeMs: act.startTimeMs + defaultWaitMs }
+        : act,
+    );
+    shifted.splice(targetIdx + 1, 0, newAct);
+    const next = shifted.sort((a, b) => a.startTimeMs - b.startTimeMs);
+    commitActions(next);
+    setEditingActionId(null);
+    const updatedGaps = findEmptyGaps(next, 20);
+    const createdGap = updatedGaps.find((g) => g.startMs <= insertAtMs && g.endMs >= insertAtMs + defaultWaitMs) ?? {
+      startMs: insertAtMs,
+      endMs: insertAtMs + defaultWaitMs,
+      durationMs: defaultWaitMs,
+    };
+    setEditingGap(createdGap);
   };
 
   // Compute absolute timestamps
@@ -678,10 +988,10 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
       const next = [...script.actions];
       next.splice(actionPicker.insertIndex + 1, 0, newAct);
       next.sort((a, b) => a.startTimeMs - b.startTimeMs);
-      onChangeActions(next);
+      commitActions(next);
     } else {
       const next = [...script.actions, newAct].sort((a, b) => a.startTimeMs - b.startTimeMs);
-      onChangeActions(next);
+      commitActions(next);
     }
     setActionPicker(null);
   };
@@ -696,7 +1006,7 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
       durationMs: 200,
     };
     const next = [...script.actions, newAct].sort((a, b) => a.startTimeMs - b.startTimeMs);
-    onChangeActions(next);
+    commitActions(next);
   };
 
   return (
@@ -714,7 +1024,44 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
           <span className='text-[10px] text-text-muted truncate'>{t('score_sheet.tip', '• 右鍵點擊任一動作區塊可進行時長修改、換鍵與刪除')}</span>
         </div>
 
-        <div className='flex items-center gap-2 shrink-0'>
+        <div className='flex items-center gap-2 shrink-0 flex-wrap'>
+          {/* Playback Start Cursor Reset Pill */}
+          {playbackStartMs > 0 && onChangePlaybackStartMs && (
+            <button
+              type='button'
+              onClick={() => onChangePlaybackStartMs(0)}
+              title={t('score_sheet.reset_start_cursor_tooltip', '點擊重設試播起點回 0s')}
+              className='flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-300 text-[11px] font-mono font-semibold text-indigo-700 cursor-pointer transition-colors whitespace-nowrap shadow-xs'
+            >
+              <span>{t('score_sheet.start_cursor_badge', { time: formatDurationLabel(playbackStartMs), defaultValue: `起播 ${formatDurationLabel(playbackStartMs)}` })}</span>
+              <X className='w-3 h-3 shrink-0' />
+            </button>
+          )}
+
+          {/* Undo / Redo Buttons */}
+          <div className='flex items-center gap-0.5 bg-surface-input p-0.5 rounded-md border border-border-element shadow-xs'>
+            <button
+              type='button'
+              disabled={undoStack.length === 0}
+              onClick={handleUndo}
+              title={t('score_sheet.undo_tooltip', '復原上一步 (Ctrl/Cmd + Z)')}
+              aria-label={t('score_sheet.undo', '復原')}
+              className='p-1 rounded text-text-secondary hover:text-text-primary hover:bg-surface-card disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors'
+            >
+              <Undo2 className='w-3.5 h-3.5' />
+            </button>
+            <button
+              type='button'
+              disabled={redoStack.length === 0}
+              onClick={handleRedo}
+              title={t('score_sheet.redo_tooltip', '重做下一步 (Ctrl/Cmd + Shift + Z)')}
+              aria-label={t('score_sheet.redo', '重做')}
+              className='p-1 rounded text-text-secondary hover:text-text-primary hover:bg-surface-card disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors'
+            >
+              <Redo2 className='w-3.5 h-3.5' />
+            </button>
+          </div>
+
           {/* Seconds per line selector */}
           <div className='flex items-center gap-1.5 text-xs text-text-muted shrink-0 whitespace-nowrap'>
             <span className='text-[10px]'>{t('score_sheet.line_duration_label', '每行時長:')}</span>
@@ -747,8 +1094,11 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
 
           // Is playhead currently on this line?
           const isPlayheadOnThisLine = currentElapsedMs !== null && currentElapsedMs >= lineStartMs && (currentElapsedMs < lineEndMs || (lineIndex === numLines - 1 && currentElapsedMs >= lineEndMs));
-
           const playheadPct = isPlayheadOnThisLine ? Math.min(100, Math.max(0, ((currentElapsedMs - lineStartMs) / lineDurationMs) * 100)) : 0;
+
+          // Is start cursor on this line?
+          const isStartCursorOnThisLine = !isScriptPlaying && playbackStartMs > 0 && playbackStartMs >= lineStartMs && (playbackStartMs < lineEndMs || (lineIndex === numLines - 1 && playbackStartMs <= lineEndMs));
+          const startCursorPct = isStartCursorOnThisLine ? Math.min(100, Math.max(0, ((playbackStartMs - lineStartMs) / lineDurationMs) * 100)) : 0;
 
           return (
             <div key={lineIndex} className='w-full rounded-xl bg-surface-card border border-border-subtle overflow-hidden shadow-xs'>
@@ -779,7 +1129,17 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
                 </div>
 
                 {/* Ruler timeline track (matches flex-1 lane body) */}
-                <div className='flex-1 h-3 relative overflow-visible'>
+                <div
+                  className='flex-1 h-3 relative overflow-visible cursor-pointer'
+                  title={t('score_sheet.ruler_start_cursor_hint', '點擊時間軸可設定試播起點')}
+                  onClick={(e) => {
+                    if (!onChangePlaybackStartMs) return;
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const ratio = rect.width > 0 ? Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)) : 0;
+                    const clickedTimeMs = Math.round((lineStartMs + ratio * lineDurationMs) / 10) * 10;
+                    onChangePlaybackStartMs(clickedTimeMs);
+                  }}
+                >
                   {Array.from({ length: lineDurationSec + 1 }).map((__, sec) => {
                     const leftPct = (sec / lineDurationSec) * 100;
                     const majorTickStep = lineDurationSec <= 5 ? 1 : lineDurationSec <= 10 ? 2 : 5;
@@ -803,6 +1163,19 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
                     );
                   })}
 
+                  {/* Start Cursor Marker in Time Ruler */}
+                  {isStartCursorOnThisLine && (
+                    <div
+                      className='absolute top-0 bottom-0 pointer-events-none z-30'
+                      style={{
+                        left: `${startCursorPct}%`,
+                        transform: 'translateX(-50%)',
+                      }}
+                    >
+                      <div className='w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] border-t-indigo-600' />
+                    </div>
+                  )}
+
                   {/* Playhead marker in Time Ruler */}
                   {isPlayheadOnThisLine && (
                     <div
@@ -820,6 +1193,144 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
 
               {/* 5-Track Score Lanes */}
               <div className='relative p-1.5 space-y-0.5'>
+                {/* Empty Gap Rectangles spanning across all 5 lanes */}
+                <div className='absolute inset-y-1.5 left-1.5 right-1.5 flex pointer-events-none z-20'>
+                  <div className='w-14 shrink-0' />
+                  <div data-gap-lane-container='true' className='flex-1 relative h-full'>
+                    {emptyGaps
+                      .filter((g) => g.startMs < lineEndMs && g.endMs > lineStartMs)
+                      .map((gap) => {
+                        const visStart = Math.max(lineStartMs, gap.startMs);
+                        const visEnd = Math.min(lineEndMs, gap.endMs);
+                        const leftPct = ((visStart - lineStartMs) / lineDurationMs) * 100;
+                        const widthPct = ((visEnd - visStart) / lineDurationMs) * 100;
+                        const hasLeftEdge = gap.startMs >= lineStartMs;
+                        const hasRightEdge = gap.endMs <= lineEndMs;
+                        const isDraggingThis =
+                          dragGapPreview &&
+                          ((dragGapRef.current?.edge === 'right' && dragGapPreview.startMs === gap.startMs) ||
+                            (dragGapRef.current?.edge === 'left' && dragGapPreview.endMs === gap.endMs));
+
+                        return (
+                          <div
+                            key={`gap-rect-${gap.startMs}-${gap.endMs}`}
+                            role='button'
+                            tabIndex={0}
+                            onClick={() => setEditingGap(gap)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                setEditingGap(gap);
+                              }
+                            }}
+                            style={{
+                              left: `${leftPct}%`,
+                              width: `${widthPct}%`,
+                            }}
+                            title={t('score_sheet.gap_rect_tooltip', {
+                              duration: gap.durationMs,
+                              defaultValue: `空白區間 (${gap.durationMs}ms) • 點擊編輯長度，或拖曳左右邊緣調整`,
+                            })}
+                            className={`absolute top-0 bottom-0 min-w-[4px] pointer-events-auto rounded-md border border-dashed transition-colors cursor-pointer flex items-center justify-center group ${
+                              isDraggingThis
+                                ? 'bg-amber-500/25 border-amber-500 ring-2 ring-amber-400/50'
+                                : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-400/70'
+                            }`}
+                          >
+                            {/* Left Edge Drag Handle */}
+                            {hasLeftEdge && (
+                              <div
+                                onPointerDown={(e) => {
+                                  e.stopPropagation();
+                                  const laneEl = e.currentTarget.closest('[data-gap-lane-container]') as HTMLElement | null;
+                                  const containerWidth = laneEl?.getBoundingClientRect().width || 600;
+                                  dragGapRef.current = {
+                                    edge: 'left',
+                                    startClientX: e.clientX,
+                                    containerWidth,
+                                    initialGap: gap,
+                                    initialActions: script.actions,
+                                    hasMoved: false,
+                                  };
+                                  setDragGapPreview({ ...gap });
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                title={t('score_sheet.gap_drag_left', '拖曳左側邊緣調整空白起點')}
+                                className='absolute left-0 top-0 bottom-0 w-2 -translate-x-1/2 cursor-ew-resize flex items-center justify-center z-10'
+                              >
+                                <div className='w-0.5 h-6 rounded-full bg-amber-500/60 group-hover:bg-amber-600 transition-colors' />
+                              </div>
+                            )}
+
+                            {/* Exact Duration Floating Pill on Hover */}
+                            <span className='opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-amber-900 text-amber-50 text-[9px] font-mono font-bold whitespace-nowrap shadow-md pointer-events-none z-50'>
+                              {formatDurationLabel(gap.durationMs)}
+                            </span>
+
+                            {/* Right Edge Drag Handle */}
+                            {hasRightEdge && (
+                              <div
+                                onPointerDown={(e) => {
+                                  e.stopPropagation();
+                                  const laneEl = e.currentTarget.closest('[data-gap-lane-container]') as HTMLElement | null;
+                                  const containerWidth = laneEl?.getBoundingClientRect().width || 600;
+                                  dragGapRef.current = {
+                                    edge: 'right',
+                                    startClientX: e.clientX,
+                                    containerWidth,
+                                    initialGap: gap,
+                                    initialActions: script.actions,
+                                    hasMoved: false,
+                                  };
+                                  setDragGapPreview({ ...gap });
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                title={t('score_sheet.gap_drag_right', '拖曳右側邊緣拉寬或縮短空白')}
+                                className='absolute right-0 top-0 bottom-0 w-2 translate-x-1/2 cursor-ew-resize flex items-center justify-center z-10'
+                              >
+                                <div className='w-0.5 h-6 rounded-full bg-amber-500/60 group-hover:bg-amber-600 transition-colors' />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Vertical Snap Alignment Guide Line across all 5 lanes */}
+                {activeSnapGuideMs !== null && activeSnapGuideMs >= lineStartMs && activeSnapGuideMs <= lineEndMs && (
+                  <div className='absolute inset-y-0 left-1.5 right-1.5 flex pointer-events-none z-30'>
+                    <div className='w-14 shrink-0' />
+                    <div className='flex-1 relative h-full'>
+                      <div
+                        className='absolute top-0 bottom-0 w-px border-l border-dashed border-cyan-500 shadow-[0_0_6px_rgba(6,182,212,0.5)]'
+                        style={{
+                          left: `${((activeSnapGuideMs - lineStartMs) / lineDurationMs) * 100}%`,
+                        }}
+                      >
+                        <span className='absolute -top-3 -translate-x-1/2 px-1 py-0.5 rounded bg-cyan-600 text-white text-[8px] font-mono font-bold leading-none whitespace-nowrap shadow-xs'>
+                          {activeSnapGuideMs}ms
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Start Cursor Line across all 5 lanes */}
+                {isStartCursorOnThisLine && (
+                  <div className='absolute inset-y-0 left-1.5 right-1.5 flex pointer-events-none z-25'>
+                    <div className='w-14 shrink-0' />
+                    <div className='flex-1 relative h-full'>
+                      <div
+                        className='absolute top-0 bottom-0 w-px border-l border-dashed border-indigo-500'
+                        style={{
+                          left: `${startCursorPct}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Playhead Line across all 5 lanes */}
                 {isPlayheadOnThisLine && (
                   <div className='absolute inset-y-0 left-1.5 right-1.5 flex pointer-events-none z-30'>
@@ -839,8 +1350,14 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
                 {LANES.map((lane, laneIdx) => {
                   const trackKeys = ['actions', 'dpad', 'sticks', 'shoulders', 'system_wait'];
                   const laneTitle = t(`score_sheet.tracks.${trackKeys[laneIdx]}`, lane.name);
+                  const laneItems = lineActions.filter((act) => act.type !== 'wait' && getActionVisual(act).lane === laneIdx);
+                  const { rowCount, items: placedNotes } = assignSubRows(laneItems);
                   return (
-                    <div key={lane.name} className='h-6 rounded-md bg-surface-input/30 border border-border-subtle/60 relative flex items-center'>
+                    <div
+                      key={lane.name}
+                      style={{ height: `${rowCount * 24}px` }}
+                      className='rounded-md bg-surface-input/30 border border-border-subtle/60 relative flex items-center transition-[height] duration-150'
+                    >
                       {/* Left Track Name with Color Indicator Dot */}
                       <div className='w-14 shrink-0 flex items-center gap-1.5 pl-2 select-none pointer-events-none'>
                         <div className='w-1.5 h-1.5 rounded-full shrink-0' style={{ backgroundColor: laneIdx === 4 ? '#71717a' : lane.color }} />
@@ -862,74 +1379,131 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
                           );
                         })}
 
-                        {lineActions.map((act) => {
+                        {placedNotes.map(({ item: act, subRow }) => {
                           const vis = getActionVisual(act);
-                          if (vis.lane !== laneIdx) return null;
 
                           // Compute horizontal position % on this line
                           const noteStartInLine = Math.max(0, act.startTimeMs - lineStartMs);
                           const noteEndInLine = Math.min(lineDurationMs, act.endTimeMs - lineStartMs);
                           const leftPct = (noteStartInLine / lineDurationMs) * 100;
                           const rawWidthPct = ((noteEndInLine - noteStartInLine) / lineDurationMs) * 100;
-                          const widthPct = Math.max(1.2, rawWidthPct);
+                          const showInlineLabel = rawWidthPct >= 2.2;
 
                           // Synchronize highlighting with exact playhead time during playback
                           const isActive = isScriptPlaying && currentElapsedMs !== null ? currentElapsedMs >= act.startTimeMs && currentElapsedMs < act.endTimeMs : activeActionIndex === act.index;
-                          const isWaitAct = act.type === 'wait';
-                          const isConsecutiveWithNeighbor =
-                            isWaitAct &&
-                            ((act.index > 0 && script.actions[act.index - 1]?.type === 'wait') || (act.index < script.actions.length - 1 && script.actions[act.index + 1]?.type === 'wait'));
+                          const isDraggingNote = dragNoteTooltip?.actionId === act.id;
 
                           return (
                             <div
                               key={act.id}
-                              onClick={() => setEditingActionId(act.id)}
+                              onPointerDown={(e) => {
+                                if (e.button !== 0) return;
+                                const laneEl = e.currentTarget.parentElement;
+                                const containerWidth = laneEl?.getBoundingClientRect().width || 600;
+                                dragNoteRef.current = {
+                                  actionId: act.id,
+                                  mode: 'move',
+                                  startClientX: e.clientX,
+                                  containerWidth,
+                                  initialStartMs: act.startTimeMs,
+                                  initialDurationMs: act.durationMs,
+                                  initialActions: script.actions,
+                                  hasMoved: false,
+                                };
+                              }}
+                              onClick={() => {
+                                if (suppressNextNoteClickRef.current) return;
+                                setEditingActionId(act.id);
+                              }}
                               onContextMenu={(e) => {
                                 e.preventDefault();
                                 setEditingActionId(act.id);
                               }}
                               style={{
                                 left: `${leftPct}%`,
-                                width: `${widthPct}%`,
+                                width: `${rawWidthPct}%`,
+                                top: `${subRow * 24 + 2}px`,
+                                height: '20px',
                               }}
-                              className={`absolute top-0.5 bottom-0.5 rounded-md border flex items-center justify-center ${
-                                isWaitAct ? 'min-w-[16px] px-0.5' : 'min-w-[18px] px-0.5'
-                              } text-[10px] font-bold cursor-pointer transition-all hover:scale-105 hover:z-20 z-10 select-none ${vis.style} ${
-                                isActive ? 'ring-2 ring-slate-900 shadow-md scale-105 z-30' : isConsecutiveWithNeighbor ? 'ring-1 ring-amber-500' : ''
+                              className={`group absolute rounded-md border flex items-center justify-center min-w-[4px] text-[10px] font-bold select-none ${
+                                showInlineLabel ? 'px-0.5' : 'px-0'
+                              } ${vis.style} ${
+                                isDraggingNote
+                                  ? 'cursor-grabbing ring-2 ring-cyan-500 shadow-lg scale-105 z-40'
+                                  : isActive
+                                    ? 'cursor-grab transition-all hover:scale-105 hover:z-20 ring-2 ring-slate-900 shadow-md scale-105 z-30'
+                                    : 'cursor-grab transition-all hover:scale-105 hover:z-20 z-10'
                               }`}
-                              title={
-                                act.type === 'wait'
-                                  ? isConsecutiveWithNeighbor
-                                    ? t('score_sheet.wait_consecutive_tooltip', {
-                                        index: act.index + 1,
-                                        duration: act.durationMs,
-                                        defaultValue: `#${act.index + 1} 等待暫停 (${act.durationMs}ms) • 建議與相鄰等待合併 • 點擊編輯時間`,
-                                      })
-                                    : t('score_sheet.wait_note_tooltip', {
-                                        index: act.index + 1,
-                                        duration: act.durationMs,
-                                        defaultValue: `#${act.index + 1} 等待暫停 (${act.durationMs}ms) • 點擊編輯時間與動作設定`,
-                                      })
-                                  : t('score_sheet.action_note_tooltip', {
-                                      index: act.index + 1,
-                                      label: vis.label,
-                                      duration: act.durationMs,
-                                      defaultValue: `#${act.index + 1} ${vis.label} (持續 ${act.durationMs}ms) • 點擊編輯時間與動作設定`,
-                                    })
-                              }
+                              title={t('score_sheet.action_note_tooltip', {
+                                index: act.index + 1,
+                                label: vis.label,
+                                duration: act.durationMs,
+                                defaultValue: `#${act.index + 1} ${vis.label} (持續 ${act.durationMs}ms) • 拖曳移動位置或點擊編輯`,
+                              })}
                             >
-                              {isWaitAct ? (
-                                <div className='flex items-center gap-0.5 overflow-hidden justify-center leading-none'>
-                                  <span className='text-[9px] leading-none shrink-0 font-sans'>⏸</span>
-                                  {widthPct >= 3.5 && (
-                                    <span className='font-mono text-[8px] font-bold tracking-tighter truncate opacity-90'>
-                                      {act.durationMs >= 1000 ? `${(act.durationMs / 1000).toFixed(1)}s` : `${act.durationMs}ms`}
-                                    </span>
-                                  )}
-                                </div>
+                              {isDraggingNote && dragNoteTooltip ? (
+                                <span className='absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-slate-900 text-white text-[9px] font-mono font-bold whitespace-nowrap shadow-md pointer-events-none z-50'>
+                                  {dragNoteTooltip.mode === 'move'
+                                    ? `${dragNoteTooltip.startTimeMs}ms (${dragNoteTooltip.deltaMs >= 0 ? `+${dragNoteTooltip.deltaMs}` : dragNoteTooltip.deltaMs}ms)`
+                                    : `${formatDurationLabel(dragNoteTooltip.durationMs)} (${dragNoteTooltip.deltaMs >= 0 ? `+${dragNoteTooltip.deltaMs}` : dragNoteTooltip.deltaMs}ms)`}
+                                </span>
                               ) : (
-                                <span className='leading-none tracking-tight font-black select-none truncate px-0.5'>{vis.label}</span>
+                                <span className='opacity-0 group-hover:opacity-100 transition-opacity absolute -top-5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-slate-900 text-white text-[9px] font-mono font-bold whitespace-nowrap shadow-md pointer-events-none z-50'>
+                                  {`${vis.label} • ${formatDurationLabel(act.durationMs)}`}
+                                </span>
                               )}
+
+                              {/* Left Edge Resize Handle (only on blocks wide enough to preserve center move area) */}
+                              {rawWidthPct >= 3 && (
+                                <div
+                                  onPointerDown={(e) => {
+                                    if (e.button !== 0) return;
+                                    e.stopPropagation();
+                                    const noteEl = e.currentTarget.parentElement;
+                                    const laneEl = noteEl?.parentElement;
+                                    const containerWidth = laneEl?.getBoundingClientRect().width || 600;
+                                    dragNoteRef.current = {
+                                      actionId: act.id,
+                                      mode: 'resize-left',
+                                      startClientX: e.clientX,
+                                      containerWidth,
+                                      initialStartMs: act.startTimeMs,
+                                      initialDurationMs: act.durationMs,
+                                      initialActions: script.actions,
+                                      hasMoved: false,
+                                    };
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  title={t('score_sheet.note_resize_left', '拖曳左側邊緣調整起點與持續時間')}
+                                  className='absolute left-0 top-0 bottom-0 w-1.5 cursor-ew-resize z-20'
+                                />
+                              )}
+
+                              {showInlineLabel && <span className='leading-none tracking-tight font-black select-none truncate px-0.5'>{vis.label}</span>}
+
+                              {/* Right Edge Resize Handle */}
+                              <div
+                                onPointerDown={(e) => {
+                                  if (e.button !== 0) return;
+                                  e.stopPropagation();
+                                  const noteEl = e.currentTarget.parentElement;
+                                  const laneEl = noteEl?.parentElement;
+                                  const containerWidth = laneEl?.getBoundingClientRect().width || 600;
+                                  dragNoteRef.current = {
+                                    actionId: act.id,
+                                    mode: 'resize-right',
+                                    startClientX: e.clientX,
+                                    containerWidth,
+                                    initialStartMs: act.startTimeMs,
+                                    initialDurationMs: act.durationMs,
+                                    initialActions: script.actions,
+                                    hasMoved: false,
+                                  };
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                title={t('score_sheet.note_resize_right', '拖曳右側邊緣調整持續時間')}
+                                className='absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize z-20'
+                              />
                             </div>
                           );
                         })}
@@ -1105,7 +1679,7 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
                           durationMs: val,
                         })
                       }
-                      className='w-16 px-2 py-0.5 rounded-md bg-surface-card border border-border-element text-xs font-mono font-bold text-text-primary text-center focus:outline-none focus:border-border-focus shadow-xs'
+                      className='w-20 px-2 py-0.5 rounded-md bg-surface-card border border-border-element text-xs font-mono font-bold text-text-primary text-center focus:outline-none focus:border-border-focus shadow-xs'
                     />
                     <span className='text-xs text-text-muted font-mono'>ms</span>
                   </div>
@@ -1302,6 +1876,92 @@ export const MacroScoreSheet: React.FC<Props> = ({ script, activeActionIndex = -
                 className='px-3.5 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-interactive-hover text-text-primary border border-border-subtle cursor-pointer transition-colors shadow-xs'
               >
                 {t('actions.close', '關閉')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gap Rectangle Edit Modal */}
+      {editingGap && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-150' onClick={() => setEditingGap(null)}>
+          <div className='w-full max-w-md rounded-xl bg-surface-modal border border-border-element p-5 shadow-2xl flex flex-col gap-4 select-none' onClick={(e) => e.stopPropagation()}>
+            <div className='flex items-center justify-between border-b border-border-subtle pb-3'>
+              <div className='flex items-center gap-2'>
+                <div className='p-1.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700'>
+                  <Clock className='w-4 h-4' />
+                </div>
+                <div>
+                  <h4 className='text-xs font-semibold text-text-primary'>{t('score_sheet.gap_edit.title', '空白區間編輯')}</h4>
+                  <p className='text-[11px] text-text-muted font-mono'>
+                    {`${(editingGap.startMs / 1000).toFixed(2)}s ~ ${(editingGap.endMs / 1000).toFixed(2)}s`}
+                  </p>
+                </div>
+              </div>
+              <button
+                type='button'
+                onClick={() => setEditingGap(null)}
+                className='p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-input transition-colors cursor-pointer'
+                title={t('actions.close', '關閉')}
+              >
+                <X className='w-4 h-4' />
+              </button>
+            </div>
+
+            <div className='flex flex-col gap-2.5 p-3 rounded-lg bg-surface-input border border-border-subtle'>
+              <div className='flex items-center justify-between gap-2'>
+                <div className='flex items-center gap-2'>
+                  <Clock className='w-3.5 h-3.5 text-text-muted' />
+                  <span className='text-xs font-medium text-text-secondary'>{t('score_sheet.gap_edit.duration_label', '空白持續時間：')}</span>
+                </div>
+                <div className='flex items-center gap-1'>
+                  <NumberInput
+                    key={`edit-gap-${editingGap.startMs}`}
+                    min={0}
+                    step={10}
+                    value={editingGap.durationMs}
+                    onChange={(val) => handleUpdateEditingGapDuration(val)}
+                    className='w-24 px-2 py-1 rounded-md bg-surface-card border border-border-element text-xs font-mono font-bold text-text-primary text-center focus:outline-none focus:border-border-focus shadow-xs'
+                  />
+                  <span className='text-xs text-text-muted font-mono'>ms</span>
+                </div>
+              </div>
+
+              <div className='flex items-center justify-end gap-1 pt-1.5 border-t border-border-subtle/50'>
+                <span className='text-[10px] text-text-muted mr-1'>{t('score_sheet.gap_edit.quick_presets', '快速設定:')}</span>
+                {[100, 200, 500, 1000].map((presetMs) => (
+                  <button
+                    key={presetMs}
+                    type='button'
+                    onClick={() => handleUpdateEditingGapDuration(presetMs)}
+                    className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium transition-colors cursor-pointer ${
+                      editingGap.durationMs === presetMs
+                        ? 'bg-accent text-accent-foreground font-bold shadow-xs'
+                        : 'bg-surface-card hover:bg-interactive-hover text-text-secondary border border-border-subtle shadow-xs'
+                    }`}
+                  >
+                    {presetMs}ms
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className='flex items-center justify-between border-t border-border-subtle pt-3 gap-2'>
+              <button
+                type='button'
+                onClick={() => handleUpdateEditingGapDuration(0)}
+                className='flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer'
+              >
+                <Trash2 className='w-3.5 h-3.5 shrink-0' />
+                <span>{t('score_sheet.gap_edit.remove_gap', '移除此空白 (0ms)')}</span>
+              </button>
+
+              <button
+                type='button'
+                onClick={() => setEditingGap(null)}
+                className='px-4 py-1.5 rounded-md text-xs font-medium bg-accent hover:bg-accent/90 text-accent-foreground shadow-xs cursor-pointer transition-colors'
+              >
+                {t('actions.done', '完成')}
               </button>
             </div>
           </div>

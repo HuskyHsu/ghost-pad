@@ -89,5 +89,11 @@
     "export": "匯出",
     "import": "匯入",
     "copy_suffix": "副本"
+  },
+  "unsaved_macro_modal": {
+    "title": "尚未儲存巨集變更",
+    "desc": "目前的巨集腳本有尚未儲存的修改，切換頁面將會遺失未儲存的內容，確定要離開嗎？",
+    "stay": "留下繼續編輯",
+    "discard_leave": "捨棄變更並離開"
   }
 }

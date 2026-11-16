@@ -170,7 +170,33 @@
       "select_hint": "，點選按鍵或搖桿動作以加入",
       "duration_label": "按壓持續時間 (Hold Duration)：",
       "footer_hint": "點選上方任意按鈕動作，將以設定之持續時間即刻加入"
-    }
+    },
+    "undo": "復原",
+    "undo_tooltip": "復原上一步 (Ctrl/Cmd + Z)",
+    "redo": "重做",
+    "redo_tooltip": "重做下一步 (Ctrl/Cmd + Shift + Z)",
+    "gap_rect_tooltip": "空白區間 ({{duration}}ms) • 點擊編輯長度，或拖曳左右邊緣調整",
+    "gap_drag_left": "拖曳左側邊緣調整空白起點",
+    "gap_drag_right": "拖曳右側邊緣拉寬或縮短空白",
+    "gap_edit": {
+      "title": "空白區間編輯",
+      "duration_label": "空白持續時間：",
+      "quick_presets": "快速設定:",
+      "remove_gap": "移除此空白 (0ms)"
+    },
+    "reset_start_cursor_tooltip": "點擊重設試播起點回 0s",
+    "start_cursor_badge": "起播 {{time}}",
+    "ruler_start_cursor_hint": "點擊時間軸可設定試播起點",
+    "note_resize_left": "拖曳左側邊緣調整起點與持續時間",
+    "note_resize_right": "拖曳右側邊緣調整持續時間"
+  },
+  "unsaved_changes_dot": "有尚未儲存的變更",
+  "unsaved_modal": {
+    "title": "尚未儲存變更",
+    "desc": "您對「{{name}}」有尚未儲存的修改，離開後將會遺失未儲存的內容。",
+    "cancel": "取消",
+    "discard_leave": "捨棄變更並離開",
+    "save_leave": "儲存並離開"
   },
   "notes": {
     "press_button": "按壓 {{btn}}",

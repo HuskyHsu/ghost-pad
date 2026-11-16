@@ -98,6 +98,27 @@ export function App() {
     }
     return "dashboard";
   });
+  const [hasUnsavedMacroChanges, setHasUnsavedMacroChanges] = useState(false);
+  const [pendingTabSwitch, setPendingTabSwitch] = useState<"dashboard" | "macro" | "hardware" | null>(null);
+
+  useEffect(() => {
+    if (!hasUnsavedMacroChanges) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedMacroChanges]);
+
+  const handleTabChange = (nextTab: "dashboard" | "macro" | "hardware") => {
+    if (nextTab === activeTab) return;
+    if (activeTab === "macro" && hasUnsavedMacroChanges) {
+      setPendingTabSwitch(nextTab);
+      return;
+    }
+    setActiveTab(nextTab);
+  };
   const [controllerState, setControllerState] = useState<ControllerState>(() => {
     if (isDemo) {
       return {
@@ -640,7 +661,7 @@ export function App() {
         {/* Left Master Sidebar */}
       <Sidebar
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         gamepads={gamepads}
         isMuted={isMuted}
         onRefreshGamepads={refreshAllDevices}
@@ -693,6 +714,7 @@ export function App() {
             onPause={player.pause}
             onResume={player.resume}
             onStop={player.stop}
+            onDirtyChange={setHasUnsavedMacroChanges}
           />
         )}
 
@@ -729,6 +751,47 @@ export function App() {
           onSave={handleSaveRecordedScript}
           onDiscard={() => setPendingSaveRecording(null)}
         />
+      )}
+
+      {/* Unsaved Macro Changes Tab Switch Warning Modal */}
+      {pendingTabSwitch && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
+          onClick={() => setPendingTabSwitch(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl bg-surface-modal border border-border-element p-5 shadow-2xl flex flex-col gap-4 select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="space-y-1">
+              <h4 className="text-sm font-semibold text-text-primary">{t("unsaved_macro_modal.title", "尚未儲存巨集變更")}</h4>
+              <p className="text-xs text-text-muted leading-relaxed">
+                {t("unsaved_macro_modal.desc", "目前的巨集腳本有尚未儲存的修改，切換頁面將會遺失未儲存的內容，確定要離開嗎？")}
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 border-t border-border-subtle pt-3">
+              <button
+                type="button"
+                onClick={() => setPendingTabSwitch(null)}
+                className="px-3 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-interactive-hover text-text-primary border border-border-subtle cursor-pointer transition-colors"
+              >
+                {t("unsaved_macro_modal.stay", "留下繼續編輯")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const target = pendingTabSwitch;
+                  setPendingTabSwitch(null);
+                  setHasUnsavedMacroChanges(false);
+                  setActiveTab(target);
+                }}
+                className="px-3.5 py-1.5 rounded-md text-xs font-medium bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 cursor-pointer transition-colors"
+              >
+                {t("unsaved_macro_modal.discard_leave", "捨棄變更並離開")}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       </div>
     </ToastProvider>

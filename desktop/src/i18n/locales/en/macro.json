@@ -170,7 +170,33 @@
       "select_hint": ", click button or stick motion to add",
       "duration_label": "Hold Duration:",
       "footer_hint": "Click any button or motion above to insert immediately with configured duration"
-    }
+    },
+    "undo": "Undo",
+    "undo_tooltip": "Undo last edit (Ctrl/Cmd + Z)",
+    "redo": "Redo",
+    "redo_tooltip": "Redo next edit (Ctrl/Cmd + Shift + Z)",
+    "gap_rect_tooltip": "Blank Gap ({{duration}}ms) • Click to edit duration, or drag left/right edges to resize",
+    "gap_drag_left": "Drag left edge to adjust gap start",
+    "gap_drag_right": "Drag right edge to expand or shrink gap",
+    "gap_edit": {
+      "title": "Edit Blank Gap",
+      "duration_label": "Gap Duration:",
+      "quick_presets": "Quick Presets:",
+      "remove_gap": "Remove Gap (0ms)"
+    },
+    "reset_start_cursor_tooltip": "Click to reset playback start cursor to 0s",
+    "start_cursor_badge": "From {{time}}",
+    "ruler_start_cursor_hint": "Click timeline ruler to set playback start cursor",
+    "note_resize_left": "Drag left edge to adjust start time and duration",
+    "note_resize_right": "Drag right edge to resize duration"
+  },
+  "unsaved_changes_dot": "Unsaved changes",
+  "unsaved_modal": {
+    "title": "Unsaved Changes",
+    "desc": "You have unsaved changes to \"{{name}}\". Leaving now will discard them.",
+    "cancel": "Cancel",
+    "discard_leave": "Discard & Leave",
+    "save_leave": "Save & Leave"
   },
   "notes": {
     "press_button": "Press {{btn}}",

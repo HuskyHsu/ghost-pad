@@ -18,10 +18,11 @@ interface Props {
   playerStatus: MacroPlayerStatus;
   playerConfig: MacroPlaybackConfig;
   onChangePlayerConfig: (updates: Partial<MacroPlaybackConfig>) => void;
-  onPlay: (script: MacroScript) => void;
+  onPlay: (script: MacroScript, overrideConfig?: Partial<MacroPlaybackConfig>, startOffsetMs?: number) => void;
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 export const MacroStudio: React.FC<Props> = ({
@@ -39,6 +40,7 @@ export const MacroStudio: React.FC<Props> = ({
   onPause,
   onResume,
   onStop,
+  onDirtyChange,
 }) => {
   const { t } = useTranslation('macro');
   const { showToast } = useToast();
@@ -74,6 +76,7 @@ export const MacroStudio: React.FC<Props> = ({
   };
 
   const [liveScript, setLiveScript] = useState<MacroScript | null>(null);
+  const [playbackStartMs, setPlaybackStartMs] = useState<number>(0);
 
   const activeScript = macros.find((m) => m.id === selectedScriptId) || macros[0] || null;
   const currentEditingScript = liveScript && activeScript && liveScript.id === activeScript.id ? liveScript : activeScript;
@@ -114,6 +117,7 @@ export const MacroStudio: React.FC<Props> = ({
   const handleSelectAndEdit = (id: string) => {
     onSelectScript(id);
     setLiveScript(null);
+    setPlaybackStartMs(0);
     setViewMode('edit');
   };
 
@@ -146,10 +150,17 @@ export const MacroStudio: React.FC<Props> = ({
             }}
             onDuplicateScript={onDuplicateScript}
             onDeleteScript={(id) => {
+              onDirtyChange?.(false);
               onDeleteScript(id);
               setViewMode('list');
             }}
-            onBackToList={() => setViewMode('list')}
+            onBackToList={() => {
+              onDirtyChange?.(false);
+              setViewMode('list');
+            }}
+            onDirtyChange={onDirtyChange}
+            playbackStartMs={playbackStartMs}
+            onChangePlaybackStartMs={setPlaybackStartMs}
           />
         ) : (
           <MacroLibraryView
@@ -171,7 +182,7 @@ export const MacroStudio: React.FC<Props> = ({
           status={playerStatus}
           config={playerConfig}
           onChangeConfig={onChangePlayerConfig}
-          onPlay={() => onPlay(currentEditingScript)}
+          onPlay={() => onPlay(currentEditingScript, undefined, playbackStartMs)}
           onPause={onPause}
           onResume={onResume}
           onStop={onStop}

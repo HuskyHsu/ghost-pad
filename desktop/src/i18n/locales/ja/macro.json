@@ -170,7 +170,33 @@
       "select_hint": "、ボタンまたはスティック操作を選択して追加",
       "duration_label": "押下持続時間：",
       "footer_hint": "上のアクションをクリックすると、設定した持続時間で直ちに追加されます"
-    }
+    },
+    "undo": "元に戻す",
+    "undo_tooltip": "元に戻す (Ctrl/Cmd + Z)",
+    "redo": "やり直す",
+    "redo_tooltip": "やり直す (Ctrl/Cmd + Shift + Z)",
+    "gap_rect_tooltip": "空白区間 ({{duration}}ms) • クリックして長さを編集、または左右の端をドラッグして調整",
+    "gap_drag_left": "左端をドラッグして空白の開始位置を調整",
+    "gap_drag_right": "右端をドラッグして空白を拡大・縮小",
+    "gap_edit": {
+      "title": "空白区間の編集",
+      "duration_label": "空白の持続時間：",
+      "quick_presets": "クイック設定:",
+      "remove_gap": "この空白を削除 (0ms)"
+    },
+    "reset_start_cursor_tooltip": "クリックして再生開始位置を 0s にリセット",
+    "start_cursor_badge": "開始 {{time}}",
+    "ruler_start_cursor_hint": "タイムラインをクリックして再生開始位置を設定",
+    "note_resize_left": "左端をドラッグして開始位置と持続時間を調整",
+    "note_resize_right": "右端をドラッグして持続時間を調整"
+  },
+  "unsaved_changes_dot": "未保存の変更があります",
+  "unsaved_modal": {
+    "title": "未保存の変更",
+    "desc": "「{{name}}」に未保存の変更があります。このまま移動すると変更は失われます。",
+    "cancel": "キャンセル",
+    "discard_leave": "破棄して移動",
+    "save_leave": "保存して移動"
   },
   "notes": {
     "press_button": "{{btn}} を押す",

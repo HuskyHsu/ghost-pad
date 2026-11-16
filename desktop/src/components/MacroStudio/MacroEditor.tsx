@@ -1,5 +1,5 @@
-import { ArrowLeft, Check, Copy, Download, Save, Trash2 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { AlertTriangle, ArrowLeft, Check, Copy, Download, Save, Trash2 } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MacroAction, MacroPlayerStatus, MacroScript } from '../../types/macro';
 import { exportMacroAsJson } from '../../utils/macroStorage';
@@ -15,9 +15,24 @@ interface Props {
   onDuplicateScript: (script: MacroScript) => void;
   onDeleteScript: (id: string) => void;
   onBackToList?: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
+  playbackStartMs?: number;
+  onChangePlaybackStartMs?: (ms: number) => void;
 }
 
-export const MacroEditor: React.FC<Props> = ({ script, activeActionIndex = -1, playerStatus, onChangeScript, onSaveScript, onDuplicateScript, onDeleteScript, onBackToList }) => {
+export const MacroEditor: React.FC<Props> = ({
+  script,
+  activeActionIndex = -1,
+  playerStatus,
+  onChangeScript,
+  onSaveScript,
+  onDuplicateScript,
+  onDeleteScript,
+  onBackToList,
+  onDirtyChange,
+  playbackStartMs = 0,
+  onChangePlaybackStartMs,
+}) => {
   const { t } = useTranslation('macro');
   const { showToast } = useToast();
   const [name, setName] = useState(script.name);
@@ -25,6 +40,23 @@ export const MacroEditor: React.FC<Props> = ({ script, activeActionIndex = -1, p
   const [actions, setActions] = useState<MacroAction[]>(script.actions);
   const [hasSaved, setHasSaved] = useState(false);
   const [hasExported, setHasExported] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+
+  const isDirty = useMemo(() => {
+    if (name !== script.name) return true;
+    if (description !== (script.description || '')) return true;
+    return JSON.stringify(actions) !== JSON.stringify(script.actions);
+  }, [name, description, actions, script.name, script.description, script.actions]);
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
+
+  useEffect(() => {
+    return () => {
+      onDirtyChange?.(false);
+    };
+  }, [onDirtyChange]);
 
   const handleExport = async () => {
     const savedPath = await exportMacroAsJson({ ...script, name, description, actions });
@@ -57,7 +89,7 @@ export const MacroEditor: React.FC<Props> = ({ script, activeActionIndex = -1, p
     });
   };
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     const updated: MacroScript = {
       ...script,
       name: name.trim() || t('untitled_macro', '未命名巨集'),
@@ -68,7 +100,18 @@ export const MacroEditor: React.FC<Props> = ({ script, activeActionIndex = -1, p
     onSaveScript(updated);
     setHasSaved(true);
     setTimeout(() => setHasSaved(false), 2000);
-  };
+  }, [script, name, description, actions, onSaveScript, t]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleSave]);
 
   return (
     <div className='flex-1 flex flex-col h-full overflow-hidden bg-window-base select-none relative'>
@@ -80,7 +123,13 @@ export const MacroEditor: React.FC<Props> = ({ script, activeActionIndex = -1, p
             <>
               <button
                 type='button'
-                onClick={onBackToList}
+                onClick={() => {
+                  if (isDirty) {
+                    setShowUnsavedModal(true);
+                  } else {
+                    onBackToList();
+                  }
+                }}
                 className='flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs font-medium bg-surface-card hover:bg-interactive-hover text-text-primary transition-colors cursor-pointer border border-border-subtle hover:border-border-element shrink-0 shadow-xs whitespace-nowrap'
               >
                 <ArrowLeft className='w-3.5 h-3.5 text-text-muted shrink-0' />
@@ -151,20 +200,94 @@ export const MacroEditor: React.FC<Props> = ({ script, activeActionIndex = -1, p
           <button
             type='button'
             onClick={handleSave}
-            className={`flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
+            className={`relative flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
               hasSaved ? 'bg-feedback-success-bg border border-feedback-success-border text-feedback-success-text' : 'bg-accent hover:bg-accent/90 text-accent-foreground shadow-xs'
             }`}
           >
             {hasSaved ? <Check className='w-3.5 h-3.5 shrink-0' /> : <Save className='w-3.5 h-3.5 shrink-0' />}
             <span className='whitespace-nowrap'>{hasSaved ? t('saved', '已儲存') : t('save_changes', '儲存變更')}</span>
+            {isDirty && !hasSaved && (
+              <span
+                className='w-2 h-2 rounded-full bg-amber-400 ring-2 ring-accent shrink-0'
+                title={t('unsaved_changes_dot', '有尚未儲存的變更')}
+              />
+            )}
           </button>
         </div>
       </div>
 
       {/* 2. Unified Body */}
       <div className='flex-1 overflow-y-auto px-6 py-5 w-full max-w-6xl mx-auto space-y-5 min-h-0'>
-        <MacroScoreSheet script={{ ...script, actions }} activeActionIndex={activeActionIndex} playerStatus={playerStatus} onChangeActions={handleActionsChange} />
+        <MacroScoreSheet
+          script={{ ...script, actions }}
+          activeActionIndex={activeActionIndex}
+          playerStatus={playerStatus}
+          playbackStartMs={playbackStartMs}
+          onChangePlaybackStartMs={onChangePlaybackStartMs}
+          onChangeActions={handleActionsChange}
+        />
       </div>
+
+      {/* Unsaved Changes Warning Modal */}
+      {showUnsavedModal && onBackToList && (
+        <div
+          className='fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-150'
+          onClick={() => setShowUnsavedModal(false)}
+        >
+          <div
+            className='w-full max-w-md rounded-xl bg-surface-modal border border-border-element p-5 shadow-2xl flex flex-col gap-4 select-none'
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className='flex items-start gap-3'>
+              <div className='p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-600 shrink-0'>
+                <AlertTriangle className='w-5 h-5' />
+              </div>
+              <div className='space-y-1'>
+                <h4 className='text-sm font-semibold text-text-primary'>{t('unsaved_modal.title', '尚未儲存變更')}</h4>
+                <p className='text-xs text-text-muted leading-relaxed'>
+                  {t('unsaved_modal.desc', {
+                    name: name.trim() || t('untitled_macro', '未命名巨集'),
+                    defaultValue: `您對「${name.trim() || '未命名巨集'}」有尚未儲存的修改，離開後將會遺失未儲存的內容。`,
+                  })}
+                </p>
+              </div>
+            </div>
+
+            <div className='flex items-center justify-end gap-2 border-t border-border-subtle pt-3 flex-wrap'>
+              <button
+                type='button'
+                onClick={() => setShowUnsavedModal(false)}
+                className='px-3 py-1.5 rounded-md text-xs font-medium bg-surface-card hover:bg-interactive-hover text-text-primary border border-border-subtle cursor-pointer transition-colors'
+              >
+                {t('unsaved_modal.cancel', '取消')}
+              </button>
+              <button
+                type='button'
+                onClick={() => {
+                  setShowUnsavedModal(false);
+                  onDirtyChange?.(false);
+                  onBackToList();
+                }}
+                className='px-3 py-1.5 rounded-md text-xs font-medium bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 cursor-pointer transition-colors'
+              >
+                {t('unsaved_modal.discard_leave', '捨棄變更並離開')}
+              </button>
+              <button
+                type='button'
+                onClick={() => {
+                  handleSave();
+                  setShowUnsavedModal(false);
+                  onDirtyChange?.(false);
+                  onBackToList();
+                }}
+                className='px-3.5 py-1.5 rounded-md text-xs font-medium bg-accent hover:bg-accent/90 text-accent-foreground shadow-xs cursor-pointer transition-colors'
+              >
+                {t('unsaved_modal.save_leave', '儲存並離開')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -174,4 +174,32 @@ describe('useMacroPlayer Hook', () => {
     expect(result.current.status.isPlaying).toBe(false);
     expect(onComplete).toHaveBeenCalled();
   });
+
+  it('supports starting playback from a custom startOffsetMs', () => {
+    const onButton = vi.fn();
+    const onComplete = vi.fn();
+    const { result } = renderHook(() =>
+      useMacroPlayer({
+        onTriggerButton: onButton,
+        onPlaybackComplete: onComplete,
+      }),
+    );
+
+    act(() => {
+      result.current.play(mockScript, { loopMode: 'once' }, 150);
+    });
+
+    // Action 1 (0..100ms) is skipped; Action 2 (150..250ms) triggers immediately
+    expect(onButton).not.toHaveBeenCalledWith('a', true);
+    expect(onButton).toHaveBeenCalledWith('b', true);
+    expect(result.current.status.elapsedMs).toBe(150);
+
+    // Remaining 100ms completes playback
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    expect(onButton).toHaveBeenCalledWith('b', false);
+    expect(result.current.status.isPlaying).toBe(false);
+    expect(onComplete).toHaveBeenCalled();
+  });
 });

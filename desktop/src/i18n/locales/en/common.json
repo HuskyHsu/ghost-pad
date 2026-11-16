@@ -89,5 +89,11 @@
     "export": "Export",
     "import": "Import",
     "copy_suffix": "Copy"
+  },
+  "unsaved_macro_modal": {
+    "title": "Unsaved Macro Changes",
+    "desc": "You have unsaved changes to this macro script. Switching pages will discard them. Are you sure you want to leave?",
+    "stay": "Stay & Edit",
+    "discard_leave": "Discard & Leave"
   }
 }

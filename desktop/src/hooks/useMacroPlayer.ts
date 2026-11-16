@@ -233,7 +233,7 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
   );
 
   const play = useCallback(
-    (script: MacroScript, overrideConfig?: Partial<MacroPlaybackConfig>) => {
+    (script: MacroScript, overrideConfig?: Partial<MacroPlaybackConfig>, startOffsetMs = 0) => {
       if (script.actions.length === 0) return;
 
       const effectiveConfig: MacroPlaybackConfig = {
@@ -247,12 +247,14 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
       isPlayingRef.current = true;
       isPausedRef.current = false;
       currentLoopRef.current = 1;
-      pausedOffsetMsRef.current = 0;
 
       const totalLoops = effectiveConfig.loopMode === 'infinite' ? Infinity : effectiveConfig.loopMode === 'count' ? effectiveConfig.loopCount : 1;
       const totalDuration = Math.max(50, getScriptTotalDurationMs(script));
+      const clampedOffset = Math.max(0, Math.min(totalDuration - 10, startOffsetMs));
+      const speed = effectiveConfig.speedMultiplier || 1.0;
+      pausedOffsetMsRef.current = clampedOffset;
 
-      loopStartTimeRef.current = performance.now();
+      loopStartTimeRef.current = performance.now() - clampedOffset / speed;
       if (playheadTimerRef.current) clearInterval(playheadTimerRef.current);
       playheadTimerRef.current = setInterval(() => {
         if (!isPlayingRef.current || isPausedRef.current) return;
@@ -287,11 +289,11 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
         currentActionIndex: 0,
         currentLoop: 1,
         totalLoops,
-        progressPercent: 0,
-        elapsedMs: 0,
+        progressPercent: Math.min(100, Math.round((clampedOffset / totalDuration) * 100)),
+        elapsedMs: clampedOffset,
       });
 
-      scheduleLoopTimeline(script, 1, 0);
+      scheduleLoopTimeline(script, 1, clampedOffset);
     },
     [scheduleLoopTimeline],
   );
