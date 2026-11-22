@@ -81,10 +81,13 @@ export function computeDpadVal(up: boolean, down: boolean, left: boolean, right:
 
 export function useVirtualGamepad(
   isMuted: boolean,
-  onStateUpdate?: React.Dispatch<React.SetStateAction<ControllerState>>
+  onStateUpdate?: React.Dispatch<React.SetStateAction<ControllerState>>,
+  onManualInput?: () => void
 ) {
   const activeKeys = useRef<Set<string>>(new Set());
   const dpadRef = useRef({ up: false, down: false, left: false, right: false });
+  const onManualInputRef = useRef(onManualInput);
+  onManualInputRef.current = onManualInput;
 
   // Direct trigger function used by on-screen click and keyboard
   const sendButton = useCallback(
@@ -268,6 +271,7 @@ export function useVirtualGamepad(
       // Handle WASD -> Left Stick movement
       if (["KeyW", "KeyA", "KeyS", "KeyD"].includes(e.code)) {
         e.preventDefault();
+        onManualInputRef.current?.();
         activeKeys.current.add(e.code);
         updateWasdStick();
         return;
@@ -277,6 +281,7 @@ export function useVirtualGamepad(
       const button = KEYBOARD_MAP[e.code];
       if (button) {
         e.preventDefault();
+        onManualInputRef.current?.();
         activeKeys.current.add(e.code);
         sendButton(button, true);
       }

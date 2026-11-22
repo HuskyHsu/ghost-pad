@@ -31,8 +31,10 @@
   "step_count": "{{count}} Steps",
   "step_count_short": "{{count}} Steps",
   "edit": "Edit",
+  "run": "Run",
+  "run_tooltip": "Run this macro in Live Dashboard",
   "library_title": "Macro Library",
-  "library_subtitle": "Select any macro to edit its multi-track stave timeline: supports live recording, loops & JSON backup",
+  "library_subtitle": "Run macros directly in Live Dashboard with instant manual takeover, or open to edit multi-track staves",
   "footer": {
     "scripts_total": "● {{count}} macros in library (click to edit multi-track staves)",
     "format": "Format: PRO-UART0 JSON v2",
@@ -50,9 +52,8 @@
     "stop": "Stop",
     "stop_tooltip": "Stop & reset neutral (Esc)",
     "standby": "Standby",
-    "loop_status": "Loop #{{loop}} • Step #{{step}}",
+    "loop_badge": "Loop #{{loop}}",
     "progress": "Progress: {{percent}}%",
-    "step_progress": "{{current}} / {{total}} Steps",
     "single_play": "Once",
     "single_play_tooltip": "Single Run",
     "loop_count": "Loop",
@@ -63,7 +64,14 @@
     "paused": "Paused",
     "count_label": "Count:",
     "count_tooltip_active": "Edit loop count",
-    "count_tooltip_inactive": "Click to switch to count loop mode"
+    "count_tooltip_inactive": "Click to switch to count loop mode",
+    "select_macro": "Select Macro",
+    "edit_macro_tooltip": "Edit this macro in Macro Studio",
+    "seek_progress": "Paused: click or drag progress bar to seek",
+    "auto_paused_title": "Macro Auto-Paused",
+    "auto_paused_desc": "Manual input detected. Click Resume when ready to continue",
+    "offline_preview_title": "Preview Mode Only",
+    "offline_preview_desc": "ESP32 is not connected; inputs will not be sent to Switch"
   },
   "countdown": {
     "ready": "Ready to Record",
@@ -188,7 +196,10 @@
     "start_cursor_badge": "From {{time}}",
     "ruler_start_cursor_hint": "Click timeline ruler to set playback start cursor",
     "note_resize_left": "Drag left edge to adjust start time and duration",
-    "note_resize_right": "Drag right edge to resize duration"
+    "note_resize_right": "Drag right edge to resize duration",
+    "auto_follow": "Auto-follow",
+    "auto_follow_on_tooltip": "Auto-focus active line during playback (click to disable)",
+    "auto_follow_off_tooltip": "Playback auto-follow disabled (click to enable)"
   },
   "unsaved_changes_dot": "Unsaved changes",
   "unsaved_modal": {

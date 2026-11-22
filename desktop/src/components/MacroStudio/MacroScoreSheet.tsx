@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Clock, Gamepad2, GitMerge, Redo2, Sparkles, Trash2, Undo2, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Clock, Gamepad2, GitMerge, LocateFixed, Redo2, Sparkles, Trash2, Undo2, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MacroAction, MacroButtonName, MacroPlayerStatus, MacroScript } from '../../types/macro';
@@ -546,8 +546,13 @@ export const MacroScoreSheet: React.FC<Props> = ({
   const [lineDurationSec, setLineDurationSec] = useState<number>(10);
   const lineDurationMs = lineDurationSec * 1000;
 
+  // Auto-focus active line during playback
+  const [autoFollowPlayback, setAutoFollowPlayback] = useState<boolean>(true);
+  const lineRefs = useRef<Array<HTMLDivElement | null>>([]);
+
   // Active playback tracking
   const isScriptPlaying = Boolean(playerStatus?.isPlaying || playerStatus?.isPaused) && playerStatus?.currentScriptId === script.id;
+  const isActivelyPlaying = Boolean(playerStatus?.isPlaying && !playerStatus?.isPaused) && playerStatus?.currentScriptId === script.id;
   const currentElapsedMs = isScriptPlaying ? (playerStatus?.elapsedMs ?? 0) : null;
 
   // Undo / Redo history stacks
@@ -888,6 +893,20 @@ export const MacroScoreSheet: React.FC<Props> = ({
   // Number of lines needed
   const numLines = Math.max(1, Math.ceil(Math.max(totalDurationMs, 1000) / lineDurationMs));
 
+  // Auto-scroll to the active line while playing
+  const activeLineIndex =
+    isScriptPlaying && currentElapsedMs !== null
+      ? Math.min(numLines - 1, Math.max(0, Math.floor(currentElapsedMs / lineDurationMs)))
+      : null;
+
+  useEffect(() => {
+    if (!autoFollowPlayback || !isActivelyPlaying || activeLineIndex === null) return;
+    const lineEl = lineRefs.current[activeLineIndex];
+    if (lineEl && typeof lineEl.scrollIntoView === 'function') {
+      lineEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }
+  }, [autoFollowPlayback, isActivelyPlaying, activeLineIndex, lineDurationSec, script.id]);
+
   // Consecutive wait junctions between adjacent wait steps
   const waitJunctions = useMemo(() => {
     const junctions: Array<{
@@ -1031,22 +1050,42 @@ export const MacroScoreSheet: React.FC<Props> = ({
               type='button'
               onClick={() => onChangePlaybackStartMs(0)}
               title={t('score_sheet.reset_start_cursor_tooltip', '點擊重設試播起點回 0s')}
-              className='flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-300 text-[11px] font-mono font-semibold text-indigo-700 cursor-pointer transition-colors whitespace-nowrap shadow-xs'
+              className='h-7 flex items-center gap-1 px-2.5 rounded-md bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-300 text-[11px] font-mono font-semibold text-indigo-700 cursor-pointer transition-colors whitespace-nowrap shadow-xs'
             >
               <span>{t('score_sheet.start_cursor_badge', { time: formatDurationLabel(playbackStartMs), defaultValue: `起播 ${formatDurationLabel(playbackStartMs)}` })}</span>
               <X className='w-3 h-3 shrink-0' />
             </button>
           )}
 
+          {/* Auto-Follow Active Line Toggle */}
+          <button
+            type='button'
+            onClick={() => setAutoFollowPlayback((prev) => !prev)}
+            aria-pressed={autoFollowPlayback}
+            title={
+              autoFollowPlayback
+                ? t('score_sheet.auto_follow_on_tooltip', '播放時自動聚焦目前行（點擊關閉）')
+                : t('score_sheet.auto_follow_off_tooltip', '已關閉播放自動跟隨（點擊開啟）')
+            }
+            className={`h-7 flex items-center gap-1 px-2.5 rounded-md border text-[11px] font-medium cursor-pointer transition-colors whitespace-nowrap shadow-xs ${
+              autoFollowPlayback
+                ? 'bg-accent border-accent text-accent-foreground hover:bg-accent/90'
+                : 'bg-surface-input border-border-element text-text-muted hover:text-text-primary hover:bg-surface-card'
+            }`}
+          >
+            <LocateFixed className='w-3.5 h-3.5 shrink-0' />
+            <span>{t('score_sheet.auto_follow', '自動跟隨')}</span>
+          </button>
+
           {/* Undo / Redo Buttons */}
-          <div className='flex items-center gap-0.5 bg-surface-input p-0.5 rounded-md border border-border-element shadow-xs'>
+          <div className='h-7 flex items-center gap-0.5 bg-surface-input p-0.5 rounded-md border border-border-element shadow-xs'>
             <button
               type='button'
               disabled={undoStack.length === 0}
               onClick={handleUndo}
               title={t('score_sheet.undo_tooltip', '復原上一步 (Ctrl/Cmd + Z)')}
               aria-label={t('score_sheet.undo', '復原')}
-              className='p-1 rounded text-text-secondary hover:text-text-primary hover:bg-surface-card disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors'
+              className='h-full w-6 flex items-center justify-center rounded text-text-secondary hover:text-text-primary hover:bg-surface-card disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors'
             >
               <Undo2 className='w-3.5 h-3.5' />
             </button>
@@ -1056,7 +1095,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
               onClick={handleRedo}
               title={t('score_sheet.redo_tooltip', '重做下一步 (Ctrl/Cmd + Shift + Z)')}
               aria-label={t('score_sheet.redo', '重做')}
-              className='p-1 rounded text-text-secondary hover:text-text-primary hover:bg-surface-card disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors'
+              className='h-full w-6 flex items-center justify-center rounded text-text-secondary hover:text-text-primary hover:bg-surface-card disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors'
             >
               <Redo2 className='w-3.5 h-3.5' />
             </button>
@@ -1068,7 +1107,7 @@ export const MacroScoreSheet: React.FC<Props> = ({
             <select
               value={lineDurationSec}
               onChange={(e) => setLineDurationSec(Number(e.target.value))}
-              className='px-2 py-1 rounded bg-surface-input border border-border-element text-xs text-text-primary focus:outline-none cursor-pointer font-medium shadow-xs'
+              className='h-7 px-2 rounded-md bg-surface-input border border-border-element text-xs text-text-primary focus:outline-none cursor-pointer font-medium shadow-xs'
             >
               <option value={5}>{t('score_sheet.opt_5s', '5 秒 / 行')}</option>
               <option value={10}>{t('score_sheet.opt_10s', '10 秒 / 行')}</option>
@@ -1101,7 +1140,16 @@ export const MacroScoreSheet: React.FC<Props> = ({
           const startCursorPct = isStartCursorOnThisLine ? Math.min(100, Math.max(0, ((playbackStartMs - lineStartMs) / lineDurationMs) * 100)) : 0;
 
           return (
-            <div key={lineIndex} className='w-full rounded-xl bg-surface-card border border-border-subtle overflow-hidden shadow-xs'>
+            <div
+              key={lineIndex}
+              ref={(el) => {
+                lineRefs.current[lineIndex] = el;
+              }}
+              data-line-index={lineIndex}
+              className={`w-full rounded-xl bg-surface-card border overflow-hidden shadow-xs transition-colors ${
+                isPlayheadOnThisLine ? 'border-accent/60 ring-1 ring-accent/25' : 'border-border-subtle'
+              }`}
+            >
               {/* Line Header */}
               <div className='flex items-center justify-between px-3 py-1 bg-surface-card/90 border-b border-border-subtle text-[10px] font-mono text-text-muted'>
                 <span className='font-medium text-text-primary'>

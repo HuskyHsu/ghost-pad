@@ -1,10 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { ControllerState } from "../types";
 import { Keyboard, X as CloseIcon, CircleDot, Square, Gamepad2 } from "lucide-react";
 import { KEYBOARD_GUIDE } from "../hooks/useVirtualGamepad";
 import { usePulsedButtonPress } from "../hooks/usePulsedButtonPress";
 import { useStickDrag } from "../hooks/useStickDrag";
 import { InputTimelineStream } from "./InputTimelineStream";
+import { MacroPlayerBar } from "./MacroStudio/MacroPlayerBar";
+import { MacroPlaybackConfig, MacroPlayerStatus, MacroScript } from "../types/macro";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -24,6 +26,21 @@ interface Props {
   recordedActionsCount?: number;
   onStartRecord?: () => void;
   onStopRecord?: () => void;
+  // Quick Macro Player Props
+  macros?: MacroScript[];
+  selectedMacroId?: string | null;
+  onSelectMacro?: (id: string) => void;
+  onEditMacro?: (id: string) => void;
+  macroPlayerStatus?: MacroPlayerStatus;
+  macroPlayerConfig?: MacroPlaybackConfig;
+  onChangeMacroPlayerConfig?: (updates: Partial<MacroPlaybackConfig>) => void;
+  onPlayMacro?: (script: MacroScript, startOffsetMs?: number) => void;
+  onPauseMacro?: () => void;
+  onAutoPauseMacro?: () => void;
+  onResumeMacro?: () => void;
+  onSeekMacro?: (ms: number) => void;
+  onStopMacro?: () => void;
+  isAutoPaused?: boolean;
 }
 
 export const GamepadVisualizer: React.FC<Props> = ({
@@ -39,11 +56,59 @@ export const GamepadVisualizer: React.FC<Props> = ({
   recordedActionsCount = 0,
   onStartRecord,
   onStopRecord,
+  macros,
+  selectedMacroId,
+  onSelectMacro,
+  onEditMacro,
+  macroPlayerStatus,
+  macroPlayerConfig,
+  onChangeMacroPlayerConfig,
+  onPlayMacro,
+  onPauseMacro,
+  onAutoPauseMacro,
+  onResumeMacro,
+  onSeekMacro,
+  onStopMacro,
+  isAutoPaused = false,
 }) => {
+  const activeMacroScript =
+    macros && macros.length > 0
+      ? (macroPlayerStatus?.isPlaying && macroPlayerStatus.currentScriptId
+          ? macros.find((m) => m.id === macroPlayerStatus.currentScriptId)
+          : undefined) ||
+        macros.find((m) => m.id === selectedMacroId) ||
+        macros[0]
+      : null;
   // Ghost only wakes up when ESP32 virtual controller service is started
   const isGhostAwake = Boolean(esp32Connected);
   const [showKeyGuide, setShowKeyGuide] = useState(false);
   const { t } = useTranslation(["dashboard", "common"]);
+
+  const handleManualTakeoverPause = useCallback(() => {
+    if (macroPlayerStatus?.isPlaying && !macroPlayerStatus?.isPaused) {
+      if (onAutoPauseMacro) {
+        onAutoPauseMacro();
+      } else {
+        onPauseMacro?.();
+      }
+    }
+  }, [macroPlayerStatus?.isPlaying, macroPlayerStatus?.isPaused, onAutoPauseMacro, onPauseMacro]);
+
+  const handleManualButton = useCallback(
+    (button: string, pressed: boolean) => {
+      if (pressed) handleManualTakeoverPause();
+      onTriggerButton?.(button, pressed);
+    },
+    [handleManualTakeoverPause, onTriggerButton]
+  );
+
+  const handleManualStick = useCallback(
+    (stick: "left" | "right", x: number, y: number) => {
+      if (x !== 128 || y !== 128) handleManualTakeoverPause();
+      onTriggerStick?.(stick, x, y);
+    },
+    [handleManualTakeoverPause, onTriggerStick]
+  );
 
   // Responsive stage scaling state
   const stageContainerRef = useRef<HTMLDivElement>(null);
@@ -77,10 +142,10 @@ export const GamepadVisualizer: React.FC<Props> = ({
 
   const STICK_MAX_TRAVEL = 22; // Travel radius in px
 
-  // Reusable button pulse holding & binding
+  // Reusable button pulse holding & binding (auto-pauses running macro on manual takeover)
   const { handleButtonPress, bindButton } = usePulsedButtonPress({
     minHoldMs: 140,
-    onTriggerButton,
+    onTriggerButton: handleManualButton,
   });
 
   // Reusable analog stick drag tracking & IPC throttling
@@ -98,7 +163,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
     stickMaxTravel: STICK_MAX_TRAVEL,
     tapThreshold: 6,
     getScale: () => scaleRef.current,
-    onTriggerStick,
+    onTriggerStick: handleManualStick,
     onButtonPress: handleButtonPress,
   });
 
@@ -201,8 +266,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
             <button
               type="button"
               onClick={onStartRecord}
-              disabled={recordingPhase === "countdown"}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-surface-card hover:bg-interactive-hover border border-border-element text-rose-600 hover:text-rose-700 font-medium text-xs transition-colors shadow-xs cursor-pointer select-none shrink-0 whitespace-nowrap"
+              disabled={recordingPhase === "countdown" || Boolean(macroPlayerStatus?.isPlaying)}
+              className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-surface-card hover:bg-interactive-hover border border-border-element text-rose-600 hover:text-rose-700 font-medium text-xs transition-colors shadow-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none shrink-0 whitespace-nowrap"
               title={t("live_controls.rec_tooltip_start")}
             >
               <CircleDot className="w-3.5 h-3.5 text-rose-500 shrink-0" />
@@ -760,6 +825,36 @@ export const GamepadVisualizer: React.FC<Props> = ({
           <InputTimelineStream state={state} />
         </div>
       </div>
+
+      {/* Bottom Sticky Quick Macro Player Bar for Live Run & Instant Manual Rescue */}
+      {macros &&
+        macros.length > 0 &&
+        activeMacroScript &&
+        macroPlayerStatus &&
+        macroPlayerConfig &&
+        onChangeMacroPlayerConfig &&
+        onPlayMacro &&
+        onPauseMacro &&
+        onResumeMacro &&
+        onStopMacro && (
+          <MacroPlayerBar
+            script={activeMacroScript}
+            macros={macros}
+            onSelectScript={onSelectMacro}
+            onEditScript={onEditMacro}
+            disablePlay={recordingPhase !== "idle"}
+            isAutoPaused={isAutoPaused}
+            isOfflinePreview={!esp32Connected}
+            status={macroPlayerStatus}
+            config={macroPlayerConfig}
+            onChangeConfig={onChangeMacroPlayerConfig}
+            onPlay={() => onPlayMacro(activeMacroScript)}
+            onPause={onPauseMacro}
+            onResume={onResumeMacro}
+            onStop={onStopMacro}
+            onSeek={onSeekMacro}
+          />
+        )}
     </div>
   );
 };

@@ -324,6 +324,32 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
     scheduleLoopTimeline(activeScriptRef.current, currentLoopRef.current, pausedOffsetMsRef.current);
   }, [scheduleLoopTimeline]);
 
+  const seek = useCallback((targetMs: number) => {
+    const script = activeScriptRef.current;
+    if (!isPlayingRef.current || !isPausedRef.current || !script) return;
+
+    const totalDuration = Math.max(50, getScriptTotalDurationMs(script));
+    const clampedMs = Math.max(0, Math.min(totalDuration - 10, Math.round(targetMs)));
+    pausedOffsetMsRef.current = clampedMs;
+
+    let activeIdx = 0;
+    const idx = script.actions.findIndex((a) => clampedMs >= a.startTimeMs && clampedMs < a.startTimeMs + a.durationMs);
+    if (idx !== -1) {
+      activeIdx = idx;
+    } else {
+      const past = script.actions.filter((a) => a.startTimeMs <= clampedMs);
+      activeIdx = Math.max(0, past.length - 1);
+    }
+
+    const pct = Math.min(100, Math.round((clampedMs / totalDuration) * 100));
+    setStatus((prev) => ({
+      ...prev,
+      currentActionIndex: activeIdx,
+      progressPercent: pct,
+      elapsedMs: clampedMs,
+    }));
+  }, []);
+
   return {
     status,
     config,
@@ -331,6 +357,7 @@ export function useMacroPlayer(options?: UseMacroPlayerOptions) {
     play,
     pause,
     resume,
+    seek,
     stop,
   };
 }

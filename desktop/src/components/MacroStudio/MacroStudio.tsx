@@ -10,7 +10,10 @@ import { MacroPlayerBar } from './MacroPlayerBar';
 interface Props {
   macros: MacroScript[];
   selectedScriptId: string | null;
+  viewMode?: 'list' | 'edit';
+  onViewModeChange?: (mode: 'list' | 'edit') => void;
   onSelectScript: (id: string) => void;
+  onRunScript?: (script: MacroScript) => void;
   onSaveScript: (script: MacroScript) => void;
   onDuplicateScript: (script: MacroScript) => void;
   onDeleteScript: (id: string) => void;
@@ -21,14 +24,20 @@ interface Props {
   onPlay: (script: MacroScript, overrideConfig?: Partial<MacroPlaybackConfig>, startOffsetMs?: number) => void;
   onPause: () => void;
   onResume: () => void;
+  onSeek?: (ms: number) => void;
   onStop: () => void;
   onDirtyChange?: (dirty: boolean) => void;
+  esp32Connected?: boolean;
+  isAutoPaused?: boolean;
 }
 
 export const MacroStudio: React.FC<Props> = ({
   macros,
   selectedScriptId,
+  viewMode: controlledViewMode,
+  onViewModeChange,
   onSelectScript,
+  onRunScript,
   onSaveScript,
   onDuplicateScript,
   onDeleteScript,
@@ -39,19 +48,27 @@ export const MacroStudio: React.FC<Props> = ({
   onPlay,
   onPause,
   onResume,
+  onSeek,
   onStop,
   onDirtyChange,
+  esp32Connected = true,
+  isAutoPaused = false,
 }) => {
   const { t } = useTranslation('macro');
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'edit'>(() => {
+  const [internalViewMode, setInternalViewMode] = useState<'list' | 'edit'>(() => {
     if (typeof window !== 'undefined') {
       const mode = new URLSearchParams(window.location.search).get('macroView');
       if (mode === 'edit') return 'edit';
     }
     return 'list';
   });
+  const viewMode = controlledViewMode ?? internalViewMode;
+  const setViewMode = (mode: 'list' | 'edit') => {
+    setInternalViewMode(mode);
+    onViewModeChange?.(mode);
+  };
 
   const handleExportSingle = async (script: MacroScript) => {
     const savedPath = await exportMacroAsJson(script);
@@ -132,6 +149,7 @@ export const MacroStudio: React.FC<Props> = ({
           <MacroLibraryView
             scripts={macros}
             onSelectAndEdit={handleSelectAndEdit}
+            onRunScript={onRunScript}
             onDuplicateScript={onDuplicateScript}
             onDeleteScript={onDeleteScript}
             onImportJson={handleTriggerFileInput}
@@ -166,6 +184,7 @@ export const MacroStudio: React.FC<Props> = ({
           <MacroLibraryView
             scripts={macros}
             onSelectAndEdit={handleSelectAndEdit}
+            onRunScript={onRunScript}
             onDuplicateScript={onDuplicateScript}
             onDeleteScript={onDeleteScript}
             onImportJson={handleTriggerFileInput}
@@ -179,6 +198,8 @@ export const MacroStudio: React.FC<Props> = ({
       {viewMode === 'edit' && currentEditingScript && (
         <MacroPlayerBar
           script={currentEditingScript}
+          isAutoPaused={isAutoPaused}
+          isOfflinePreview={!esp32Connected}
           status={playerStatus}
           config={playerConfig}
           onChangeConfig={onChangePlayerConfig}
@@ -186,6 +207,7 @@ export const MacroStudio: React.FC<Props> = ({
           onPause={onPause}
           onResume={onResume}
           onStop={onStop}
+          onSeek={onSeek}
         />
       )}
     </div>

@@ -31,8 +31,10 @@
   "step_count": "{{count}} 步",
   "step_count_short": "{{count}} 步",
   "edit": "編輯",
+  "run": "執行",
+  "run_tooltip": "前往即時儀表板立即執行此腳本",
   "library_title": "巨集腳本庫",
-  "library_subtitle": "點選任一腳本即可進入多軌五線譜詳細編輯：支援即時側錄、循環播放與 JSON 備份",
+  "library_subtitle": "可直接前往即時儀表板執行並隨時手動接手，或點選進入多軌五線譜編輯",
   "footer": {
     "scripts_total": "● 巨集庫共 {{count}} 個腳本 (點選編輯進入多軌五線譜)",
     "format": "格式: PRO-UART0 JSON v2",
@@ -50,9 +52,8 @@
     "stop": "停止",
     "stop_tooltip": "停止播放並重置手把中立 (Esc)",
     "standby": "待命就緒",
-    "loop_status": "循環 #{{loop}} • 步 #{{step}}",
+    "loop_badge": "循環 #{{loop}}",
     "progress": "進度：{{percent}}%",
-    "step_progress": "{{current}} / {{total}} 步",
     "single_play": "單次",
     "single_play_tooltip": "單次播放",
     "loop_count": "循環",
@@ -63,7 +64,14 @@
     "paused": "已暫停",
     "count_label": "次數:",
     "count_tooltip_active": "可直接輸入或修改循環次數",
-    "count_tooltip_inactive": "點擊切換為指定次數循環"
+    "count_tooltip_inactive": "點擊切換為指定次數循環",
+    "select_macro": "選擇巨集腳本",
+    "edit_macro_tooltip": "在巨集工作室編輯此腳本",
+    "seek_progress": "暫停中：點擊或拖曳進度條跳轉位置",
+    "auto_paused_title": "已自動暫停巨集",
+    "auto_paused_desc": "偵測到手動操作，接手完成後可按「繼續」恢復播放",
+    "offline_preview_title": "僅於畫面預覽播放",
+    "offline_preview_desc": "ESP32 尚未連線，目前不會傳送訊號至 Switch"
   },
   "countdown": {
     "ready": "即將開始側錄",
@@ -188,7 +196,10 @@
     "start_cursor_badge": "起播 {{time}}",
     "ruler_start_cursor_hint": "點擊時間軸可設定試播起點",
     "note_resize_left": "拖曳左側邊緣調整起點與持續時間",
-    "note_resize_right": "拖曳右側邊緣調整持續時間"
+    "note_resize_right": "拖曳右側邊緣調整持續時間",
+    "auto_follow": "自動跟隨",
+    "auto_follow_on_tooltip": "播放時自動聚焦目前行（點擊關閉）",
+    "auto_follow_off_tooltip": "已關閉播放自動跟隨（點擊開啟）"
   },
   "unsaved_changes_dot": "有尚未儲存的變更",
   "unsaved_modal": {

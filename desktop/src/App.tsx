@@ -98,6 +98,13 @@ export function App() {
     }
     return "dashboard";
   });
+  const [macroViewMode, setMacroViewMode] = useState<"list" | "edit">(() => {
+    if (typeof window !== "undefined") {
+      const mode = new URLSearchParams(window.location.search).get("macroView");
+      if (mode === "edit") return "edit";
+    }
+    return "list";
+  });
   const [hasUnsavedMacroChanges, setHasUnsavedMacroChanges] = useState(false);
   const [pendingTabSwitch, setPendingTabSwitch] = useState<"dashboard" | "macro" | "hardware" | null>(null);
 
@@ -310,8 +317,15 @@ export function App() {
     }
   };
 
+  const [isAutoPaused, setIsAutoPaused] = useState(false);
+  const manualPauseRef = useRef<(() => void) | null>(null);
+
   // Hook up Virtual Gamepad for Keyboard & On-Screen click/drag inputs with optimistic state updates
-  const { sendButton, sendStick, sendDpad, resetInputs } = useVirtualGamepad(isMuted, setControllerState);
+  const { sendButton, sendStick, sendDpad, resetInputs } = useVirtualGamepad(
+    isMuted,
+    setControllerState,
+    () => manualPauseRef.current?.()
+  );
 
   // Phase 3: Macro Scripts, Recorder & Player
   const [macros, setMacros] = useState<MacroScript[]>(() => {
@@ -355,6 +369,20 @@ export function App() {
     onResetInputs: resetInputs,
   });
 
+  manualPauseRef.current = () => {
+    if (player.status.isPlaying && !player.status.isPaused) {
+      player.pause();
+      setIsAutoPaused(true);
+    }
+  };
+
+  // Clear auto-paused banner automatically whenever playback resumes or stops
+  useEffect(() => {
+    if (!player.status.isPlaying || !player.status.isPaused) {
+      setIsAutoPaused(false);
+    }
+  }, [player.status.isPlaying, player.status.isPaused]);
+
   // Script library management handlers
   const handleSaveScript = (updated: MacroScript) => {
     const next = macros.map((m) => (m.id === updated.id ? updated : m));
@@ -377,6 +405,9 @@ export function App() {
   };
 
   const handleDeleteScript = (id: string) => {
+    if (player.status.currentScriptId === id) {
+      player.stop();
+    }
     const next = macros.filter((m) => m.id !== id);
     setMacros(next);
     saveMacros(next);
@@ -401,6 +432,7 @@ export function App() {
     setSelectedScriptId(script.id);
     setPendingSaveRecording(null);
     if (openEditor) {
+      setMacroViewMode("edit");
       setActiveTab("macro");
     }
   };
@@ -693,8 +725,34 @@ export function App() {
             recordingPhase={recorder.phase}
             recordingElapsedMs={recorder.recordingElapsedMs}
             recordedActionsCount={recorder.recordedActions.length}
-            onStartRecord={recorder.startCountdown}
+            onStartRecord={() => {
+              if (player.status.isPlaying) {
+                player.stop();
+              }
+              recorder.startCountdown();
+            }}
             onStopRecord={recorder.stopRecording}
+            macros={macros}
+            selectedMacroId={selectedScriptId}
+            onSelectMacro={setSelectedScriptId}
+            onEditMacro={(id) => {
+              setSelectedScriptId(id);
+              setMacroViewMode("edit");
+              setActiveTab("macro");
+            }}
+            macroPlayerStatus={player.status}
+            macroPlayerConfig={player.config}
+            onChangeMacroPlayerConfig={(cfg) => player.setConfig({ ...player.config, ...cfg })}
+            onPlayMacro={(script, startOffsetMs) => player.play(script, undefined, startOffsetMs)}
+            onPauseMacro={player.pause}
+            onAutoPauseMacro={() => {
+              player.pause();
+              setIsAutoPaused(true);
+            }}
+            onResumeMacro={player.resume}
+            onSeekMacro={player.seek}
+            onStopMacro={player.stop}
+            isAutoPaused={isAutoPaused}
           />
         )}
 
@@ -702,7 +760,14 @@ export function App() {
           <MacroStudio
             macros={macros}
             selectedScriptId={selectedScriptId}
+            viewMode={macroViewMode}
+            onViewModeChange={setMacroViewMode}
             onSelectScript={setSelectedScriptId}
+            onRunScript={(script) => {
+              setSelectedScriptId(script.id);
+              setActiveTab("dashboard");
+              player.play(script);
+            }}
             onSaveScript={handleSaveScript}
             onDuplicateScript={handleDuplicateScript}
             onDeleteScript={handleDeleteScript}
@@ -713,8 +778,11 @@ export function App() {
             onPlay={player.play}
             onPause={player.pause}
             onResume={player.resume}
+            onSeek={player.seek}
             onStop={player.stop}
             onDirtyChange={setHasUnsavedMacroChanges}
+            esp32Connected={esp32Connected}
+            isAutoPaused={isAutoPaused}
           />
         )}
 

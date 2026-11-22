@@ -31,8 +31,10 @@
   "step_count": "{{count}} ステップ",
   "step_count_short": "{{count}} ステップ",
   "edit": "編集",
+  "run": "実行",
+  "run_tooltip": "ライブダッシュボードでこのマクロを実行",
   "library_title": "マクロライブラリ",
-  "library_subtitle": "マクロを選択してマルチトラック譜面を詳細編集：リアルタイム録画・ループ再生・JSON バックアップ対応",
+  "library_subtitle": "ライブダッシュボードですぐ実行・手動介入したり、選択してマルチトラック譜面を編集できます",
   "footer": {
     "scripts_total": "● ライブラリ内合計 {{count}} 件のマクロ (選択してマルチトラック編集へ)",
     "format": "フォーマット: PRO-UART0 JSON v2",
@@ -50,9 +52,8 @@
     "stop": "停止",
     "stop_tooltip": "停止・ニュートラル復帰 (Esc)",
     "standby": "待機中",
-    "loop_status": "ループ #{{loop}} • ステップ #{{step}}",
+    "loop_badge": "ループ #{{loop}}",
     "progress": "進捗：{{percent}}%",
-    "step_progress": "{{current}} / {{total}} ステップ",
     "single_play": "1回",
     "single_play_tooltip": "1回のみ再生",
     "loop_count": "ループ",
@@ -63,7 +64,14 @@
     "paused": "一時停止中",
     "count_label": "回数:",
     "count_tooltip_active": "ループ回数を編集",
-    "count_tooltip_inactive": "指定回数ループに切り替え"
+    "count_tooltip_inactive": "指定回数ループに切り替え",
+    "select_macro": "マクロを選択",
+    "edit_macro_tooltip": "マクロスタジオでこのマクロを編集",
+    "seek_progress": "一時停止中：クリックまたはドラッグで再生位置を移動",
+    "auto_paused_title": "マクロを自動一時停止しました",
+    "auto_paused_desc": "手動操作を検知しました。完了後に「再開」で続行できます",
+    "offline_preview_title": "画面プレビュー再生中",
+    "offline_preview_desc": "ESP32 未接続のため、Switch へは信号が送信されません"
   },
   "countdown": {
     "ready": "まもなく録画を開始します",
@@ -188,7 +196,10 @@
     "start_cursor_badge": "開始 {{time}}",
     "ruler_start_cursor_hint": "タイムラインをクリックして再生開始位置を設定",
     "note_resize_left": "左端をドラッグして開始位置と持続時間を調整",
-    "note_resize_right": "右端をドラッグして持続時間を調整"
+    "note_resize_right": "右端をドラッグして持続時間を調整",
+    "auto_follow": "自動追従",
+    "auto_follow_on_tooltip": "再生中に現在の行へ自動フォーカス（クリックでオフ）",
+    "auto_follow_off_tooltip": "再生中の自動追従はオフです（クリックでオン）"
   },
   "unsaved_changes_dot": "未保存の変更があります",
   "unsaved_modal": {

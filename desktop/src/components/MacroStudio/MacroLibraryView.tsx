@@ -1,4 +1,4 @@
-import { ArrowRight, Clock, Copy, Download, FileCode2, Search, Trash2, Upload } from 'lucide-react';
+import { ArrowRight, Clock, Copy, Download, FileCode2, Play, Search, Trash2, Upload } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MacroScript } from '../../types/macro';
@@ -7,6 +7,7 @@ import { exportMacroAsJson, getScriptTotalDurationMs } from '../../utils/macroSt
 interface Props {
   scripts: MacroScript[];
   onSelectAndEdit: (id: string) => void;
+  onRunScript?: (script: MacroScript) => void;
   onDuplicateScript: (script: MacroScript) => void;
   onDeleteScript: (id: string) => void;
   onImportJson: () => void;
@@ -14,7 +15,7 @@ interface Props {
   onExportSingle?: (script: MacroScript) => void;
 }
 
-export const MacroLibraryView: React.FC<Props> = ({ scripts, onSelectAndEdit, onDuplicateScript, onDeleteScript, onImportJson, onExportAll, onExportSingle }) => {
+export const MacroLibraryView: React.FC<Props> = ({ scripts, onSelectAndEdit, onRunScript, onDuplicateScript, onDeleteScript, onImportJson, onExportAll, onExportSingle }) => {
   const { t } = useTranslation('macro');
   const [search, setSearch] = useState('');
 
@@ -162,10 +163,28 @@ export const MacroLibraryView: React.FC<Props> = ({ scripts, onSelectAndEdit, on
                     </button>
                   </div>
 
-                  {/* Edit Indicator */}
-                  <div className='flex items-center gap-1 pl-3 border-l border-border-subtle text-xs font-medium text-text-muted group-hover:text-text-primary'>
-                    <span>{t('edit', '編輯')}</span>
-                    <ArrowRight className='w-3 h-3 group-hover:translate-x-0.5 transition-transform' />
+                  {/* Primary Actions: Run in Dashboard & Edit */}
+                  <div className='flex items-center gap-2 pl-3 border-l border-border-subtle'>
+                    {onRunScript && (
+                      <button
+                        type='button'
+                        disabled={script.actions.length === 0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRunScript(script);
+                        }}
+                        title={t('run_tooltip', '前往即時儀表板立即執行此腳本')}
+                        className='h-7 flex items-center gap-1 px-2.5 rounded-md bg-emerald-600 hover:bg-emerald-700 disabled:opacity-35 disabled:cursor-not-allowed text-white text-xs font-medium transition-colors cursor-pointer shadow-xs whitespace-nowrap'
+                      >
+                        <Play className='w-3 h-3 fill-current shrink-0' />
+                        <span>{t('run', '執行')}</span>
+                      </button>
+                    )}
+
+                    <div className='flex items-center gap-1 text-xs font-medium text-text-muted group-hover:text-text-primary whitespace-nowrap'>
+                      <span>{t('edit', '編輯')}</span>
+                      <ArrowRight className='w-3 h-3 group-hover:translate-x-0.5 transition-transform' />
+                    </div>
                   </div>
                 </div>
               </div>
