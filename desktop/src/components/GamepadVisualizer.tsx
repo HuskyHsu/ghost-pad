@@ -290,7 +290,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
       {/* Keyboard Guide Modal Overlay */}
       {showKeyGuide && (
         <div className="absolute inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-6 animate-in fade-in duration-150">
-          <div className="bg-surface-modal border border-border-element rounded-xl max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+          <div className="bg-surface-modal border border-border-element rounded-xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
             <div className="p-4 border-b border-border-subtle flex items-center justify-between">
               <div className="flex items-center gap-2 text-text-primary font-semibold text-xs tracking-tight">
                 <Keyboard className="w-4 h-4 text-text-muted" />
@@ -310,19 +310,21 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 <span className="font-medium text-text-primary">{t("sidebar.note_title", "外接手把非必須")}</span>：{t("sidebar.note_desc", "Ghost-Pad 支援純電腦操作！您可以直接敲擊鍵盤（WASD 類比搖桿、L/K/I/J 確認取消）或直接用滑鼠點擊畫面按鈕與拖曳搖桿，皆能即時驅動 Switch。")}
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {KEYBOARD_GUIDE.map((item) => (
                   <div
                     key={item.key}
-                    className="p-2 rounded-md bg-surface-input border border-border-subtle flex items-center justify-between"
+                    className="px-2.5 py-2 rounded-md bg-surface-input border border-border-subtle flex items-center justify-between gap-2 min-w-0"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded font-mono font-medium bg-surface-card text-text-primary border border-border-element text-[11px] shadow-xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="px-2 py-0.5 rounded font-mono font-medium bg-surface-card text-text-primary border border-border-element text-[11px] shadow-xs whitespace-nowrap shrink-0">
                         {item.key}
                       </span>
-                      <span className="text-text-secondary text-[11px]">{t(`guide_keys.${item.id}`, item.label)}</span>
+                      <span className="text-text-secondary text-[11px] truncate">
+                        {t(`guide_keys.${item.id}`, item.label)}
+                      </span>
                     </div>
-                    <span className="font-mono font-medium text-text-primary text-xs px-1.5 py-0.5 rounded bg-surface-card border border-border-subtle shadow-xs">
+                    <span className="font-mono font-medium text-text-primary text-xs px-1.5 py-0.5 rounded bg-surface-card border border-border-subtle shadow-xs whitespace-nowrap shrink-0">
                       {item.button}
                     </span>
                   </div>

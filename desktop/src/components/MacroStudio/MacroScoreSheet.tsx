@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Clock, Gamepad2, GitMerge, LocateFixed, Redo2, Sparkles, Trash2, Undo2, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, Clock, Gamepad2, GitMerge, LocateFixed, Redo2, Sparkles, Trash2, Undo2, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MacroAction, MacroButtonName, MacroPlayerStatus, MacroScript } from '../../types/macro';
@@ -1104,17 +1104,20 @@ export const MacroScoreSheet: React.FC<Props> = ({
           {/* Seconds per line selector */}
           <div className='flex items-center gap-1.5 text-xs text-text-muted shrink-0 whitespace-nowrap'>
             <span className='text-[10px]'>{t('score_sheet.line_duration_label', '每行時長:')}</span>
-            <select
-              value={lineDurationSec}
-              onChange={(e) => setLineDurationSec(Number(e.target.value))}
-              className='h-7 px-2 rounded-md bg-surface-input border border-border-element text-xs text-text-primary focus:outline-none cursor-pointer font-medium shadow-xs'
-            >
-              <option value={5}>{t('score_sheet.opt_5s', '5 秒 / 行')}</option>
-              <option value={10}>{t('score_sheet.opt_10s', '10 秒 / 行')}</option>
-              <option value={15}>{t('score_sheet.opt_15s', '15 秒 / 行')}</option>
-              <option value={20}>{t('score_sheet.opt_20s', '20 秒 / 行')}</option>
-              <option value={30}>{t('score_sheet.opt_30s', '30 秒 / 行')}</option>
-            </select>
+            <div className='relative h-7 rounded-md bg-surface-input border border-border-element hover:bg-interactive-hover/60 focus-within:border-border-focus flex items-center shadow-xs transition-colors'>
+              <select
+                value={lineDurationSec}
+                onChange={(e) => setLineDurationSec(Number(e.target.value))}
+                className='appearance-none h-full pl-2.5 pr-6 bg-transparent border-0 text-xs text-text-primary focus:outline-none cursor-pointer font-medium'
+              >
+                <option value={5}>{t('score_sheet.opt_5s', '5 秒 / 行')}</option>
+                <option value={10}>{t('score_sheet.opt_10s', '10 秒 / 行')}</option>
+                <option value={15}>{t('score_sheet.opt_15s', '15 秒 / 行')}</option>
+                <option value={20}>{t('score_sheet.opt_20s', '20 秒 / 行')}</option>
+                <option value={30}>{t('score_sheet.opt_30s', '30 秒 / 行')}</option>
+              </select>
+              <ChevronDown className='w-3.5 h-3.5 text-text-muted shrink-0 pointer-events-none absolute right-1.5' />
+            </div>
           </div>
         </div>
       </div>

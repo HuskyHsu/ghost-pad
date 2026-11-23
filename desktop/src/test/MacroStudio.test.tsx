@@ -413,7 +413,8 @@ describe('MacroStudio Component (Full-Width Library & Score Sheet)', () => {
       expect(scrollIntoViewMock).toHaveBeenCalledTimes(1);
       expect(scrollIntoViewMock).toHaveBeenLastCalledWith({ behavior: 'smooth', block: 'center', inline: 'nearest' });
       expect(scrolledLineIndices).toEqual(['1']);
-      expect(screen.getByText('循環 #2')).toBeInTheDocument();
+      expect(screen.getByText('2/1')).toBeInTheDocument();
+      expect(screen.getByLabelText('循環 #2')).toBeInTheDocument();
       expect(screen.getByText('進度：50%')).toBeInTheDocument();
       expect(screen.getByText('12.0s / 24.2s')).toBeInTheDocument();
 
@@ -504,7 +505,7 @@ describe('MacroStudio Component (Full-Width Library & Score Sheet)', () => {
 
     expect(screen.getByText('進度：0%')).toBeInTheDocument();
     expect(screen.getByText('0.0s / 0.3s')).toBeInTheDocument();
-    expect(screen.queryByText('循環 #3')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('循環 #3')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /播放/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /停止/ })).toBeDisabled();
   });

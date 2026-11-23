@@ -178,52 +178,61 @@ export const MacroStepList: React.FC<Props> = ({ actions, activeActionIndex = -1
                 </div>
 
                 {/* Type Selection */}
-                <select
-                  value={act.type}
-                  onChange={(e) =>
-                    handleUpdateAction(index, {
-                      type: e.target.value as any,
-                      button: e.target.value === 'button' ? act.button || 'a' : undefined,
-                      stick: e.target.value === 'stick' ? act.stick || 'left' : undefined,
-                    })
-                  }
-                  className='px-2 py-1.5 rounded-lg bg-surface-input border border-border-element text-xs text-text-primary focus:outline-none focus:border-border-focus cursor-pointer font-medium'
-                >
-                  <option value='button'>按鍵動作</option>
-                  <option value='stick'>搖桿位移</option>
-                  <option value='dpad'>十字鍵</option>
-                  <option value='wait'>等待時間</option>
-                </select>
+                <div className='relative'>
+                  <select
+                    value={act.type}
+                    onChange={(e) =>
+                      handleUpdateAction(index, {
+                        type: e.target.value as any,
+                        button: e.target.value === 'button' ? act.button || 'a' : undefined,
+                        stick: e.target.value === 'stick' ? act.stick || 'left' : undefined,
+                      })
+                    }
+                    className='appearance-none pl-2.5 pr-7 py-1.5 rounded-lg bg-surface-input border border-border-element hover:border-border-focus text-xs text-text-primary focus:outline-none focus:border-border-focus cursor-pointer font-medium transition-colors'
+                  >
+                    <option value='button'>按鍵動作</option>
+                    <option value='stick'>搖桿位移</option>
+                    <option value='dpad'>十字鍵</option>
+                    <option value='wait'>等待時間</option>
+                  </select>
+                  <ChevronDown className='w-3.5 h-3.5 text-text-muted pointer-events-none absolute right-2 top-1/2 -translate-y-1/2' />
+                </div>
 
                 {/* Sub-parameters based on Type */}
                 {act.type === 'button' && (
-                  <select
-                    value={act.button || 'a'}
-                    onChange={(e) =>
-                      handleUpdateAction(index, {
-                        button: e.target.value as MacroButtonName,
-                      })
-                    }
-                    className='px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-300 text-xs font-bold text-emerald-800 focus:outline-none cursor-pointer'
-                  >
-                    {AVAILABLE_BUTTONS.map((b) => (
-                      <option key={b.value} value={b.value}>
-                        {b.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className='relative'>
+                    <select
+                      value={act.button || 'a'}
+                      onChange={(e) =>
+                        handleUpdateAction(index, {
+                          button: e.target.value as MacroButtonName,
+                        })
+                      }
+                      className='appearance-none pl-2.5 pr-7 py-1.5 rounded-lg bg-emerald-50 border border-emerald-300 text-xs font-bold text-emerald-800 focus:outline-none focus:border-emerald-500 cursor-pointer transition-colors'
+                    >
+                      {AVAILABLE_BUTTONS.map((b) => (
+                        <option key={b.value} value={b.value}>
+                          {b.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className='w-3.5 h-3.5 text-emerald-700 pointer-events-none absolute right-2 top-1/2 -translate-y-1/2' />
+                  </div>
                 )}
 
                 {act.type === 'stick' && (
                   <div className='flex items-center gap-1.5'>
-                    <select
-                      value={act.stick || 'left'}
-                      onChange={(e) => handleUpdateAction(index, { stick: e.target.value as any })}
-                      className='px-2 py-1.5 rounded-lg bg-cyan-50 border border-cyan-300 text-xs font-semibold text-cyan-900 cursor-pointer'
-                    >
-                      <option value='left'>左搖桿 (L)</option>
-                      <option value='right'>右搖桿 (R)</option>
-                    </select>
+                    <div className='relative'>
+                      <select
+                        value={act.stick || 'left'}
+                        onChange={(e) => handleUpdateAction(index, { stick: e.target.value as any })}
+                        className='appearance-none pl-2.5 pr-7 py-1.5 rounded-lg bg-cyan-50 border border-cyan-300 text-xs font-semibold text-cyan-900 focus:outline-none focus:border-cyan-500 cursor-pointer transition-colors'
+                      >
+                        <option value='left'>左搖桿 (L)</option>
+                        <option value='right'>右搖桿 (R)</option>
+                      </select>
+                      <ChevronDown className='w-3.5 h-3.5 text-cyan-800 pointer-events-none absolute right-2 top-1/2 -translate-y-1/2' />
+                    </div>
 
                     {/* Quick Stick Direction */}
                     <div className='flex items-center gap-1'>
@@ -280,20 +289,23 @@ export const MacroStepList: React.FC<Props> = ({ actions, activeActionIndex = -1
                 )}
 
                 {act.type === 'dpad' && (
-                  <select
-                    value={act.dpad ?? 0}
-                    onChange={(e) => handleUpdateAction(index, { dpad: Number(e.target.value) })}
-                    className='px-2 py-1.5 rounded-lg bg-purple-50 border border-purple-300 text-xs font-semibold text-purple-900 cursor-pointer'
-                  >
-                    <option value={0}>▲ 上</option>
-                    <option value={1}>↗ 右上</option>
-                    <option value={2}>▶ 右</option>
-                    <option value={3}>↘ 右下</option>
-                    <option value={4}>▼ 下</option>
-                    <option value={5}>↙ 左下</option>
-                    <option value={6}>◀ 左</option>
-                    <option value={7}>↖ 左上</option>
-                  </select>
+                  <div className='relative'>
+                    <select
+                      value={act.dpad ?? 0}
+                      onChange={(e) => handleUpdateAction(index, { dpad: Number(e.target.value) })}
+                      className='appearance-none pl-2.5 pr-7 py-1.5 rounded-lg bg-purple-50 border border-purple-300 text-xs font-semibold text-purple-900 focus:outline-none focus:border-purple-500 cursor-pointer transition-colors'
+                    >
+                      <option value={0}>▲ 上</option>
+                      <option value={1}>↗ 右上</option>
+                      <option value={2}>▶ 右</option>
+                      <option value={3}>↘ 右下</option>
+                      <option value={4}>▼ 下</option>
+                      <option value={5}>↙ 左下</option>
+                      <option value={6}>◀ 左</option>
+                      <option value={7}>↖ 左上</option>
+                    </select>
+                    <ChevronDown className='w-3.5 h-3.5 text-purple-800 pointer-events-none absolute right-2 top-1/2 -translate-y-1/2' />
+                  </div>
                 )}
               </div>
 

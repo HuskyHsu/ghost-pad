@@ -15,6 +15,7 @@ import {
   FileCode2,
   Info,
   AlertCircle,
+  ChevronDown,
 } from "lucide-react";
 
 interface Props {
@@ -100,9 +101,17 @@ export const MacroPlayerBar: React.FC<Props> = ({
 
       {/* Row 1: Full-Width Slim Progress Strip (Click / Drag to Seek when Paused) */}
       <div className="w-full flex items-center gap-3">
-        <span className="text-[10px] text-text-muted font-mono whitespace-nowrap shrink-0">
-          {t("player.progress", { percent: displayedProgressPercent, defaultValue: `進度：${displayedProgressPercent}%` })}
-        </span>
+        <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
+          <span className="text-[10px] text-text-muted font-mono">
+            {t("player.progress", { percent: displayedProgressPercent, defaultValue: `進度：${displayedProgressPercent}%` })}
+          </span>
+          {isThisScriptPaused && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <span>{t("player.paused", "已暫停")}</span>
+            </span>
+          )}
+        </div>
         <div
           role={canSeek ? "slider" : undefined}
           aria-label={canSeek ? t("player.seek_progress", "暫停中：點擊或拖曳進度條跳轉位置") : undefined}
@@ -163,17 +172,17 @@ export const MacroPlayerBar: React.FC<Props> = ({
           {macros && macros.length > 0 && onSelectScript && (
             <div className="flex items-center gap-1.5 shrink-0">
               <div
-                className={`h-8 px-2 rounded-md bg-surface-input border border-border-element flex items-center gap-1.5 shadow-xs ${
-                  isAnyPlaying ? "opacity-60" : ""
+                className={`relative h-8 rounded-md bg-surface-input border border-border-element flex items-center shadow-xs transition-colors focus-within:border-border-focus ${
+                  isAnyPlaying ? "opacity-60" : "hover:bg-interactive-hover/60"
                 }`}
               >
-                <FileCode2 className="w-3.5 h-3.5 text-text-muted shrink-0 pointer-events-none" />
+                <FileCode2 className="w-3.5 h-3.5 text-text-muted shrink-0 pointer-events-none absolute left-2" />
                 <select
                   aria-label={t("player.select_macro", "選擇巨集腳本")}
                   value={script?.id || macros[0]?.id || ""}
                   disabled={isAnyPlaying}
                   onChange={(e) => onSelectScript(e.target.value)}
-                  className="bg-transparent border-0 text-xs font-medium text-text-primary focus:outline-none cursor-pointer disabled:cursor-not-allowed max-w-[140px] truncate"
+                  className="appearance-none h-full pl-7 pr-6 bg-transparent border-0 text-xs font-medium text-text-primary focus:outline-none cursor-pointer disabled:cursor-not-allowed max-w-[168px] truncate"
                 >
                   {macros.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -181,6 +190,7 @@ export const MacroPlayerBar: React.FC<Props> = ({
                     </option>
                   ))}
                 </select>
+                <ChevronDown className="w-3.5 h-3.5 text-text-muted shrink-0 pointer-events-none absolute right-1.5" />
               </div>
               {onEditScript && script && (
                 <button
@@ -247,28 +257,6 @@ export const MacroPlayerBar: React.FC<Props> = ({
               </kbd>
             </button>
           </div>
-
-          {/* Active Live Status Badge (Only shown when running or paused) */}
-          {isThisScriptPlaying && (
-            <div className="h-8 flex items-center gap-1.5 px-2.5 rounded-md font-mono text-[11px] border border-border-element bg-surface-input/50 shrink-0 whitespace-nowrap shadow-xs">
-              {isThisScriptPaused ? (
-                <span className="flex items-center gap-1.5 text-amber-700 font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <span>{t("player.paused", "已暫停")}</span>
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5 text-emerald-600 font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>
-                    {t("player.loop_badge", {
-                      loop: status.currentLoop,
-                      defaultValue: `循環 #${status.currentLoop}`,
-                    })}
-                  </span>
-                </span>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Right: Loop Mode Controls */}
@@ -316,37 +304,75 @@ export const MacroPlayerBar: React.FC<Props> = ({
             </button>
           </div>
 
-          {/* Fixed-width Loop Count Card */}
+          {/* Fixed-width Loop Count Card (doubles as live loop progress indicator during playback) */}
           <div
             onClick={() => {
-              if (config.loopMode !== "count") {
+              if (!isThisScriptPlaying && config.loopMode !== "count") {
                 onChangeConfig({ loopMode: "count" });
               }
             }}
-            className={`w-20 h-8 flex items-center justify-between px-2 rounded-md border text-xs transition-all ${
-              config.loopMode === "count"
-                ? "bg-surface-card border-border-focus cursor-text shadow-xs"
-                : "bg-surface-input/60 border-border-subtle opacity-60 cursor-pointer hover:opacity-90"
+            aria-label={
+              isThisScriptPlaying
+                ? t("player.loop_badge", {
+                    loop: status.currentLoop,
+                    defaultValue: `循環 #${status.currentLoop}`,
+                  })
+                : undefined
+            }
+            className={`w-20 h-8 flex items-center justify-between px-2 rounded-md border text-xs transition-all shrink-0 ${
+              isThisScriptPlaying
+                ? isThisScriptPaused
+                  ? "bg-amber-500/10 border-amber-500/40 text-amber-700 shadow-xs"
+                  : "bg-emerald-500/10 border-emerald-500/40 text-emerald-600 shadow-xs"
+                : config.loopMode === "count"
+                  ? "bg-surface-card border-border-focus cursor-text shadow-xs"
+                  : "bg-surface-input/60 border-border-subtle opacity-60 cursor-pointer hover:opacity-90"
             }`}
-            title={config.loopMode === "count" ? t("player.count_tooltip_active", "可直接輸入或修改循環次數") : t("player.count_tooltip_inactive", "點擊切換為指定次數循環")}
+            title={
+              isThisScriptPlaying
+                ? t("player.loop_badge", {
+                    loop: status.currentLoop,
+                    defaultValue: `循環 #${status.currentLoop}`,
+                  })
+                : config.loopMode === "count"
+                  ? t("player.count_tooltip_active", "可直接輸入或修改循環次數")
+                  : t("player.count_tooltip_inactive", "點擊切換為指定次數循環")
+            }
           >
-            <span className="text-[10px] text-text-muted font-mono select-none">{t("player.count_label", "次數:")}</span>
-            {config.loopMode === "count" ? (
-              <input
-                type="number"
-                min={2}
-                max={999}
-                value={config.loopCount}
-                onChange={(e) =>
-                  onChangeConfig({ loopCount: Math.max(2, Number(e.target.value) || 2) })
-                }
-                className="w-8 bg-transparent text-center font-mono font-bold text-text-primary focus:outline-none"
-                autoFocus
-              />
+            {isThisScriptPlaying ? (
+              <>
+                <span
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                    isThisScriptPaused ? "bg-amber-500" : "bg-emerald-500 animate-pulse"
+                  }`}
+                />
+                <span className="flex-1 text-center font-mono font-semibold text-[11px] whitespace-nowrap select-none">
+                  {config.loopMode === "infinite"
+                    ? `${status.currentLoop}/${t("player.infinite_symbol", "∞")}`
+                    : `${status.currentLoop}/${config.loopMode === "count" ? config.loopCount : 1}`}
+                </span>
+              </>
             ) : (
-              <span className="w-8 text-center font-mono font-medium text-text-muted select-none">
-                {config.loopMode === "once" ? "1" : "∞"}
-              </span>
+              <>
+                <span className="text-[10px] text-text-muted font-mono select-none">{t("player.count_label", "次數:")}</span>
+                {config.loopMode === "count" ? (
+                  <input
+                    type="number"
+                    min={2}
+                    max={999}
+                    value={config.loopCount}
+                    onChange={(e) =>
+                      onChangeConfig({ loopCount: Math.max(2, Number(e.target.value) || 2) })
+                    }
+                    className="w-8 bg-transparent text-center font-mono font-bold text-text-primary focus:outline-none"
+                    autoFocus
+                  />
+                ) : (
+                  <span className="w-8 text-center font-mono font-medium text-text-muted select-none">
+                    {config.loopMode === "once" ? "1" : t("player.infinite_symbol", "∞")}
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>

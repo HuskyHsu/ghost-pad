@@ -672,18 +672,21 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
                       <label className='block text-[11px] font-medium text-text-secondary'>{t('step0.select_port_label', '選取 ESP32 序列埠')}</label>
                       <span className='text-[10px] font-mono text-text-muted'>{t('step0.available_ports', { count: ports.length, defaultValue: `${ports.length} 個可用 USB 序列埠` })}</span>
                     </div>
-                    <select
-                      value={selectedPort}
-                      onChange={(e) => handlePortChange(e.target.value)}
-                      disabled={status.is_connected}
-                      className='w-full bg-surface-input border border-border-element hover:border-border-focus rounded-md px-3 py-2 text-xs text-text-primary focus:outline-hidden transition-colors font-mono cursor-pointer'
-                    >
-                      {ports.map((p) => (
-                        <option key={p.port_name} value={p.port_name}>
-                          {p.port_name} — {p.description}
-                        </option>
-                      ))}
-                    </select>
+                    <div className='relative'>
+                      <select
+                        value={selectedPort}
+                        onChange={(e) => handlePortChange(e.target.value)}
+                        disabled={status.is_connected}
+                        className='appearance-none w-full bg-surface-input border border-border-element hover:border-border-focus focus:border-border-focus rounded-md pl-3 pr-8 py-2 text-xs text-text-primary focus:outline-none transition-colors font-mono cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+                      >
+                        {ports.map((p) => (
+                          <option key={p.port_name} value={p.port_name}>
+                            {p.port_name} — {p.description}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className='w-3.5 h-3.5 text-text-muted pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2' />
+                    </div>
                   </div>
 
                   <div className='md:col-span-4'>
@@ -815,22 +818,25 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
               <div className='grid grid-cols-1 md:grid-cols-12 gap-3 items-center'>
                 <div className='md:col-span-4 space-y-1'>
                   <label className='block text-[11px] font-medium text-text-secondary'>{t('step1.baudrate_label', '通訊鮑率 (Baudrate)')}</label>
-                  <select
-                    value={selectedBaudrate}
-                    onChange={(e) => {
-                      const newBaud = Number(e.target.value);
-                      setSelectedBaudrate(newBaud);
-                      if (selectedPort) probeFirmware(selectedPort, newBaud);
-                    }}
-                    disabled={status.is_connected || !isStep0Ready}
-                    className='w-full bg-surface-input border border-border-element hover:border-border-focus rounded-md px-3 py-2 text-xs text-text-primary focus:outline-hidden transition-colors font-mono cursor-pointer disabled:opacity-50'
-                  >
-                    {COMMON_BAUDRATES.map((b) => (
-                      <option key={b} value={b}>
-                        {b} bps {b === 19200 ? t('step1.recommended_suffix', '(推薦)') : ''}
-                      </option>
-                    ))}
-                  </select>
+                  <div className='relative'>
+                    <select
+                      value={selectedBaudrate}
+                      onChange={(e) => {
+                        const newBaud = Number(e.target.value);
+                        setSelectedBaudrate(newBaud);
+                        if (selectedPort) probeFirmware(selectedPort, newBaud);
+                      }}
+                      disabled={status.is_connected || !isStep0Ready}
+                      className='appearance-none w-full bg-surface-input border border-border-element hover:border-border-focus focus:border-border-focus rounded-md pl-3 pr-8 py-2 text-xs text-text-primary focus:outline-none transition-colors font-mono cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+                    >
+                      {COMMON_BAUDRATES.map((b) => (
+                        <option key={b} value={b}>
+                          {b} bps {b === 19200 ? t('step1.recommended_suffix', '(推薦)') : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className='w-3.5 h-3.5 text-text-muted pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2' />
+                  </div>
                 </div>
 
                 <div className='md:col-span-8 flex flex-col sm:flex-row items-center gap-3 md:justify-end'>
