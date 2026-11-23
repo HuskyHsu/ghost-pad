@@ -121,3 +121,24 @@
   animation: ghostShadow 4s ease-in-out infinite;
   transform-origin: center;
 }
+
+@keyframes signalArcPulse {
+  0%, 100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-signal-arc-inner {
+  animation: signalArcPulse 1.8s ease-in-out infinite;
+}
+
+.animate-signal-arc-outer {
+  animation: signalArcPulse 1.8s ease-in-out 0.45s infinite;
+}
+
+.font-brand {
+  font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "Quicksand", system-ui, sans-serif;
+}

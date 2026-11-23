@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
-import ghostPadIcon from "../assets/Ghost-Pad-icon.svg";
+import { GhostPadLogo } from "./GhostPadLogo";
 
 interface Props {
   activeTab: "dashboard" | "macro" | "hardware";
@@ -60,12 +60,23 @@ export const Sidebar: React.FC<Props> = ({
     <aside className="w-80 bg-surface-sidebar border-r border-border-subtle flex flex-col h-full select-none shrink-0">
       {/* Top App Header */}
       <div className="h-14 px-4 border-b border-border-subtle flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div className="w-7 h-7 rounded-lg bg-[#033157] border border-border-element shadow-xs flex items-center justify-center p-1 overflow-hidden shrink-0">
-            <img src={ghostPadIcon} alt="Ghost-Pad" className="w-full h-full object-contain" />
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div
+            className={`w-9 h-9 flex items-center justify-center shrink-0 transition-all duration-300 ${
+              esp32Connected
+                ? "drop-shadow-[0_0_8px_rgba(56,189,248,0.55)] drop-shadow-[0_2px_4px_rgba(3,49,87,0.14)]"
+                : "drop-shadow-[0_2px_5px_rgba(3,49,87,0.14)]"
+            }`}
+          >
+            <GhostPadLogo active={esp32Connected} />
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="font-semibold text-sm tracking-tight text-text-primary truncate">Ghost-Pad</div>
+          <div
+            className="font-brand font-extrabold text-[18px] tracking-[-0.025em] leading-none truncate translate-y-[0.5px] select-none"
+            aria-label="Ghost-Pad"
+          >
+            <span className="text-[#033157]">Ghost</span>
+            <span className="text-[#38BDF8] mx-[0.5px]">-</span>
+            <span className="text-[#0B4F82]">Pad</span>
           </div>
         </div>
 
@@ -203,15 +214,18 @@ export const Sidebar: React.FC<Props> = ({
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-2.5 min-w-0 flex-1">
               <div
-                className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 border transition-colors mt-0.5 ${
+                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border transition-all p-0.5 mt-0.5 ${
                   esp32Connected
-                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                    ? "bg-gradient-to-br from-[#EAF6FD] to-[#CFEBFB] border-[#38BDF8]/55 shadow-[0_0_8px_rgba(56,189,248,0.28)]"
                     : isStep0Ready
-                    ? "bg-surface-input text-text-secondary border-border-subtle"
-                    : "bg-surface-input text-text-disabled border-border-subtle"
+                    ? "bg-[#EAF6FD]/80 border-[#7DD3FC]/40"
+                    : "bg-surface-input border-border-subtle opacity-60"
                 }`}
               >
-                <Gamepad2 className="w-3.5 h-3.5" />
+                <GhostPadLogo
+                  active={esp32Connected}
+                  className={`w-full h-full ${!esp32Connected && !isStep0Ready ? "grayscale opacity-65" : ""}`}
+                />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-[11px] font-semibold text-text-primary leading-tight truncate">

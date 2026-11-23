@@ -361,49 +361,70 @@ export const GamepadVisualizer: React.FC<Props> = ({
             }}
             className="relative select-none flex items-center justify-center shrink-0 transition-transform duration-100 ease-out"
           >
-            {/* SVG Cute Ghost Silhouette with Raised Little Hands & Minimalist Face */}
+            {/* SVG Cute Ghost Silhouette Styled to Match Ghost-Pad Logo */}
             <svg
               viewBox="0 0 620 390"
               className={`absolute inset-0 w-full h-full pointer-events-none transition-all duration-700 ease-out ${
                 isGhostAwake
-                  ? "drop-shadow-[0_20px_40px_rgba(15,23,42,0.12)]"
-                  : "drop-shadow-[0_8px_20px_rgba(15,23,42,0.06)]"
+                  ? "drop-shadow-[0_14px_30px_rgba(125,211,252,0.32)] drop-shadow-[0_12px_24px_rgba(3,49,87,0.10)]"
+                  : "drop-shadow-[0_10px_22px_rgba(3,49,87,0.08)]"
               }`}
             >
               <defs>
-                {/* Sleeping / Standby Misty Porcelain Gradient */}
+                {/* Sleeping / Standby Warm Creamy Porcelain Gradient */}
                 <linearGradient id="cuteGhostGradTranslucent" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.96" />
-                  <stop offset="35%" stopColor="#F1F5F9" stopOpacity="0.9" />
-                  <stop offset="70%" stopColor="#E2E8F0" stopOpacity="0.86" />
-                  <stop offset="100%" stopColor="#CBD5E1" stopOpacity="0.8" />
+                  <stop offset="0%" stopColor="#FCFBF7" stopOpacity="0.98" />
+                  <stop offset="45%" stopColor="#F5F7FA" stopOpacity="0.94" />
+                  <stop offset="100%" stopColor="#E8F1F8" stopOpacity="0.9" />
                 </linearGradient>
 
-                {/* Awake Pure White Porcelain Gradient */}
+                {/* Awake Luminous Logo Creamy Gradient */}
                 <linearGradient id="cuteGhostGradWhite" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
-                  <stop offset="35%" stopColor="#FAFCFE" stopOpacity="1" />
-                  <stop offset="75%" stopColor="#F1F5F9" stopOpacity="0.99" />
-                  <stop offset="100%" stopColor="#E2E8F0" stopOpacity="0.98" />
+                  <stop offset="45%" stopColor="#FCFBF7" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#EAF6FD" stopOpacity="0.99" />
                 </linearGradient>
               </defs>
 
-              {/* Cute Ghost Silhouette with Animated Drooping Hands (Sleeping) vs Raised Hands (Awake) */}
+              {/* Wireless Signal Arcs (Top-Right of Head, echoes Logo when Awake) */}
+              {isGhostAwake && (
+                <g className="pointer-events-none">
+                  <path
+                    d="M 380, 35 C 390, 35 398, 43 398, 53"
+                    fill="none"
+                    stroke="#56C2F0"
+                    strokeWidth="4.5"
+                    strokeLinecap="round"
+                    className="animate-signal-arc-inner"
+                  />
+                  <path
+                    d="M 380, 23 C 396, 23 410, 36 410, 53"
+                    fill="none"
+                    stroke="#AFDDF5"
+                    strokeWidth="4.5"
+                    strokeLinecap="round"
+                    className="animate-signal-arc-outer"
+                  />
+                </g>
+              )}
+
+              {/* Cute Ghost Silhouette with Plump Logo-Style Rounded Bottom Scallops */}
               <path
                 d={
                   isGhostAwake
-                    ? "M 310, 38 C 352, 38, 385, 49, 406, 75 C 416, 85, 428, 87, 442, 75 C 465, 54, 492, 28, 532, 26 C 564, 25, 588, 44, 584, 70 C 580, 95, 568, 130, 562, 168 C 553, 215, 558, 272, 550, 345 C 530, 328, 514, 362, 494, 346 C 474, 328, 458, 362, 438, 346 C 418, 328, 402, 362, 374, 346 C 346, 328, 330, 362, 308, 346 C 286, 362, 270, 328, 242, 346 C 214, 362, 198, 328, 178, 346 C 158, 362, 142, 328, 122, 346 C 102, 362, 86, 328, 66, 345 C 58, 270, 64, 210, 54, 160 C 46, 118, 34, 80, 30, 55 C 26, 30, 46, 12, 78, 14 C 120, 16, 150, 46, 170, 70 C 186, 84, 200, 84, 210, 74 C 230, 46, 264, 38, 310, 38 Z"
-                    : "M 310, 38 C 352, 38, 385, 52, 408, 78 C 424, 94, 444, 108, 470, 118 C 496, 128, 522, 136, 546, 126 C 564, 118, 574, 105, 568, 132 C 562, 158, 558, 180, 556, 205 C 550, 242, 556, 285, 550, 345 C 530, 328, 514, 362, 494, 346 C 474, 328, 458, 362, 438, 346 C 418, 328, 402, 362, 374, 346 C 346, 328, 330, 362, 308, 346 C 286, 362, 270, 328, 242, 346 C 214, 362, 198, 328, 178, 346 C 158, 362, 142, 328, 122, 346 C 102, 362, 86, 328, 66, 345 C 58, 285, 64, 242, 54, 205 C 50, 180, 44, 158, 48, 132 C 54, 105, 66, 118, 86, 126 C 110, 136, 136, 128, 162, 118 C 188, 108, 200, 94, 212, 78 C 230, 48, 264, 38, 310, 38 Z"
+                    ? "M 310, 38 C 352, 38, 385, 49, 406, 75 C 416, 85, 428, 87, 442, 75 C 465, 54, 492, 28, 532, 26 C 564, 25, 588, 44, 584, 70 C 580, 95, 568, 130, 562, 168 C 553, 215, 558, 272, 550, 340 C 548, 355, 526, 360, 502, 360 C 478, 360, 464, 342, 453, 342 C 442, 342, 428, 360, 405, 360 C 382, 360, 368, 342, 356, 342 C 344, 342, 332, 360, 308, 360 C 284, 360, 272, 342, 260, 342 C 248, 342, 234, 360, 211, 360 C 188, 360, 174, 342, 163, 342 C 152, 342, 138, 360, 114, 360 C 90, 360, 68, 355, 66, 340 C 58, 270, 64, 210, 54, 160 C 46, 118, 34, 80, 30, 55 C 26, 30, 46, 12, 78, 14 C 120, 16, 150, 46, 170, 70 C 186, 84, 200, 84, 210, 74 C 230, 46, 264, 38, 310, 38 Z"
+                    : "M 310, 38 C 352, 38, 385, 52, 408, 78 C 424, 94, 444, 108, 470, 118 C 496, 128, 522, 136, 546, 126 C 564, 118, 574, 105, 568, 132 C 562, 158, 558, 180, 556, 205 C 550, 242, 556, 285, 550, 340 C 548, 355, 526, 360, 502, 360 C 478, 360, 464, 342, 453, 342 C 442, 342, 428, 360, 405, 360 C 382, 360, 368, 342, 356, 342 C 344, 342, 332, 360, 308, 360 C 284, 360, 272, 342, 260, 342 C 248, 342, 234, 360, 211, 360 C 188, 360, 174, 342, 163, 342 C 152, 342, 138, 360, 114, 360 C 90, 360, 68, 355, 66, 340 C 58, 285, 64, 242, 54, 205 C 50, 180, 44, 158, 48, 132 C 54, 105, 66, 118, 86, 126 C 110, 136, 136, 128, 162, 118 C 188, 108, 200, 94, 212, 78 C 230, 48, 264, 38, 310, 38 Z"
                 }
                 fill={isGhostAwake ? "url(#cuteGhostGradWhite)" : "url(#cuteGhostGradTranslucent)"}
-                stroke={isGhostAwake ? "rgba(100, 116, 139, 0.45)" : "rgba(148, 163, 184, 0.45)"}
-                strokeWidth={isGhostAwake ? "2" : "1.75"}
+                stroke={isGhostAwake ? "rgba(3, 49, 87, 0.20)" : "rgba(3, 49, 87, 0.14)"}
+                strokeWidth={isGhostAwake ? "2.25" : "2"}
+                strokeLinejoin="round"
                 style={{
                   transition: "d 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.6s ease-out, stroke 0.6s ease-out",
                 }}
               />
 
-              {/* Asymmetric Underarm & Cloth Drape Creases */}
+              {/* Subtle Soft Drape Accent Lines */}
               <path
                 d={
                   isGhostAwake
@@ -411,9 +432,9 @@ export const GamepadVisualizer: React.FC<Props> = ({
                     : "M 162, 118 C 150, 142 136, 180 128, 230"
                 }
                 fill="none"
-                stroke={isGhostAwake ? "rgba(100, 116, 139, 0.35)" : "rgba(148, 163, 184, 0.35)"}
-                strokeWidth="1"
-                strokeDasharray="4 2"
+                stroke="rgba(3, 49, 87, 0.12)"
+                strokeWidth="1.25"
+                strokeDasharray="4 3"
                 style={{ transition: "d 0.7s ease-out, stroke 0.5s ease-out" }}
               />
               <path
@@ -423,68 +444,78 @@ export const GamepadVisualizer: React.FC<Props> = ({
                     : "M 470, 118 C 478, 145 484, 185 490, 235"
                 }
                 fill="none"
-                stroke={isGhostAwake ? "rgba(100, 116, 139, 0.35)" : "rgba(148, 163, 184, 0.35)"}
-                strokeWidth="1"
-                strokeDasharray="4 2"
+                stroke="rgba(3, 49, 87, 0.12)"
+                strokeWidth="1.25"
+                strokeDasharray="4 3"
                 style={{ transition: "d 0.7s ease-out, stroke 0.5s ease-out" }}
               />
 
-              {/* Ghost Expression */}
+              {/* Signature Logo Lavender Diagonal Blush Stripes (#BCB6D7) */}
+              <g opacity={isGhostAwake ? 1 : 0.6} className="transition-opacity duration-300">
+                <rect x="248" y="96" width="8.5" height="3.2" rx="1.6" transform="rotate(-60 252 97.6)" fill="#BCB6D7" />
+                <rect x="255" y="96" width="8.5" height="3.2" rx="1.6" transform="rotate(-60 259 97.6)" fill="#BCB6D7" />
+                <rect x="262" y="96" width="8.5" height="3.2" rx="1.6" transform="rotate(-60 266 97.6)" fill="#BCB6D7" />
+
+                <rect x="349" y="96" width="8.5" height="3.2" rx="1.6" transform="rotate(-60 353 97.6)" fill="#BCB6D7" />
+                <rect x="356" y="96" width="8.5" height="3.2" rx="1.6" transform="rotate(-60 360 97.6)" fill="#BCB6D7" />
+                <rect x="363" y="96" width="8.5" height="3.2" rx="1.6" transform="rotate(-60 367 97.6)" fill="#BCB6D7" />
+              </g>
+
+              {/* Ghost Expression in Signature Ocean Navy (#033157) */}
               {!isGhostAwake ? (
-                /* Sleeping Face (Soft Slate with Gentle Snore) */
+                /* Sleeping Face (Soft Ocean Navy with Gentle Snore) */
                 <g className="transition-opacity duration-300">
                   <path
-                    d="M 275, 89 Q 282, 82 289, 89"
+                    d="M 275, 87 Q 282, 80 289, 87"
                     fill="none"
-                    stroke="#475569"
-                    strokeWidth="2.4"
+                    stroke="#033157"
+                    strokeOpacity="0.72"
+                    strokeWidth="2.8"
                     strokeLinecap="round"
                   />
                   <path
-                    d="M 331, 89 Q 338, 82 345, 89"
+                    d="M 331, 87 Q 338, 80 345, 87"
                     fill="none"
-                    stroke="#475569"
-                    strokeWidth="2.4"
+                    stroke="#033157"
+                    strokeOpacity="0.72"
+                    strokeWidth="2.8"
                     strokeLinecap="round"
                   />
                   <path
-                    d="M 306, 96 Q 310, 98 314, 96"
+                    d="M 304, 95 Q 310, 99 316, 95"
                     fill="none"
-                    stroke="#475569"
-                    strokeWidth="2"
+                    stroke="#033157"
+                    strokeOpacity="0.72"
+                    strokeWidth="2.6"
                     strokeLinecap="round"
                   />
                   <g className="select-none pointer-events-none">
-                    <text x="350" y="74" fill="#64748b" fontSize="11" fontFamily="monospace" fontWeight="bold">z</text>
-                    <text x="361" y="61" fill="#475569" fontSize="14" fontFamily="monospace" fontWeight="bold">Z</text>
+                    <text x="352" y="72" fill="#56C2F0" fontSize="11" fontFamily="monospace" fontWeight="bold">z</text>
+                    <text x="363" y="59" fill="#033157" fillOpacity="0.6" fontSize="14" fontFamily="monospace" fontWeight="bold">Z</text>
                   </g>
                 </g>
               ) : (
-                /* Awake Face with Cute Blush & Specular Catchlights */
+                /* Awake Face with Logo-Style Ocean Navy Eyes & Friendly Rounded Smile */
                 <g className="transition-opacity duration-300">
-                  {/* Subtle Rosy Blush Cheeks */}
-                  <circle cx="264" cy="94" r="5.5" fill="#f43f5e" fillOpacity="0.28" />
-                  <circle cx="356" cy="94" r="5.5" fill="#f43f5e" fillOpacity="0.28" />
-
-                  <circle cx="282" cy="88" r="3.8" fill="#0f172a" />
-                  <circle cx="338" cy="88" r="3.8" fill="#0f172a" />
-                  <circle cx="283.5" cy="86.5" r="1.2" fill="#ffffff" />
-                  <circle cx="339.5" cy="86.5" r="1.2" fill="#ffffff" />
+                  <circle cx="282" cy="85" r="4.4" fill="#033157" />
+                  <circle cx="338" cy="85" r="4.4" fill="#033157" />
+                  <circle cx="283.6" cy="83.4" r="1.5" fill="#AFDDF5" />
+                  <circle cx="339.6" cy="83.4" r="1.5" fill="#AFDDF5" />
 
                   {isAnyButtonPressed ? (
                     <path
-                      d="M 300, 94 Q 305, 98 310, 94 Q 315, 98 320, 94"
+                      d="M 299, 93 Q 304.5, 98.5 310, 93 Q 315.5, 98.5 321, 93"
                       fill="none"
-                      stroke="#0f172a"
-                      strokeWidth="2"
+                      stroke="#033157"
+                      strokeWidth="3.2"
                       strokeLinecap="round"
                     />
                   ) : (
                     <path
-                      d="M 302, 95 Q 310, 100.5 318, 95"
+                      d="M 300, 93 C 300, 93 303, 99.5 310, 99.5 C 317, 99.5 320, 93 320, 93"
                       fill="none"
-                      stroke="#0f172a"
-                      strokeWidth="2"
+                      stroke="#033157"
+                      strokeWidth="3.2"
                       strokeLinecap="round"
                     />
                   )}
@@ -496,22 +527,22 @@ export const GamepadVisualizer: React.FC<Props> = ({
             <div className="absolute top-[12px] left-[36px] right-[36px] flex justify-between items-start z-30 pointer-events-auto">
               {/* Left Ghost Hand */}
               <div
-                className={`flex items-center gap-1.5 p-1 rounded-lg transition-all duration-500 ease-out pointer-events-auto border ${
+                className={`flex items-center gap-1.5 p-1 rounded-xl transition-all duration-500 ease-out pointer-events-auto border ${
                   isGhostAwake
-                    ? "translate-y-0 rotate-[-2deg] translate-x-0 opacity-100 bg-zinc-950/90 border-zinc-800/90 shadow-md backdrop-blur-xs"
-                    : "translate-y-[40px] rotate-[-12deg] -translate-x-1 opacity-90 bg-zinc-950/85 border-zinc-800/80 shadow-sm backdrop-blur-xs"
+                    ? "translate-y-0 rotate-[-2deg] translate-x-0 opacity-100 bg-[#033157]/95 border-[#064273] shadow-md backdrop-blur-xs"
+                    : "translate-y-[40px] rotate-[-12deg] -translate-x-1 opacity-90 bg-[#033157]/85 border-[#064273]/80 shadow-sm backdrop-blur-xs"
                 } ${
                   isLeftHandActive
-                    ? "ring-1 ring-zinc-500"
+                    ? "ring-2 ring-[#AFDDF5]/60"
                     : ""
                 }`}
               >
                 <button
                   {...bindButton("zl")}
-                  className={`w-[72px] py-2 text-center rounded-md text-xs font-mono font-bold tracking-wider border transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`w-[72px] py-2 text-center rounded-lg text-xs font-mono font-bold tracking-wider border transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.zl
-                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-[0.98]"
-                      : "bg-zinc-900 hover:bg-zinc-800 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 shadow-sm"
+                      ? "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF] shadow-[0_0_10px_rgba(175,221,245,0.55)] scale-[0.98]"
+                      : "bg-[#063D6B] hover:bg-[#0A4D85] text-[#FCFBF7] border-[#AFDDF5]/20 hover:border-[#AFDDF5]/45 shadow-sm"
                   }`}
                   title={t("buttons.zl", "ZL 按鍵 (左板機鍵)")}
                 >
@@ -519,10 +550,10 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 </button>
                 <button
                   {...bindButton("l")}
-                  className={`w-[64px] py-2 text-center rounded-md text-xs font-mono font-bold tracking-wider border transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`w-[64px] py-2 text-center rounded-lg text-xs font-mono font-bold tracking-wider border transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.l
-                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-[0.98]"
-                      : "bg-zinc-900 hover:bg-zinc-800 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 shadow-sm"
+                      ? "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF] shadow-[0_0_10px_rgba(175,221,245,0.55)] scale-[0.98]"
+                      : "bg-[#063D6B] hover:bg-[#0A4D85] text-[#FCFBF7] border-[#AFDDF5]/20 hover:border-[#AFDDF5]/45 shadow-sm"
                   }`}
                   title={t("buttons.l", "L 按鍵 (左肩鍵)")}
                 >
@@ -532,22 +563,22 @@ export const GamepadVisualizer: React.FC<Props> = ({
 
               {/* Right Ghost Hand */}
               <div
-                className={`flex items-center gap-1.5 p-1 rounded-lg transition-all duration-500 ease-out pointer-events-auto border ${
+                className={`flex items-center gap-1.5 p-1 rounded-xl transition-all duration-500 ease-out pointer-events-auto border ${
                   isGhostAwake
-                    ? "mt-2.5 translate-y-0 rotate-[3deg] translate-x-0 opacity-100 bg-zinc-950/90 border-zinc-800/90 shadow-md backdrop-blur-xs"
-                    : "mt-2.5 translate-y-[42px] rotate-[12deg] translate-x-1 opacity-90 bg-zinc-950/85 border-zinc-800/80 shadow-sm backdrop-blur-xs"
+                    ? "mt-2.5 translate-y-0 rotate-[3deg] translate-x-0 opacity-100 bg-[#033157]/95 border-[#064273] shadow-md backdrop-blur-xs"
+                    : "mt-2.5 translate-y-[42px] rotate-[12deg] translate-x-1 opacity-90 bg-[#033157]/85 border-[#064273]/80 shadow-sm backdrop-blur-xs"
                 } ${
                   isRightHandActive
-                    ? "ring-1 ring-zinc-500"
+                    ? "ring-2 ring-[#AFDDF5]/60"
                     : ""
                 }`}
               >
                 <button
                   {...bindButton("r")}
-                  className={`w-[64px] py-2 text-center rounded-md text-xs font-mono font-bold tracking-wider border transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`w-[64px] py-2 text-center rounded-lg text-xs font-mono font-bold tracking-wider border transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.r
-                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-[0.98]"
-                      : "bg-zinc-900 hover:bg-zinc-800 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 shadow-sm"
+                      ? "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF] shadow-[0_0_10px_rgba(175,221,245,0.55)] scale-[0.98]"
+                      : "bg-[#063D6B] hover:bg-[#0A4D85] text-[#FCFBF7] border-[#AFDDF5]/20 hover:border-[#AFDDF5]/45 shadow-sm"
                   }`}
                   title={t("buttons.r", "R 按鍵 (右肩鍵)")}
                 >
@@ -555,10 +586,10 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 </button>
                 <button
                   {...bindButton("zr")}
-                  className={`w-[72px] py-2 text-center rounded-md text-xs font-mono font-bold tracking-wider border transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`w-[72px] py-2 text-center rounded-lg text-xs font-mono font-bold tracking-wider border transition-all cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.zr
-                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-[0.98]"
-                      : "bg-zinc-900 hover:bg-zinc-800 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 shadow-sm"
+                      ? "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF] shadow-[0_0_10px_rgba(175,221,245,0.55)] scale-[0.98]"
+                      : "bg-[#063D6B] hover:bg-[#0A4D85] text-[#FCFBF7] border-[#AFDDF5]/20 hover:border-[#AFDDF5]/45 shadow-sm"
                   }`}
                   title={t("buttons.zr", "ZR 按鍵 (右板機鍵)")}
                 >
@@ -571,22 +602,22 @@ export const GamepadVisualizer: React.FC<Props> = ({
           <div className="w-full h-full pt-[82px] pb-[25px] px-[45px] grid grid-cols-3 items-center z-10 pointer-events-none">
             {/* Left Flank: Stick (L3) & D-Pad */}
             <div className="flex flex-col items-center justify-around h-full py-1">
-              {/* Left Thumbstick (L3) */}
+              {/* Left Thumbstick (L3) - Echoes Logo's Ocean Navy Socket + Sky-Blue Cap */}
               <div
                 ref={leftStickBaseRef}
                 onPointerDown={(e) => startStickDrag("left", leftStickBaseRef, leftKnobRef, setIsDraggingLeft, e)}
-                className={`relative w-24 h-24 rounded-full bg-zinc-950 border transition-all duration-150 select-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] flex items-center justify-center touch-none cursor-grab active:cursor-grabbing pointer-events-auto ${
+                className={`relative w-24 h-24 rounded-full bg-[#033157] border transition-all duration-150 select-none shadow-[inset_0_3px_6px_rgba(1,22,41,0.55)] flex items-center justify-center touch-none cursor-grab active:cursor-grabbing pointer-events-auto ${
                   isDraggingLeft
-                    ? "border-white/[0.3] ring-2 ring-white/[0.1]"
-                    : "border-white/[0.08] hover:border-white/[0.16]"
+                    ? "border-[#56C2F0] ring-2 ring-[#AFDDF5]/40"
+                    : "border-[#064273] hover:border-[#56C2F0]/60"
                 }`}
                 title={t("buttons.l_stick", "左類比搖桿 (可拖曳移動，輕點為 L3)")}
               >
                 {/* Subtle Direction Guide Markers */}
-                <span className="absolute top-1 text-[8px] font-mono text-zinc-600 select-none pointer-events-none">▲</span>
-                <span className="absolute bottom-1 text-[8px] font-mono text-zinc-600 select-none pointer-events-none">▼</span>
-                <span className="absolute left-1.5 text-[8px] font-mono text-zinc-600 select-none pointer-events-none">◀</span>
-                <span className="absolute right-1.5 text-[8px] font-mono text-zinc-600 select-none pointer-events-none">▶</span>
+                <span className="absolute top-1 text-[8px] font-mono text-[#AFDDF5]/45 select-none pointer-events-none">▲</span>
+                <span className="absolute bottom-1 text-[8px] font-mono text-[#AFDDF5]/45 select-none pointer-events-none">▼</span>
+                <span className="absolute left-1.5 text-[8px] font-mono text-[#AFDDF5]/45 select-none pointer-events-none">◀</span>
+                <span className="absolute right-1.5 text-[8px] font-mono text-[#AFDDF5]/45 select-none pointer-events-none">▶</span>
 
                 <div
                   ref={leftKnobRef}
@@ -594,10 +625,10 @@ export const GamepadVisualizer: React.FC<Props> = ({
                     isDraggingLeft ? "transition-none" : "transition-transform duration-100 ease-out"
                   } ${
                     state.l_stick_click
-                      ? "bg-zinc-100 text-zinc-950 border-white scale-95 shadow-xs"
+                      ? "bg-[#FCFBF7] text-[#033157] border-white scale-95 shadow-xs"
                       : isDraggingLeft || (state.left_stick_x !== 128 || state.left_stick_y !== 128)
-                      ? "bg-zinc-200 text-zinc-950 border-white shadow-xs"
-                      : "bg-zinc-800 text-zinc-300 border-white/[0.1] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]"
+                      ? "bg-[#D1F2FF] text-[#033157] border-white shadow-[0_0_12px_rgba(175,221,245,0.65)]"
+                      : "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF]/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.5)]"
                   }`}
                   style={
                     isDraggingLeft
@@ -609,15 +640,15 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* D-Pad (Classic Cross) */}
+              {/* D-Pad (Logo-Style Rounded Ocean Navy Cross) */}
               <div className="relative w-26 h-26 flex items-center justify-center select-none pointer-events-auto">
-                <div className="absolute w-9 h-26 bg-zinc-950 border border-white/[0.08] rounded-md shadow-md pointer-events-none" />
-                <div className="absolute w-26 h-9 bg-zinc-950 border border-white/[0.08] rounded-md shadow-md pointer-events-none" />
+                <div className="absolute w-9 h-26 bg-[#033157] border border-[#064273] rounded-xl shadow-md pointer-events-none" />
+                <div className="absolute w-26 h-9 bg-[#033157] border border-[#064273] rounded-xl shadow-md pointer-events-none" />
 
                 <button
                   {...bindButton("dpad_up")}
-                  className={`absolute top-0 w-9 h-9 rounded-t-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
-                    isUp ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
+                  className={`absolute top-0 w-9 h-9 rounded-t-xl flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                    isUp ? "bg-[#AFDDF5] text-[#033157]" : "text-[#AFDDF5]/75 hover:text-[#FCFBF7] hover:bg-[#064273]"
                   }`}
                   title={t("buttons.dpad_up", "十字鍵 上")}
                 >
@@ -625,8 +656,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 </button>
                 <button
                   {...bindButton("dpad_down")}
-                  className={`absolute bottom-0 w-9 h-9 rounded-b-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
-                    isDown ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
+                  className={`absolute bottom-0 w-9 h-9 rounded-b-xl flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                    isDown ? "bg-[#AFDDF5] text-[#033157]" : "text-[#AFDDF5]/75 hover:text-[#FCFBF7] hover:bg-[#064273]"
                   }`}
                   title={t("buttons.dpad_down", "十字鍵 下")}
                 >
@@ -634,8 +665,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 </button>
                 <button
                   {...bindButton("dpad_left")}
-                  className={`absolute left-0 w-9 h-9 rounded-l-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
-                    isLeft ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
+                  className={`absolute left-0 w-9 h-9 rounded-l-xl flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                    isLeft ? "bg-[#AFDDF5] text-[#033157]" : "text-[#AFDDF5]/75 hover:text-[#FCFBF7] hover:bg-[#064273]"
                   }`}
                   title={t("buttons.dpad_left", "十字鍵 左")}
                 >
@@ -643,14 +674,14 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 </button>
                 <button
                   {...bindButton("dpad_right")}
-                  className={`absolute right-0 w-9 h-9 rounded-r-md flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
-                    isRight ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-850"
+                  className={`absolute right-0 w-9 h-9 rounded-r-xl flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                    isRight ? "bg-[#AFDDF5] text-[#033157]" : "text-[#AFDDF5]/75 hover:text-[#FCFBF7] hover:bg-[#064273]"
                   }`}
                   title={t("buttons.dpad_right", "十字鍵 右")}
                 >
                   ▶
                 </button>
-                <div className="w-5 h-5 rounded-full bg-zinc-900 border border-white/[0.06] z-10 pointer-events-none" />
+                <div className="w-5 h-5 rounded-full bg-[#022440] border border-[#AFDDF5]/15 z-10 pointer-events-none" />
               </div>
             </div>
 
@@ -662,8 +693,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   {...bindButton("minus")}
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.minus
-                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
-                      : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
+                      ? "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF] shadow-xs"
+                      : "bg-[#033157] text-[#FCFBF7] border-[#064273] hover:bg-[#064273] shadow-sm"
                   }`}
                   title={t("buttons.minus", "Minus 按鍵 (減號)")}
                 >
@@ -673,8 +704,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   {...bindButton("plus")}
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold border transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.plus
-                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
-                      : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
+                      ? "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF] shadow-xs"
+                      : "bg-[#033157] text-[#FCFBF7] border-[#064273] hover:bg-[#064273] shadow-sm"
                   }`}
                   title={t("buttons.plus", "Plus 按鍵 (加號)")}
                 >
@@ -688,8 +719,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 onClick={onToggleEsp32 || onToggleMute}
                 className={`px-3 py-1 rounded-full text-[10px] font-mono tracking-wider border shadow-xs flex items-center gap-1.5 select-none transition-all cursor-pointer pointer-events-auto active:scale-95 ${
                   isGhostAwake
-                    ? "text-emerald-700 border-emerald-300 bg-emerald-50 hover:bg-emerald-100 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
-                    : "text-slate-600 border-slate-300/90 bg-white/95 hover:bg-slate-100 hover:text-slate-800 shadow-2xs"
+                    ? "text-[#033157] border-[#56C2F0]/60 bg-[#EAF6FD] hover:bg-[#D1F2FF]/80 shadow-[0_0_12px_rgba(86,194,240,0.28)]"
+                    : "text-[#033157]/75 border-[#033157]/15 bg-[#FCFBF7]/95 hover:bg-[#EAF6FD] hover:text-[#033157] shadow-2xs"
                 }`}
                 title={
                   isGhostAwake
@@ -700,8 +731,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 <span
                   className={`w-1.5 h-1.5 rounded-full transition-colors ${
                     isGhostAwake
-                      ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]"
-                      : "bg-slate-400"
+                      ? "bg-[#0EA5E9] shadow-[0_0_6px_rgba(14,165,233,0.75)]"
+                      : "bg-[#BCB6D7]"
                   }`}
                 />
                 <span>GHOST-PAD</span>
@@ -711,10 +742,10 @@ export const GamepadVisualizer: React.FC<Props> = ({
               <div className="flex items-center gap-10 pb-1">
                 <button
                   {...bindButton("capture")}
-                  className={`w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold border transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.capture
-                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
-                      : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
+                      ? "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF] shadow-xs"
+                      : "bg-[#033157] text-[#FCFBF7] border-[#064273] hover:bg-[#064273] shadow-sm"
                   }`}
                   title={t("buttons.capture", "Capture 按鍵 (截圖)")}
                 >
@@ -724,8 +755,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   {...bindButton("home")}
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.home
-                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs"
-                      : "bg-zinc-900 text-zinc-200 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-sm"
+                      ? "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF] shadow-xs"
+                      : "bg-[#033157] text-[#FCFBF7] border-[#064273] hover:bg-[#064273] shadow-sm"
                   }`}
                   title={t("buttons.home", "Home 按鍵 (主畫面)")}
                 >
@@ -742,8 +773,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   {...bindButton("x")}
                   className={`absolute top-0 w-9 h-9 rounded-full border flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.x
-                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
-                      : "bg-zinc-900 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-md"
+                      ? "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF] shadow-[0_0_10px_rgba(175,221,245,0.6)] scale-95"
+                      : "bg-[#033157] text-[#FCFBF7] border-[#064273] hover:bg-[#064273] shadow-md"
                   }`}
                 >
                   X
@@ -752,8 +783,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   {...bindButton("b")}
                   className={`absolute bottom-0 w-9 h-9 rounded-full border flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.b
-                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
-                      : "bg-zinc-900 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-md"
+                      ? "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF] shadow-[0_0_10px_rgba(175,221,245,0.6)] scale-95"
+                      : "bg-[#033157] text-[#FCFBF7] border-[#064273] hover:bg-[#064273] shadow-md"
                   }`}
                 >
                   B
@@ -762,8 +793,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   {...bindButton("y")}
                   className={`absolute left-0 w-9 h-9 rounded-full border flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.y
-                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
-                      : "bg-zinc-900 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-md"
+                      ? "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF] shadow-[0_0_10px_rgba(175,221,245,0.6)] scale-95"
+                      : "bg-[#033157] text-[#FCFBF7] border-[#064273] hover:bg-[#064273] shadow-md"
                   }`}
                 >
                   Y
@@ -772,30 +803,30 @@ export const GamepadVisualizer: React.FC<Props> = ({
                   {...bindButton("a")}
                   className={`absolute right-0 w-9 h-9 rounded-full border flex items-center justify-center text-xs font-bold transition-colors cursor-pointer pointer-events-auto select-none active:scale-95 ${
                     state.a
-                      ? "bg-zinc-100 text-zinc-950 border-white shadow-xs scale-95"
-                      : "bg-zinc-900 text-zinc-100 border-zinc-700/80 hover:border-zinc-500 hover:bg-zinc-800 shadow-md"
+                      ? "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF] shadow-[0_0_10px_rgba(175,221,245,0.6)] scale-95"
+                      : "bg-[#033157] text-[#FCFBF7] border-[#064273] hover:bg-[#064273] shadow-md"
                   }`}
                 >
                   A
                 </button>
               </div>
 
-              {/* Right Thumbstick (R3) */}
+              {/* Right Thumbstick (R3) - Echoes Logo's Ocean Navy Socket + Sky-Blue Cap */}
               <div
                 ref={rightStickBaseRef}
                 onPointerDown={(e) => startStickDrag("right", rightStickBaseRef, rightKnobRef, setIsDraggingRight, e)}
-                className={`relative w-24 h-24 rounded-full bg-zinc-950 border transition-all duration-150 select-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] flex items-center justify-center touch-none cursor-grab active:cursor-grabbing pointer-events-auto ${
+                className={`relative w-24 h-24 rounded-full bg-[#033157] border transition-all duration-150 select-none shadow-[inset_0_3px_6px_rgba(1,22,41,0.55)] flex items-center justify-center touch-none cursor-grab active:cursor-grabbing pointer-events-auto ${
                   isDraggingRight
-                    ? "border-white/[0.3] ring-2 ring-white/[0.1]"
-                    : "border-white/[0.08] hover:border-white/[0.16]"
+                    ? "border-[#56C2F0] ring-2 ring-[#AFDDF5]/40"
+                    : "border-[#064273] hover:border-[#56C2F0]/60"
                 }`}
                 title={t("buttons.r_stick", "右類比搖桿 (可拖曳移動，輕點為 R3)")}
               >
                 {/* Subtle Direction Guide Markers */}
-                <span className="absolute top-1 text-[8px] font-mono text-zinc-600 select-none pointer-events-none">▲</span>
-                <span className="absolute bottom-1 text-[8px] font-mono text-zinc-600 select-none pointer-events-none">▼</span>
-                <span className="absolute left-1.5 text-[8px] font-mono text-zinc-600 select-none pointer-events-none">◀</span>
-                <span className="absolute right-1.5 text-[8px] font-mono text-zinc-600 select-none pointer-events-none">▶</span>
+                <span className="absolute top-1 text-[8px] font-mono text-[#AFDDF5]/45 select-none pointer-events-none">▲</span>
+                <span className="absolute bottom-1 text-[8px] font-mono text-[#AFDDF5]/45 select-none pointer-events-none">▼</span>
+                <span className="absolute left-1.5 text-[8px] font-mono text-[#AFDDF5]/45 select-none pointer-events-none">◀</span>
+                <span className="absolute right-1.5 text-[8px] font-mono text-[#AFDDF5]/45 select-none pointer-events-none">▶</span>
 
                 <div
                   ref={rightKnobRef}
@@ -803,10 +834,10 @@ export const GamepadVisualizer: React.FC<Props> = ({
                     isDraggingRight ? "transition-none" : "transition-transform duration-100 ease-out"
                   } ${
                     state.r_stick_click
-                      ? "bg-zinc-100 text-zinc-950 border-white scale-95 shadow-xs"
+                      ? "bg-[#FCFBF7] text-[#033157] border-white scale-95 shadow-xs"
                       : isDraggingRight || (state.right_stick_x !== 128 || state.right_stick_y !== 128)
-                      ? "bg-zinc-200 text-zinc-950 border-white shadow-xs"
-                      : "bg-zinc-800 text-zinc-300 border-white/[0.1] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]"
+                      ? "bg-[#D1F2FF] text-[#033157] border-white shadow-[0_0_12px_rgba(175,221,245,0.65)]"
+                      : "bg-[#AFDDF5] text-[#033157] border-[#D1F2FF]/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.5)]"
                   }`}
                   style={
                     isDraggingRight

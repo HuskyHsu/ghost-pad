@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import ghostPadIcon from "../assets/Ghost-Pad-icon.svg";
+import { GhostPadLogo } from "./GhostPadLogo";
 
 interface Props {
   activeTab: "dashboard" | "macro" | "hardware";
@@ -21,13 +21,21 @@ export const Navbar: React.FC<Props> = ({
   return (
     <header className="h-14 px-6 bg-surface-card/90 border-b border-border-subtle flex items-center justify-between backdrop-blur-md select-none sticky top-0 z-50 gap-4">
       {/* Brand Identity */}
-      <div className="flex items-center gap-2.5 shrink-0">
-        <div className="w-7 h-7 rounded-lg bg-[#033157] border border-border-subtle flex items-center justify-center shadow-xs p-1 overflow-hidden shrink-0">
-          <img src={ghostPadIcon} alt="Ghost-Pad" className="w-full h-full object-contain" />
+      <div className="flex items-center gap-2 shrink-0">
+        <div
+          className={`w-9 h-9 flex items-center justify-center shrink-0 transition-all duration-300 ${
+            esp32Connected
+              ? "drop-shadow-[0_0_8px_rgba(56,189,248,0.55)] drop-shadow-[0_2px_4px_rgba(3,49,87,0.14)]"
+              : "drop-shadow-[0_2px_5px_rgba(3,49,87,0.14)]"
+          }`}
+        >
+          <GhostPadLogo active={esp32Connected} />
         </div>
-        <div className="whitespace-nowrap">
-          <span className="font-semibold text-sm tracking-tight text-text-primary">{t("app_name")}</span>
-          <span className="ml-2 text-xs text-text-muted hidden sm:inline">{t("app_subtitle")}</span>
+        <div className="flex items-baseline gap-2 whitespace-nowrap">
+          <span className="font-brand font-extrabold text-[18px] tracking-[-0.025em] leading-none text-[#033157]">
+            {t("app_name")}
+          </span>
+          <span className="text-xs text-text-muted hidden sm:inline">{t("app_subtitle")}</span>
         </div>
       </div>
 
