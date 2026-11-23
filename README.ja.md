@@ -24,8 +24,22 @@ Nintendo Switch 向けの高性能 PC 仮想コントローラーブリッジ、
 
 **Ghost-Pad** は、PC を Nintendo Switch のインテリジェントなコントローラー中核として機能させるデスクトップアプリケーションです（Tauri v2 / Rust / React 19 製）。物理コントローラー、キーボード、画面操作、および自動マクロからの入力をリアルタイムに統合し、USB シリアル（`19200 bps`、UARTSwitchCon 9-Byte + CRC-8）経由で ESP32 開発ボードへ 60Hz で送信します。ESP32 は Bluetooth Classic により純正 **Nintendo Switch Pro コントローラー**（`VID: 0x057E`、`PID: 0x2009`）をエミュレートします。
 
-```text
-PC (Ghost-Pad Desktop)  ──[ USB シリアル 19200 bps ]──▶  ESP32 (Bluetooth Classic HID)  ──[ ワイヤレス ]──▶  Nintendo Switch
+```mermaid
+flowchart TD
+    subgraph Inputs["入力ソース"]
+        direction LR
+        G["物理コントローラー"]
+        K["キーボード / タッチ"]
+        M["マクロスタジオ"]
+    end
+
+    PC["Ghost-Pad Desktop (Tauri v2 · Rust · React 19)"]
+    ESP["ESP32 開発ボード (Bluetooth Classic HID)"]
+    SW["Nintendo Switch (Pro コントローラー)"]
+
+    Inputs --> PC
+    PC -->|"USB シリアル · 19200 bps · 60Hz (9-Byte CRC-8)"| ESP
+    ESP -->|"Bluetooth Classic · VID 0x057E / PID 0x2009"| SW
 ```
 
 > [!NOTE]

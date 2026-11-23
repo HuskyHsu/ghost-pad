@@ -24,8 +24,22 @@
 
 **Ghost-Pad** 將電腦轉變為 Nintendo Switch 的智慧控制器核心。桌面應用程式（基於 Tauri v2、Rust 與 React 19）整合實體手把、鍵盤、螢幕操作與巨集腳本的輸入，透過 USB 序列埠（`19200 bps`，UARTSwitchCon 9-Byte + CRC-8 協定）以 60Hz 串流至 ESP32 開發板，並以 Bluetooth Classic 無線模擬原廠 **Nintendo Switch Pro Controller**（`VID: 0x057E`、`PID: 0x2009`）。
 
-```text
-PC（Ghost-Pad 桌面端） ──[ USB 序列埠 19200 bps ]──▶  ESP32（Bluetooth Classic HID） ──[ 無線藍牙 ]──▶  Nintendo Switch
+```mermaid
+flowchart TD
+    subgraph Inputs["三路輸入來源"]
+        direction LR
+        G["實體手把"]
+        K["鍵盤 / 螢幕觸控"]
+        M["巨集工作坊"]
+    end
+
+    PC["Ghost-Pad 桌面端 (Tauri v2 · Rust · React 19)"]
+    ESP["ESP32 開發板 (Bluetooth Classic HID)"]
+    SW["Nintendo Switch (Pro Controller)"]
+
+    Inputs --> PC
+    PC -->|"USB 序列埠 · 19200 bps · 60Hz (9-Byte CRC-8)"| ESP
+    ESP -->|"無線藍牙 · VID 0x057E / PID 0x2009"| SW
 ```
 
 > [!NOTE]

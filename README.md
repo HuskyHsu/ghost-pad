@@ -24,8 +24,22 @@ High-performance PC-to-Nintendo Switch virtual controller bridge, live visualize
 
 **Ghost-Pad** turns your computer into an intelligent controller core for the Nintendo Switch. The desktop application (built with Tauri v2, Rust, and React 19) merges inputs from physical gamepads, keyboards, pointer controls, and automated macros, then streams 60Hz binary control packets over USB Serial (`19200 bps`, UARTSwitchCon 9-Byte + CRC-8) to an ESP32 development board. The ESP32 emulates a native **Nintendo Switch Pro Controller** over Bluetooth Classic (`VID: 0x057E`, `PID: 0x2009`).
 
-```text
-PC (Ghost-Pad Desktop)  ──[ USB Serial 19200 bps ]──▶  ESP32 (Bluetooth Classic HID)  ──[ Wireless ]──▶  Nintendo Switch
+```mermaid
+flowchart TD
+    subgraph Inputs["Input Sources"]
+        direction LR
+        G["Physical Gamepad"]
+        K["Keyboard / Pointer"]
+        M["Macro Studio"]
+    end
+
+    PC["Ghost-Pad Desktop (Tauri v2 · Rust · React 19)"]
+    ESP["ESP32 Dev Board (Bluetooth Classic HID)"]
+    SW["Nintendo Switch (Pro Controller)"]
+
+    Inputs --> PC
+    PC -->|"USB Serial · 19200 bps · 60Hz (9-Byte CRC-8)"| ESP
+    ESP -->|"Bluetooth Classic · VID 0x057E / PID 0x2009"| SW
 ```
 
 > [!NOTE]
