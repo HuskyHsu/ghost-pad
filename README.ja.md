@@ -1,6 +1,8 @@
-# 👻 Ghost-Pad (PC-to-Switch Controller Bridge)
-
 <div align="center">
+
+<img src="docs/assets/logo-animated.svg" alt="Ghost-Pad Logo" width="120" height="120" />
+
+# Ghost-Pad (PC-to-Switch Controller Bridge)
 
 **[English](README.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md)**
 
@@ -49,7 +51,7 @@ PC をスマートコントローラーの中核とし、USB シリアル通信�
   - **PC キーボード**：デフォルトの WASD とキー割り当てで、斜めスティック入力や各アクションキーに対応。
   - **画面タッチ / マウス**：ゴーストコントローラーのボタンを直接クリックしたり、アナログスティックを滑らかにドラッグ（120Hz ハードウェアアクセラレーション DOM Transform、Pointer Capture、物理スプリングリバウンド対応）。
   - **スマート入力マージ**：デジタルボタンの論理和（OR）、方向キーとスティックの動的オーバーライド、誤操作防止用ワンクリックミュート（Mute）モード。
-- 👻 **ゴーストコントローラー・リアルタイムビジュアライザー & HUD モード**：
+- 🎛️ **ゴーストコントローラー・リアルタイムビジュアライザー & HUD モード**：
   - 愛らしいゴーストデザインのコントローラー。メタモンのような動的表情フィードバックとデュアルスティックの角度可視化。
   - レスポンシブ自動等比スケーリング（Auto Scale-to-Fit）。ウィンドウを 720x460 未満に縮小すると、自動的に極小フローティング HUD モードに切り替わります。
 - 🎼 **リアルタイムタイムラインストリーム (Live Timeline Stream)**：

@@ -1,6 +1,8 @@
-# 👻 Ghost-Pad (PC-to-Switch Controller Bridge)
-
 <div align="center">
+
+<img src="docs/assets/logo-animated.svg" alt="Ghost-Pad Logo" width="120" height="120" />
+
+# Ghost-Pad (PC-to-Switch Controller Bridge)
 
 **[English](README.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md)**
 
@@ -49,7 +51,7 @@ Using your computer as an intelligent controller core, it sends commands via USB
   - **Keyboard Direct Control**: Default WASD and keyboard mappings, supporting diagonal analog vector simulation and action keys.
   - **Screen Touch / Mouse**: Direct clicks on the ghost controller buttons or fluid analog stick dragging (120Hz hardware-accelerated DOM Transform, Pointer Capture, and spring physics).
   - **Smart Input Merging**: Digital button union (OR logic), analog stick and D-Pad dynamic overrides, and one-click Mute mode to prevent accidental inputs.
-- 👻 **Ghost Controller Live Visualizer & HUD Mode**:
+- 🎛️ **Ghost Controller Live Visualizer & HUD Mode**:
   - Adorable ghost-themed 2D controller with dynamic Ditto expression feedback and dual-stick angle visualization.
   - Responsive Auto Scale-to-Fit; automatically transforms into a compact floating HUD widget when resized below 720x460.
 - 🎼 **Live Input Timeline Stream**:

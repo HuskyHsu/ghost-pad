@@ -1,6 +1,8 @@
-# 👻 Ghost-Pad (PC-to-Switch Controller Bridge)
-
 <div align="center">
+
+<img src="docs/assets/logo-animated.svg" alt="Ghost-Pad Logo" width="120" height="120" />
+
+# Ghost-Pad (PC-to-Switch Controller Bridge)
 
 **[English](README.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md)**
 
@@ -49,7 +51,7 @@ Ghost-Pad 是專為 Nintendo Switch 打造的高效能虛擬手把代理、視�
   - **電腦鍵盤**：預設 WASD 與鍵盤鍵位映射，支援斜向推動與確認/取消/功能鍵。
   - **螢幕觸控 / 滑鼠**：直接點擊幽靈控制器按鈕或平滑拖曳類比搖桿（支援 120Hz 硬體加速 DOM Transform、Pointer Capture 與物理彈簧回彈）。
   - **智慧狀態合併**：數位鍵聯集（OR 邏輯）、方向與搖桿動態覆蓋、一鍵靜音（Mute）模式防止誤觸。
-- 👻 **幽靈手把動態儀表板 (Live Visualizer) & HUD 模式**：
+- 🎛️ **幽靈手把動態儀表板 (Live Visualizer) & HUD 模式**：
   - 擬真可愛幽靈造型手把，動態百變怪表情回饋與雙搖桿角度視覺化。
   - 響應式自動等比縮放（Auto Scale-to-Fit），視窗縮小時自適應切換為極簡迷你懸浮 HUD 模式視窗。
 - 🎼 **即時操作時序流 (Live Timeline Stream)**：
