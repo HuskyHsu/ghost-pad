@@ -14,6 +14,8 @@ import {
   Tv,
   Zap,
   Radio,
+  Power,
+  Send,
   X,
 } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -210,124 +212,216 @@ export const Sidebar: React.FC<Props> = ({
 
         {/* Unified Ghost-Pad Virtual Controller Card */}
         <div className="mt-3 p-3 rounded-lg bg-surface-card border border-border-element shadow-xs space-y-2.5 text-xs">
-          {/* Header: Name & Status indicator & Switch Toggle */}
+          {/* Header: Title & live overall status (no duplicate logo) */}
           <div className="flex items-start justify-between gap-2">
-            <div className="flex items-start gap-2.5 min-w-0 flex-1">
-              <div
-                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border transition-all p-0.5 mt-0.5 ${
-                  esp32Connected
-                    ? "bg-gradient-to-br from-[#EAF6FD] to-[#CFEBFB] border-[#38BDF8]/55 shadow-[0_0_8px_rgba(56,189,248,0.28)]"
-                    : isStep0Ready
-                    ? "bg-[#EAF6FD]/80 border-[#7DD3FC]/40"
-                    : "bg-surface-input border-border-subtle opacity-60"
-                }`}
-              >
-                <GhostPadLogo
-                  active={esp32Connected}
-                  className={`w-full h-full ${!esp32Connected && !isStep0Ready ? "grayscale opacity-65" : ""}`}
-                />
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-semibold text-text-primary leading-tight truncate">
+                {t("sidebar.bridge_title")}
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[11px] font-semibold text-text-primary leading-tight truncate">
-                  {t("sidebar.bridge_title")}
-                </div>
-                <div className="flex items-center gap-1.5 mt-1 min-w-0">
-                  <span
-                    className={`text-[9px] px-1.5 py-0.2 rounded font-mono shrink-0 border whitespace-nowrap ${
-                      esp32Connected
-                        ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                        : isStep0Ready
-                        ? "bg-surface-input text-text-muted border-border-subtle"
-                        : "bg-surface-input text-text-disabled border-border-subtle"
-                    }`}
-                  >
-                    {esp32Connected
-                      ? t("sidebar.bridge_status_streaming")
-                      : isStep0Ready
-                      ? t("sidebar.bridge_status_ready")
-                      : t("sidebar.bridge_status_not_ready")}
-                  </span>
-                  <span className="text-[10px] text-text-muted font-mono truncate min-w-0">
-                    {esp32Connected
-                      ? t("sidebar.bridge_desc_streaming", { fps: serialStatus?.tx_fps || 60 })
-                      : isStep0Ready
+              <div className="flex items-center gap-1.5 mt-1 text-[10px] font-mono min-w-0">
+                {esp32Connected ? (
+                  <>
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                        switchPairingState === "connected"
+                          ? "bg-emerald-500"
+                          : switchPairingState === "pairing"
+                          ? "bg-amber-500 animate-pulse"
+                          : "bg-text-disabled"
+                      }`}
+                    />
+                    <span
+                      className={`truncate ${
+                        switchPairingState === "connected"
+                          ? "text-emerald-600 font-medium"
+                          : switchPairingState === "pairing"
+                          ? "text-amber-600"
+                          : "text-text-muted"
+                      }`}
+                    >
+                      {switchPairingState === "connected"
+                        ? t("sidebar.switch_connected_1p")
+                        : switchPairingState === "pairing"
+                        ? t("sidebar.switch_pairing")
+                        : t("sidebar.switch_standby")}
+                    </span>
+                    <span className="text-text-disabled shrink-0">•</span>
+                    <span className="text-text-muted shrink-0">
+                      {serialStatus?.tx_fps || 60}Hz
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-text-muted truncate">
+                    {isStep0Ready
                       ? t("sidebar.bridge_desc_ready")
                       : t("sidebar.bridge_desc_not_ready")}
                   </span>
-                </div>
+                )}
               </div>
             </div>
 
-            {/* iOS-Style Tactile Toggle Switch */}
-            <button
-              type="button"
-              role="switch"
-              aria-checked={esp32Connected}
-              disabled={!isStep0Ready && !esp32Connected}
-              onClick={onToggleVirtualController}
-              title={
+            <span
+              className={`text-[9px] px-1.5 py-0.5 rounded font-mono shrink-0 border whitespace-nowrap ${
                 esp32Connected
-                  ? t("sidebar.toggle_stop_bridge")
+                  ? isMuted
+                    ? "bg-feedback-warning-bg text-feedback-warning-text border-feedback-warning-border"
+                    : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                   : isStep0Ready
-                  ? t("sidebar.toggle_start_bridge")
-                  : t("sidebar.toggle_not_ready")
-              }
-              className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out border mt-0.5 ${
-                !isStep0Ready && !esp32Connected
-                  ? "bg-surface-input border-border-subtle opacity-40 cursor-not-allowed"
-                  : esp32Connected
-                  ? "bg-emerald-500 border-emerald-600 cursor-pointer"
-                  : "bg-surface-input border-border-element hover:bg-interactive-hover cursor-pointer"
+                  ? "bg-surface-input text-text-muted border-border-subtle"
+                  : "bg-surface-input text-text-disabled border-border-subtle"
               }`}
             >
-              <span
-                className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
-                  esp32Connected ? "translate-x-4.5" : "translate-x-0.5"
-                }`}
-              />
-            </button>
+              {esp32Connected
+                ? isMuted
+                  ? t("sidebar.bridge_status_paused")
+                  : t("sidebar.bridge_status_streaming")
+                : isStep0Ready
+                ? t("sidebar.bridge_status_ready")
+                : t("sidebar.bridge_status_not_ready")}
+            </span>
           </div>
 
-          {/* Controls when Virtual Controller is active */}
-          {esp32Connected && (
-            <div className="pt-2 border-t border-border-subtle space-y-2">
-              {/* Signal Transmission Toggle */}
-              <div className="flex items-center justify-between text-[10px] gap-2">
-                <span className="text-text-secondary truncate">{t("sidebar.signal_streaming")}</span>
+          {/* Linked Dual Toggle Panel: Switch 2 visually branches from Switch 1 */}
+          <div className="rounded-lg bg-surface-input/60 border border-border-subtle p-2.5 space-y-0">
+            {/* Switch 1 (Primary): ESP32 Connection */}
+            <div className="flex items-center justify-between gap-2.5">
+              <div className="flex items-start gap-2 min-w-0 flex-1">
+                <div
+                  className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${
+                    esp32Connected
+                      ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-600"
+                      : "bg-surface-card border-border-subtle text-text-muted"
+                  }`}
+                >
+                  <Power className="w-3 h-3" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-medium text-text-primary leading-tight truncate">
+                    {t("sidebar.control_esp32_link")}
+                  </div>
+                  <div className="text-[10px] text-text-muted leading-snug mt-0.5 truncate">
+                    {esp32Connected
+                      ? t("sidebar.control_esp32_link_on")
+                      : isStep0Ready
+                      ? t("sidebar.control_esp32_link_off")
+                      : t("sidebar.control_esp32_link_not_ready")}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                role="switch"
+                aria-label={t("sidebar.control_esp32_link")}
+                aria-checked={esp32Connected}
+                disabled={!isStep0Ready && !esp32Connected}
+                onClick={onToggleVirtualController}
+                title={
+                  esp32Connected
+                    ? t("sidebar.toggle_stop_bridge")
+                    : isStep0Ready
+                    ? t("sidebar.toggle_start_bridge")
+                    : t("sidebar.toggle_not_ready")
+                }
+                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out border ${
+                  !isStep0Ready && !esp32Connected
+                    ? "bg-surface-input border-border-subtle opacity-40 cursor-not-allowed"
+                    : esp32Connected
+                    ? "bg-emerald-500 border-emerald-600 cursor-pointer"
+                    : "bg-surface-card border-border-element hover:bg-interactive-hover cursor-pointer"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
+                    esp32Connected ? "translate-x-4.5" : "translate-x-0.5"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Dependency Branch + Switch 2 (Dependent): Input Forwarding */}
+            <div className="flex items-stretch gap-2 pt-1.5">
+              {/* L-shaped tree connector from Switch 1's icon column */}
+              <div className="w-5 shrink-0 flex justify-center">
+                <div
+                  className={`w-2.5 h-5 translate-x-1 -mt-1.5 border-l-2 border-b-2 rounded-bl-md transition-colors ${
+                    !esp32Connected
+                      ? "border-border-element/70"
+                      : isMuted
+                      ? "border-amber-400/80"
+                      : "border-emerald-400/80"
+                  }`}
+                />
+              </div>
+
+              <div
+                className={`flex-1 min-w-0 flex items-center justify-between gap-2.5 pt-1 border-t border-border-subtle/70 transition-opacity ${
+                  !esp32Connected ? "opacity-50" : ""
+                }`}
+              >
+                <div className="flex items-start gap-1.5 min-w-0 flex-1">
+                  <Send
+                    className={`w-3 h-3 mt-0.5 shrink-0 ${
+                      !esp32Connected
+                        ? "text-text-disabled"
+                        : isMuted
+                        ? "text-amber-500"
+                        : "text-emerald-600"
+                    }`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-medium text-text-primary leading-tight truncate">
+                      {t("sidebar.control_signal_send")}
+                    </div>
+                    <div
+                      className={`text-[10px] leading-snug mt-0.5 truncate ${
+                        esp32Connected && isMuted ? "text-amber-600" : "text-text-muted"
+                      }`}
+                    >
+                      {!esp32Connected
+                        ? t("sidebar.control_signal_send_disabled")
+                        : isMuted
+                        ? t("sidebar.control_signal_send_paused")
+                        : t("sidebar.control_signal_send_on")}
+                    </div>
+                  </div>
+                </div>
+
                 <button
                   type="button"
+                  role="switch"
+                  aria-label={t("sidebar.control_signal_send")}
+                  aria-checked={esp32Connected && !isMuted}
+                  disabled={!esp32Connected}
                   onClick={onToggleMute}
-                  title={isMuted ? t("sidebar.unmute_tooltip") : t("sidebar.mute_tooltip")}
-                  className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
-                    isMuted
-                      ? "bg-feedback-warning-bg text-feedback-warning-text border-feedback-warning-border"
-                      : "bg-feedback-success-bg text-feedback-success-text border-feedback-success-border"
+                  title={
+                    !esp32Connected
+                      ? t("sidebar.control_signal_send_disabled")
+                      : isMuted
+                      ? t("sidebar.unmute_tooltip")
+                      : t("sidebar.mute_tooltip")
+                  }
+                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out border ${
+                    !esp32Connected
+                      ? "bg-surface-input border-border-subtle opacity-40 cursor-not-allowed"
+                      : !isMuted
+                      ? "bg-emerald-500 border-emerald-600 cursor-pointer"
+                      : "bg-amber-100 border-amber-300 hover:bg-amber-200/70 cursor-pointer"
                   }`}
                 >
-                  <span className={`w-1.5 h-1.5 rounded-full ${isMuted ? "bg-amber-500" : "bg-emerald-500"}`} />
-                  <span>{isMuted ? t("sidebar.signal_paused") : t("sidebar.signal_active")}</span>
+                  <span
+                    className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
+                      esp32Connected && !isMuted ? "translate-x-4.5" : "translate-x-0.5"
+                    }`}
+                  />
                 </button>
               </div>
+            </div>
+          </div>
 
-              <div className="flex items-center justify-between text-[10px] gap-2">
-                <span className="text-text-secondary truncate">{t("sidebar.switch_status")}</span>
-                <span
-                  className={`font-mono font-medium shrink-0 whitespace-nowrap ${
-                    switchPairingState === "connected"
-                      ? "text-emerald-600"
-                      : switchPairingState === "pairing"
-                      ? "text-amber-600"
-                      : "text-text-muted"
-                  }`}
-                >
-                  {switchPairingState === "connected"
-                    ? t("sidebar.switch_connected_1p")
-                    : switchPairingState === "pairing"
-                    ? t("sidebar.switch_pairing")
-                    : t("sidebar.switch_standby")}
-                </span>
-              </div>
-
+          {/* Quick Pairing / Reconnect Action when ESP32 is connected */}
+          {esp32Connected && (
+            <div>
               {hasPairedSwitch ? (
                 <button
                   onClick={() => onSendSerialCommand?.("wake_reconnect")}

@@ -36,9 +36,7 @@
   "library_title": "Macro Library",
   "library_subtitle": "Run macros directly in Live Dashboard with instant manual takeover, or open to edit multi-track staves",
   "footer": {
-    "scripts_total": "● {{count}} macros in library (click to edit multi-track staves)",
-    "format": "Format: PRO-UART0 JSON v2",
-    "switch_output": "Switch Output: 1P Pro Controller"
+    "scripts_total": "● {{count}} macros in library (click to edit multi-track staves)"
   },
   "invalid_json_alert": "Unable to recognize this JSON format. Please verify it is a Ghost-Pad macro file.",
   "player": {

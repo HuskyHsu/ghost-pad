@@ -261,7 +261,7 @@ export function App() {
         }
       }
 
-      const nextPairState = hasPairedSwitch ? "pairing" : "disconnected";
+      const nextPairState = "pairing";
       setEsp32Connected(true);
       setSwitchPairingState(nextPairState);
       setIsMuted(false);
@@ -280,7 +280,6 @@ export function App() {
         setTimeout(async () => {
           try {
             await invoke("send_serial_command", { command: "wake_reconnect" });
-            setSwitchPairingState("connected");
           } catch (e) {
             console.error(e);
           }

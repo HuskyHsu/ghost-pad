@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { Activity, AlertCircle, Check, ChevronDown, ChevronRight, Cpu, Home, Lock, Power, Radio, RefreshCw, RotateCcw, ShieldCheck, Wrench, Zap } from 'lucide-react';
+import { Activity, AlertCircle, Check, ChevronDown, ChevronRight, Cpu, Home, Lock, Power, Radio, RefreshCw, RotateCcw, Wrench, Zap } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useToast } from '../context/ToastContext';
 import { SerialPortDetail, SerialStatus, isEsp32Chip } from '../types';
@@ -38,7 +38,7 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
 
   // Firmware status: idle | checking | compatible | recognized | incompatible
   const [firmwareStatus, setFirmwareStatus] = useState<'idle' | 'checking' | 'compatible' | 'recognized' | 'incompatible'>(() => (isDemo ? 'recognized' : 'idle'));
-  const [probeDetails, setProbeDetails] = useState<string>(() => (isDemo ? 'PRO-UART0.bin v1.0.0 (ACK 0x90 Verified)' : ''));
+  const [probeDetails, setProbeDetails] = useState<string>('');
 
   // Progressive Disclosure: Toggle Firmware Flasher utility
   const [showFlasher, setShowFlasher] = useState<boolean>(false);
@@ -148,7 +148,7 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
 
       if (isMountedRef.current) {
         setFirmwareStatus('checking');
-        setProbeDetails('正在與 ESP32 進行 UARTSwitchCon 協議交握測試...');
+        setProbeDetails(t('step0.probe_checking_detail', '正在驗證 ESP32 韌體…'));
       }
 
       if (!isTauri) {
@@ -156,10 +156,10 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
         if (!isMountedRef.current) return;
         if (portName.includes('incompatible')) {
           setFirmwareStatus('incompatible');
-          setProbeDetails('非標準 ESP32 晶片且未回應 0xFF 握手碼，請確認是否選錯序列埠');
+          setProbeDetails(t('step0.probe_incompatible_detail', '未偵測到相容的 ESP32 韌體，請確認是否選錯序列埠或尚未燒錄 PRO-UART0.bin。'));
         } else {
           setFirmwareStatus('compatible');
-          setProbeDetails('交握通過：PRO-UART0.bin (UARTSwitchCon 9-Byte 協議確認)');
+          setProbeDetails('');
         }
         return;
       }
@@ -172,21 +172,21 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
         if (!isMountedRef.current) return;
         if (isOk) {
           setFirmwareStatus('compatible');
-          setProbeDetails('交握通過：PRO-UART0.bin (UARTSwitchCon 9-Byte 協議確認)');
+          setProbeDetails('');
         } else if (isRecognized) {
           setFirmwareStatus('recognized');
-          setProbeDetails('已辨識 ESP32 序列晶片 (CH340/CP210x)，但未通過 PRO-UART0 韌體交握。請燒錄 PRO-UART0.bin 或確認鮑率後重新檢測。');
+          setProbeDetails(t('step0.probe_recognized_detail', '已偵測到 ESP32，但韌體驗證未通過。請確認已燒錄 PRO-UART0.bin 後重試。'));
         } else {
           setFirmwareStatus('incompatible');
-          setProbeDetails('交握未響應，且未辨識出標準 ESP32 晶片 (CH340/CP210x)。可能為未燒錄韌體或非手把硬體。');
+          setProbeDetails(t('step0.probe_incompatible_detail', '未偵測到相容的 ESP32 韌體，請確認是否選錯序列埠或尚未燒錄 PRO-UART0.bin。'));
         }
       } catch (err: any) {
         if (!isMountedRef.current) return;
         setFirmwareStatus(isRecognized ? 'recognized' : 'incompatible');
-        setProbeDetails(`韌體檢測失敗：${String(err)}`);
+        setProbeDetails(t('step0.probe_error_detail', { reason: String(err), defaultValue: `韌體檢測失敗：${String(err)}` }));
       }
     },
-    [isTauri],
+    [isTauri, t],
   );
 
   // Fetch available ports (stable callback, no circular dependency)
@@ -311,7 +311,7 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
   // Dispatch Quick Action Commands
   const handleSendCommand = async (cmd: string, successLabel: string) => {
     if (!status.is_connected) {
-      setErrorMessage(t('feedback.need_step1_first', '請先啟動步驟 1「虛擬手把服務」，才能發送配對或控制指令！'));
+      setErrorMessage(t('feedback.need_step1_first', '請先開啟步驟 1「ESP32 連線」，才能發送配對或控制指令！'));
       return;
     }
 
@@ -371,7 +371,7 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
       }));
       onConnectionChange?.(false);
       onPairingChange?.('disconnected');
-      setSuccessNotice(t('feedback.service_stopped', '虛擬手把服務已停止，所有按鍵訊號安全歸零。'));
+      setSuccessNotice(t('feedback.service_stopped', 'ESP32 連線已斷開，已釋放 Switch 1P 並歸零所有訊號。'));
     } else {
       if (!selectedPort) {
         setErrorMessage(t('feedback.select_port_first', '請先於步驟 0 選取 ESP32 序列埠'));
@@ -403,7 +403,7 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
       });
       onConnectionChange?.(true);
       onPairingChange?.('pairing');
-      setSuccessNotice(t('feedback.service_started', '虛擬手把服務已啟動！Switch 連上後狀態會自動變為「已連線」。'));
+      setSuccessNotice(t('feedback.service_started', 'ESP32 連線已開啟！Switch 連上後狀態會自動變為「已連線」。'));
     }
   };
 
@@ -448,10 +448,6 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
     setSuccessNotice(t('feedback.flash_complete', 'PRO-UART0.bin 韌體燒錄完成！正在重新驗證交握協議...'));
     await probeFirmware(selectedPort, selectedBaudrate);
   };
-
-  // Active port details & chip identification
-  const activePortDetail = ports.find((p) => p.port_name === selectedPort);
-  const isRecognizedUsb = isEsp32Chip(activePortDetail);
 
   // --- Strict Sequential Gating Logic ---
   // Step 0: USB detected AND firmware verified via PRO-UART0 handshake
@@ -499,14 +495,14 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
                   {isSwitchConnected
                     ? t('header.switch_1p_connected', 'Switch 1P 已連線')
                     : status.is_connected
-                      ? t('header.streaming', '虛擬手把串流中')
+                      ? t('header.streaming', 'ESP32 已連線')
                       : isStep0Ready
                         ? t('header.ready', '硬體就緒')
                         : t('header.pending', '待接妥硬體')}
                 </span>
               </span>
             </div>
-            <p className='text-xs text-text-secondary truncate hidden sm:block'>{t('subtitle', '依序連接「硬體裝置」➔「虛擬手把服務」➔「Switch 主機連線」')}</p>
+            <p className='text-xs text-text-secondary truncate hidden sm:block'>{t('subtitle', '依序完成「硬體與韌體」➔「ESP32 連線」➔「Switch 主機連線」')}</p>
           </div>
         </div>
 
@@ -564,11 +560,11 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
               1
             </div>
             <div className='min-w-0 flex-1'>
-              <div className='text-[10px] uppercase font-mono tracking-wider text-zinc-500'>{t('stepper.step1_label', '虛擬手把服務')}</div>
+              <div className='text-[10px] uppercase font-mono tracking-wider text-zinc-500'>{t('stepper.step1_label', 'ESP32 連線')}</div>
               <div className='text-xs font-medium truncate flex items-center gap-1.5 mt-0.5'>
                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${status.is_connected ? 'bg-emerald-400' : 'bg-zinc-600'}`} />
                 <span className='truncate'>
-                  {status.is_connected ? t('stepper.step1_streaming', { fps: status.tx_fps, defaultValue: `60Hz 串流中 (${status.tx_fps} Hz)` }) : t('stepper.step1_stopped', '服務已停止')}
+                  {status.is_connected ? t('stepper.step1_streaming', { fps: status.tx_fps, defaultValue: `60Hz 串流中 (${status.tx_fps} Hz)` }) : t('stepper.step1_stopped', '已斷開')}
                 </span>
               </div>
             </div>
@@ -625,7 +621,7 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
                 </div>
                 <div>
                   <h2 className='text-xs font-semibold text-text-primary'>{t('step0.title', '步驟 0：檢查 USB 連線與 ESP32 韌體')}</h2>
-                  <p className='text-[11px] text-text-secondary'>{t('step0.desc', '自動識別 ESP32 晶片 (CH340/CP210x)，並支援 PRO-UART0 協議握手檢驗')}</p>
+                  <p className='text-[11px] text-text-secondary'>{t('step0.desc', '接上 USB 後會自動偵測 ESP32 並驗證韌體')}</p>
                 </div>
               </div>
 
@@ -666,63 +662,64 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
                   </div>
                 </div>
               ) : (
-                <div className='grid grid-cols-1 md:grid-cols-12 gap-3 items-end'>
-                  <div className='md:col-span-8 space-y-1'>
-                    <div className='flex items-center justify-between'>
-                      <label className='block text-[11px] font-medium text-text-secondary'>{t('step0.select_port_label', '選取 ESP32 序列埠')}</label>
-                      <span className='text-[10px] font-mono text-text-muted'>{t('step0.available_ports', { count: ports.length, defaultValue: `${ports.length} 個可用 USB 序列埠` })}</span>
-                    </div>
-                    <div className='relative'>
-                      <select
-                        value={selectedPort}
-                        onChange={(e) => handlePortChange(e.target.value)}
-                        disabled={status.is_connected}
-                        className='appearance-none w-full bg-surface-input border border-border-element hover:border-border-focus focus:border-border-focus rounded-md pl-3 pr-8 py-2 text-xs text-text-primary focus:outline-none transition-colors font-mono cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
-                      >
-                        {ports.map((p) => (
-                          <option key={p.port_name} value={p.port_name}>
-                            {p.port_name} — {p.description}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className='w-3.5 h-3.5 text-text-muted pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2' />
-                    </div>
-                  </div>
-
-                  <div className='md:col-span-4'>
-                    <div className='p-2 rounded-lg bg-surface-input border border-border-subtle flex items-center justify-between text-xs'>
-                      <div className='flex items-center gap-1.5 min-w-0'>
-                        <Cpu className='w-3.5 h-3.5 text-text-muted shrink-0' />
-                        <span className='font-mono text-[11px] text-text-primary truncate'>
-                          {isRecognizedUsb ? t('step0.chip_recognized', 'CH340 / CP2102') : t('step0.chip_standard', '標準 USB 晶片')}
-                        </span>
+                <div className='space-y-2'>
+                  <div className='flex flex-col sm:flex-row sm:items-end gap-2.5'>
+                    <div className='flex-1 min-w-0 space-y-1'>
+                      <div className='flex items-center justify-between gap-2'>
+                        <label className='block text-[11px] font-medium text-text-secondary'>{t('step0.select_port_label', '選取 ESP32 序列埠')}</label>
+                        <span className='text-[10px] font-mono text-text-muted shrink-0'>{t('step0.available_ports', { count: ports.length, defaultValue: `${ports.length} 個可用 USB 序列埠` })}</span>
                       </div>
-                      <button
-                        type='button'
-                        onClick={() => {
-                          if (selectedPort && firmwareStatus !== 'checking') {
-                            probeFirmware(selectedPort, selectedBaudrate);
-                          }
-                        }}
-                        disabled={status.is_connected || firmwareStatus === 'checking'}
-                        title={t('step0.probe_tooltip', '重新進行 PRO-UART0 韌體交握檢測')}
-                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0 transition-colors cursor-pointer disabled:cursor-default ${
-                          firmwareStatus === 'compatible' || status.is_connected
-                            ? 'text-emerald-700 bg-emerald-50 border-emerald-300'
-                            : firmwareStatus === 'checking'
-                              ? 'text-text-muted bg-surface-card border-border-element animate-pulse'
-                              : 'text-rose-700 bg-rose-50 border-rose-300 hover:bg-rose-100'
-                        }`}
-                      >
-                        {firmwareStatus === 'compatible' || status.is_connected
-                          ? t('step0.probe_ok', 'PRO-UART0 ✓')
-                          : firmwareStatus === 'checking'
-                            ? t('step0.probe_checking', '檢測中…')
-                            : t('step0.probe_retry', '未驗證 · 重試')}
-                      </button>
+                      <div className='relative'>
+                        <select
+                          value={selectedPort}
+                          onChange={(e) => handlePortChange(e.target.value)}
+                          disabled={status.is_connected}
+                          className='appearance-none w-full h-9 bg-surface-input border border-border-element hover:border-border-focus focus:border-border-focus rounded-md pl-3 pr-8 text-xs text-text-primary focus:outline-none transition-colors font-mono cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+                        >
+                          {ports.map((p) => (
+                            <option key={p.port_name} value={p.port_name}>
+                              {p.port_name} — {p.description}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className='w-3.5 h-3.5 text-text-muted pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2' />
+                      </div>
                     </div>
+
+                    <button
+                      type='button'
+                      onClick={() => {
+                        if (selectedPort && firmwareStatus !== 'checking') {
+                          probeFirmware(selectedPort, selectedBaudrate);
+                        }
+                      }}
+                      disabled={status.is_connected || firmwareStatus === 'checking'}
+                      title={t('step0.probe_tooltip', '重新驗證 ESP32 韌體')}
+                      className={`h-9 px-3 rounded-md border text-xs font-medium font-mono flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap transition-colors cursor-pointer disabled:cursor-default ${
+                        firmwareStatus === 'compatible' || status.is_connected
+                          ? 'text-emerald-700 bg-emerald-50 border-emerald-300'
+                          : firmwareStatus === 'checking'
+                            ? 'text-text-muted bg-surface-input border-border-element animate-pulse'
+                            : 'text-rose-700 bg-rose-50 border-rose-300 hover:bg-rose-100'
+                      }`}
+                    >
+                      {firmwareStatus === 'compatible' || status.is_connected ? (
+                        <Check className='w-3.5 h-3.5 shrink-0' />
+                      ) : firmwareStatus === 'checking' ? (
+                        <RefreshCw className='w-3.5 h-3.5 shrink-0 animate-spin' />
+                      ) : (
+                        <AlertCircle className='w-3.5 h-3.5 shrink-0' />
+                      )}
+                      <span>
+                        {firmwareStatus === 'compatible' || status.is_connected
+                          ? t('step0.probe_ok', 'PRO-UART0 已驗證')
+                          : firmwareStatus === 'checking'
+                            ? t('step0.probe_checking', '驗證韌體中…')
+                            : t('step0.probe_retry', '未驗證 · 點擊重試')}
+                      </span>
+                    </button>
                   </div>
-                  {probeDetails && <div className='md:col-span-12 text-[11px] text-text-muted font-mono px-1'>{probeDetails}</div>}
+                  {probeDetails && <div className='text-[11px] text-text-muted font-mono px-1'>{probeDetails}</div>}
                 </div>
               )}
 
@@ -792,7 +789,7 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
                     ? t('step1.locked_no_usb', '請先接上 ESP32 USB 裝置')
                     : firmwareStatus === 'checking'
                       ? t('step1.locked_checking', '正在驗證 ESP32 韌體…')
-                      : t('step1.locked_unverified', 'ESP32 韌體尚未通過 PRO-UART0 交握驗證，請確認已燒錄正確韌體後重新檢測')}
+                      : t('step1.locked_unverified', 'ESP32 韌體驗證未通過，請確認已燒錄正確韌體後重新檢測')}
                 </div>
               </div>
             )}
@@ -807,15 +804,15 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
                   1
                 </div>
                 <div>
-                  <h2 className='text-xs font-semibold text-text-primary'>{t('step1.title', '步驟 1：開關虛擬手把服務 (60Hz 串流)')}</h2>
-                  <p className='text-[11px] text-text-secondary'>{t('step1.desc', '建立電腦 ➔ ESP32 序列傳輸通道，維持心跳保活防止斷線')}</p>
+                  <h2 className='text-xs font-semibold text-text-primary'>{t('step1.title', '步驟 1：ESP32 連線')}</h2>
+                  <p className='text-[11px] text-text-secondary'>{t('step1.desc', '開啟後即可連線 Switch；斷開時會釋放 Switch 1P 給主機手把')}</p>
                 </div>
               </div>
-              <span className='text-[10px] font-mono text-text-muted'>{status.is_connected ? t('step1.status_streaming', '● 60Hz 串流中') : t('step1.status_stopped', '○ 服務已暫停')}</span>
+              <span className='text-[10px] font-mono text-text-muted'>{status.is_connected ? t('step1.status_streaming', '● 60Hz 串流中') : t('step1.status_stopped', '○ 已斷開')}</span>
             </div>
 
             <div className='space-y-4'>
-              <div className='grid grid-cols-1 md:grid-cols-12 gap-3 items-center'>
+              <div className='grid grid-cols-1 md:grid-cols-12 gap-3 items-end'>
                 <div className='md:col-span-4 space-y-1'>
                   <label className='block text-[11px] font-medium text-text-secondary'>{t('step1.baudrate_label', '通訊鮑率 (Baudrate)')}</label>
                   <div className='relative'>
@@ -827,7 +824,7 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
                         if (selectedPort) probeFirmware(selectedPort, newBaud);
                       }}
                       disabled={status.is_connected || !isStep0Ready}
-                      className='appearance-none w-full bg-surface-input border border-border-element hover:border-border-focus focus:border-border-focus rounded-md pl-3 pr-8 py-2 text-xs text-text-primary focus:outline-none transition-colors font-mono cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+                      className='appearance-none w-full h-9 bg-surface-input border border-border-element hover:border-border-focus focus:border-border-focus rounded-md pl-3 pr-8 text-xs text-text-primary focus:outline-none transition-colors font-mono cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
                     >
                       {COMMON_BAUDRATES.map((b) => (
                         <option key={b} value={b}>
@@ -841,7 +838,7 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
 
                 <div className='md:col-span-8 flex flex-col sm:flex-row items-center gap-3 md:justify-end'>
                   {/* Live Telemetry Pill */}
-                  <div className='flex items-center gap-3 p-2 rounded-lg bg-surface-input border border-border-subtle text-xs w-full sm:w-auto'>
+                  <div className='h-9 px-3 rounded-md bg-surface-input border border-border-subtle flex items-center gap-3 text-xs w-full sm:w-auto'>
                     <div className='flex items-center gap-1.5 text-text-secondary'>
                       <Activity className='w-3.5 h-3.5 text-text-muted' />
                       <span>{t('step1.telemetry_rate', '頻率:')}</span>
@@ -857,21 +854,13 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
                   <button
                     onClick={toggleVirtualController}
                     disabled={!isStep0Ready}
-                    className={`w-full sm:w-auto px-5 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 shrink-0 ${
+                    className={`w-full sm:w-auto h-9 px-5 rounded-md text-xs font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 shrink-0 ${
                       status.is_connected ? 'bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700' : 'bg-accent text-accent-foreground hover:bg-accent-hover'
                     }`}
                   >
                     <Power className='w-3.5 h-3.5' />
-                    <span>{status.is_connected ? t('step1.btn_stop', '停止虛擬手把') : t('step1.btn_start', '開啟虛擬手把')}</span>
+                    <span>{status.is_connected ? t('step1.btn_stop', '斷開 ESP32 連線') : t('step1.btn_start', '開啟 ESP32 連線')}</span>
                   </button>
-                </div>
-              </div>
-
-              {/* Heartbeat info banner */}
-              <div className='p-2.5 rounded-lg bg-surface-input border border-border-subtle flex items-center justify-between text-xs text-text-secondary'>
-                <div className='flex items-center gap-2'>
-                  <ShieldCheck className='w-3.5 h-3.5 text-text-muted shrink-0' />
-                  <span className='text-[11px]'>{t('step1.heartbeat_notice', '60Hz 心跳常駐保活已啟用：防止 Switch 閒置休眠踢掉手把，200ms 斷訊看門狗自動歸零防暴走。')}</span>
                 </div>
               </div>
             </div>
@@ -888,7 +877,7 @@ export const HardwareSettings: React.FC<Props> = ({ onConnectionChange, onPairin
                   <Lock className='w-4 h-4 text-text-muted' />
                 </div>
                 <div className='text-xs font-semibold text-text-primary'>{t('step2.locked_title', '步驟 2 已鎖定')}</div>
-                <div className='text-[11px] text-text-secondary max-w-xs'>{t('step2.locked_desc', '請先啟動「步驟 1：開啟虛擬手把」，序列串流就緒後方可連線 Switch。')}</div>
+                <div className='text-[11px] text-text-secondary max-w-xs'>{t('step2.locked_desc', '請先開啟「步驟 1：ESP32 連線」，序列串流就緒後方可連線 Switch。')}</div>
               </div>
             )}
 

@@ -65,7 +65,7 @@ describe("InputTimelineStream and Stick Math", () => {
     it("renders the timeline stream header and controls", () => {
       render(<InputTimelineStream state={DEFAULT_CONTROLLER_STATE} />);
 
-      expect(screen.getByText("即時操作時序流 (Live Stream)")).toBeInTheDocument();
+      expect(screen.getByText("即時操作時序流")).toBeInTheDocument();
       expect(screen.getByText(/操作次數:/i)).toBeInTheDocument();
       expect(screen.getByText(/總長度 30s/i)).toBeInTheDocument();
     });

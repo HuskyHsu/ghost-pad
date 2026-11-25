@@ -1,11 +1,13 @@
-import React, { useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  MacroAction,
   MacroScript,
   MacroPlayerStatus,
   MacroPlaybackConfig,
 } from "../../types/macro";
 import { getScriptTotalDurationMs } from "../../utils/macroStorage";
+import { getStickDirection } from "../InputTimelineStream";
 import {
   Play,
   Pause,
@@ -34,6 +36,46 @@ interface Props {
   onResume: () => void;
   onStop: () => void;
   onSeek?: (ms: number) => void;
+  onPreviewSeek?: (ms: number | null) => void;
+}
+
+function getActionChipMeta(action: MacroAction): { label: string; color: string } | null {
+  if (action.type === "wait") return null;
+  if (action.type === "button" && action.button) {
+    const key = action.button.toLowerCase();
+    const map: Record<string, { label: string; color: string }> = {
+      a: { label: "A", color: "#10b981" },
+      b: { label: "B", color: "#ef4444" },
+      x: { label: "X", color: "#38bdf8" },
+      y: { label: "Y", color: "#f59e0b" },
+      l: { label: "L", color: "#ec4899" },
+      r: { label: "R", color: "#ec4899" },
+      zl: { label: "ZL", color: "#f43f5e" },
+      zr: { label: "ZR", color: "#f43f5e" },
+      l_stick_click: { label: "L3", color: "#06b6d4" },
+      r_stick_click: { label: "R3", color: "#14b8a6" },
+      minus: { label: "−", color: "#94a3b8" },
+      plus: { label: "+", color: "#94a3b8" },
+      capture: { label: "◉", color: "#94a3b8" },
+      home: { label: "⌂", color: "#38bdf8" },
+    };
+    return map[key] || { label: key.toUpperCase(), color: "#64748b" };
+  }
+  if (action.type === "dpad") {
+    const dpadLabels = ["▲", "↗", "▶", "↘", "▼", "↙", "◀", "↖"];
+    const dir = typeof action.dpad === "number" ? action.dpad : 8;
+    if (dir < 0 || dir >= dpadLabels.length) return null;
+    return { label: dpadLabels[dir], color: "#c084fc" };
+  }
+  if (action.type === "stick" && action.stick) {
+    const isLeft = action.stick === "left";
+    const sx = typeof action.stickX === "number" ? action.stickX : 128;
+    const sy = typeof action.stickY === "number" ? action.stickY : 128;
+    const dir = getStickDirection(sx, sy, isLeft ? "L" : "R");
+    if (!dir) return null;
+    return { label: dir, color: isLeft ? "#06b6d4" : "#14b8a6" };
+  }
+  return null;
 }
 
 export const MacroPlayerBar: React.FC<Props> = ({
@@ -52,9 +94,12 @@ export const MacroPlayerBar: React.FC<Props> = ({
   onResume,
   onStop,
   onSeek,
+  onPreviewSeek,
 }) => {
   const { t } = useTranslation("macro");
   const isSeekingRef = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [hoverMs, setHoverMs] = useState<number | null>(null);
   const isAnyPlaying = status.isPlaying;
   const isThisScriptPlaying = Boolean(status.isPlaying && script && status.currentScriptId === script.id);
   const isThisScriptPaused = isThisScriptPlaying && status.isPaused;
@@ -67,11 +112,57 @@ export const MacroPlayerBar: React.FC<Props> = ({
   const showAutoPausedBanner = isThisScriptPaused && isAutoPaused;
   const showOfflineBanner = isThisScriptPlaying && isOfflinePreview;
 
-  const seekFromClientX = (el: HTMLElement, clientX: number) => {
-    if (!canSeek || !onSeek) return;
+  // Precompute minimap segments for non-wait actions
+  const minimapSegments = useMemo(() => {
+    if (!script || totalDurationMs <= 0) return [];
+    const list: Array<{ id: string; leftPct: number; widthPct: number; color: string; label: string; startMs: number; endMs: number }> = [];
+    for (const act of script.actions) {
+      const meta = getActionChipMeta(act);
+      if (!meta) continue;
+      const startMs = Math.max(0, act.startTimeMs || 0);
+      const durMs = Math.max(10, act.durationMs || 0);
+      list.push({
+        id: act.id,
+        leftPct: Math.min(100, (startMs / totalDurationMs) * 100),
+        widthPct: Math.max(1.2, Math.min(100, (durMs / totalDurationMs) * 100)),
+        color: meta.color,
+        label: meta.label,
+        startMs,
+        endMs: startMs + durMs,
+      });
+    }
+    return list.sort((a, b) => a.startMs - b.startMs);
+  }, [script, totalDurationMs]);
+
+  const previewMs = canSeek ? (isDragging ? displayedElapsedMs : hoverMs) : null;
+
+  useEffect(() => {
+    onPreviewSeek?.(previewMs);
+  }, [previewMs, onPreviewSeek]);
+
+  useEffect(() => {
+    return () => {
+      onPreviewSeek?.(null);
+    };
+  }, [onPreviewSeek]);
+  const previewInfo = useMemo(() => {
+    if (previewMs === null || totalDurationMs <= 0) return null;
+    const pct = Math.min(100, Math.max(0, (previewMs / totalDurationMs) * 100));
+    const active = minimapSegments.filter((s) => previewMs >= s.startMs && previewMs <= s.endMs);
+    const next = active.length === 0 ? minimapSegments.find((s) => s.startMs > previewMs) || null : null;
+    return { ms: previewMs, pct, active, next };
+  }, [previewMs, totalDurationMs, minimapSegments]);
+
+  const computeMsFromClientX = (el: HTMLElement, clientX: number) => {
     const rect = el.getBoundingClientRect();
     const ratio = rect.width > 0 ? Math.min(1, Math.max(0, (clientX - rect.left) / rect.width)) : 0;
-    const targetMs = Math.round((ratio * totalDurationMs) / 10) * 10;
+    return Math.round((ratio * totalDurationMs) / 10) * 10;
+  };
+
+  const seekFromClientX = (el: HTMLElement, clientX: number) => {
+    if (!canSeek || !onSeek) return;
+    const targetMs = computeMsFromClientX(el, clientX);
+    setHoverMs(targetMs);
     onSeek(targetMs);
   };
 
@@ -101,16 +192,23 @@ export const MacroPlayerBar: React.FC<Props> = ({
 
       {/* Row 1: Full-Width Slim Progress Strip (Click / Drag to Seek when Paused) */}
       <div className="w-full flex items-center gap-3">
-        <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
-          <span className="text-[10px] text-text-muted font-mono">
+        <div className="w-[76px] flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+          <span
+            className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
+              isThisScriptPaused
+                ? "bg-amber-500"
+                : isThisScriptPlaying
+                  ? "bg-emerald-500 animate-pulse"
+                  : "bg-border-element"
+            }`}
+          />
+          <span
+            className={`text-[10px] font-mono tabular-nums transition-colors ${
+              isThisScriptPaused ? "text-amber-700 font-medium" : "text-text-muted"
+            }`}
+          >
             {t("player.progress", { percent: displayedProgressPercent, defaultValue: `進度：${displayedProgressPercent}%` })}
           </span>
-          {isThisScriptPaused && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-              <span>{t("player.paused", "已暫停")}</span>
-            </span>
-          )}
         </div>
         <div
           role={canSeek ? "slider" : undefined}
@@ -122,6 +220,7 @@ export const MacroPlayerBar: React.FC<Props> = ({
           onPointerDown={(e) => {
             if (!canSeek) return;
             isSeekingRef.current = true;
+            setIsDragging(true);
             if (typeof e.currentTarget.setPointerCapture === "function") {
               try {
                 e.currentTarget.setPointerCapture(e.pointerId);
@@ -130,25 +229,90 @@ export const MacroPlayerBar: React.FC<Props> = ({
             seekFromClientX(e.currentTarget, e.clientX);
           }}
           onPointerMove={(e) => {
-            if (!isSeekingRef.current || !canSeek) return;
-            seekFromClientX(e.currentTarget, e.clientX);
+            if (!canSeek) return;
+            if (isSeekingRef.current) {
+              seekFromClientX(e.currentTarget, e.clientX);
+            } else {
+              setHoverMs(computeMsFromClientX(e.currentTarget, e.clientX));
+            }
           }}
           onPointerUp={() => {
             isSeekingRef.current = false;
+            setIsDragging(false);
           }}
           onPointerCancel={() => {
             isSeekingRef.current = false;
+            setIsDragging(false);
+            setHoverMs(null);
           }}
-          className={`flex-1 py-1.5 -my-1.5 min-w-[60px] flex items-center ${canSeek ? "cursor-pointer group" : ""}`}
+          onPointerLeave={() => {
+            if (!isSeekingRef.current) {
+              setHoverMs(null);
+            }
+          }}
+          className={`relative flex-1 py-1.5 -my-1.5 min-w-[60px] flex items-center ${canSeek ? "cursor-pointer group" : ""}`}
         >
+          {/* Floating Scrub Preview Tooltip (Zero Layout Shift) */}
+          {previewInfo && (
+            <div
+              className="absolute bottom-full mb-2 -translate-x-1/2 z-40 pointer-events-none flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900/95 text-white text-[10px] font-mono shadow-lg border border-slate-700/80 whitespace-nowrap"
+              style={{ left: `${Math.min(92, Math.max(8, previewInfo.pct))}%` }}
+            >
+              <span className="font-semibold text-amber-300 tabular-nums">
+                {(previewInfo.ms / 1000).toFixed(1)}s
+              </span>
+              <span className="text-slate-500">|</span>
+              {previewInfo.active.length > 0 ? (
+                <div className="flex items-center gap-1">
+                  {previewInfo.active.slice(0, 4).map((seg) => (
+                    <span
+                      key={seg.id}
+                      className="px-1.5 py-0.2 rounded text-[10px] font-bold text-slate-950 leading-tight"
+                      style={{ backgroundColor: seg.color }}
+                    >
+                      {seg.label}
+                    </span>
+                  ))}
+                </div>
+              ) : previewInfo.next ? (
+                <span className="text-slate-300 flex items-center gap-1">
+                  <span>→</span>
+                  <span
+                    className="px-1.5 py-0.2 rounded text-[10px] font-bold text-slate-950 leading-tight opacity-85"
+                    style={{ backgroundColor: previewInfo.next.color }}
+                  >
+                    {previewInfo.next.label}
+                  </span>
+                </span>
+              ) : (
+                <span className="text-slate-400">END</span>
+              )}
+            </div>
+          )}
+
           <div
             className={`w-full h-1.5 rounded-full bg-surface-input border border-border-subtle relative transition-all ${
               canSeek ? "group-hover:h-2" : "overflow-hidden"
             }`}
           >
+            {/* Action Minimap Segments inside the track */}
+            <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
+              {minimapSegments.map((seg) => (
+                <div
+                  key={seg.id}
+                  className={`absolute top-0 bottom-0 ${canSeek ? "opacity-45" : "opacity-25"}`}
+                  style={{
+                    left: `${seg.leftPct}%`,
+                    width: `${seg.widthPct}%`,
+                    backgroundColor: seg.color,
+                  }}
+                />
+              ))}
+            </div>
+
             <div
-              className={`h-full rounded-full transition-all duration-100 ease-out ${
-                isThisScriptPaused ? "bg-amber-500" : isThisScriptPlaying ? "bg-emerald-500" : "bg-accent-primary"
+              className={`relative h-full rounded-full transition-all duration-100 ease-out ${
+                isThisScriptPaused ? "bg-amber-500/85" : isThisScriptPlaying ? "bg-emerald-500/85" : "bg-accent-primary"
               }`}
               style={{ width: `${displayedProgressPercent}%` }}
             />
@@ -160,7 +324,7 @@ export const MacroPlayerBar: React.FC<Props> = ({
             )}
           </div>
         </div>
-        <span className="text-[10px] text-text-muted font-mono whitespace-nowrap shrink-0">
+        <span className="min-w-[72px] text-right text-[10px] text-text-muted font-mono tabular-nums whitespace-nowrap shrink-0">
           {`${(displayedElapsedMs / 1000).toFixed(1)}s / ${(totalDurationMs / 1000).toFixed(1)}s`}
         </span>
       </div>

@@ -5,8 +5,8 @@
     "local_mode": "本機控制模式",
     "local_mode_desc": "鍵盤與畫面按鈕皆可直接操作 (支援外接實體手把)",
     "gamepad_mixed": "實體手把已連線，可混用鍵盤、點擊與搖桿拖曳",
-    "esp32_active_stop": "ESP32 服務運作中 (點擊停止)",
-    "esp32_idle_start": "ESP32 待命中 (點擊啟動)",
+    "esp32_active_stop": "ESP32 已連線 (點擊斷開並釋放 1P)",
+    "esp32_idle_start": "ESP32 已斷開 (點擊開啟連線)",
     "help_tooltip": "查看電腦鍵盤與畫面操作對照",
     "rec_tooltip_start": "開始側錄手把與鍵盤操作 (倒數 321 後開始捕捉)",
     "rec_tooltip_stop": "點擊停止側錄並儲存巨集腳本",
@@ -67,8 +67,8 @@
     "macro_studio_desc": "時序譜面編輯、回放與側錄匯入"
   },
   "timeline": {
-    "title": "即時操作時序流 (Live Stream)",
-    "subtitle": "Live Timeline Stream (5 軌即時動作時序譜)",
+    "title": "即時操作時序流",
+    "subtitle": "5 軌即時動作紀錄",
     "tracks_header": "軌道",
     "op_count": "操作次數: {{count}}",
     "duration_badge": "總長度 {{duration}}s",

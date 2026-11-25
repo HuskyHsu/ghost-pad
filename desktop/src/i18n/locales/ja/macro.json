@@ -36,9 +36,7 @@
   "library_title": "マクロライブラリ",
   "library_subtitle": "ライブダッシュボードですぐ実行・手動介入したり、選択してマルチトラック譜面を編集できます",
   "footer": {
-    "scripts_total": "● ライブラリ内合計 {{count}} 件のマクロ (選択してマルチトラック編集へ)",
-    "format": "フォーマット: PRO-UART0 JSON v2",
-    "switch_output": "Switch 出力: 1P Pro Controller"
+    "scripts_total": "● ライブラリ内合計 {{count}} 件のマクロ (選択してマルチトラック編集へ)"
   },
   "invalid_json_alert": "この JSON 形式を認識できませんでした。Ghost-Pad のマクロファイルかご確認ください。",
   "player": {

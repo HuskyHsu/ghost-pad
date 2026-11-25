@@ -1,10 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ControllerState } from "../types";
+import { MacroAction, MacroScript } from "../types/macro";
+import { getScriptTotalDurationMs } from "../utils/macroStorage";
 import { Film, Trash2, Zap, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface Props {
   state: ControllerState;
+  previewScript?: MacroScript | null;
+  previewPlayheadMs?: number | null;
 }
 
 interface NoteEvent {
@@ -90,12 +94,75 @@ export const getButtonStates = (s: ControllerState) => {
   };
 };
 
-export const InputTimelineStream: React.FC<Props> = ({ state }) => {
+function getMacroActionGhostMeta(action: MacroAction): {
+  label: string;
+  lane: number;
+  color: string;
+  glowColor: string;
+} | null {
+  if (action.type === "wait") return null;
+
+  if (action.type === "button" && action.button) {
+    const key = action.button.toLowerCase();
+    const map: Record<string, { label: string; lane: number; color: string; glowColor: string }> = {
+      a: { label: "A", lane: 0, color: "#10b981", glowColor: "rgba(16,185,129,0.7)" },
+      b: { label: "B", lane: 0, color: "#ef4444", glowColor: "rgba(239,68,68,0.7)" },
+      x: { label: "X", lane: 0, color: "#38bdf8", glowColor: "rgba(56,189,248,0.7)" },
+      y: { label: "Y", lane: 0, color: "#f59e0b", glowColor: "rgba(245,158,11,0.7)" },
+      l_stick_click: { label: "L3", lane: 2, color: "#06b6d4", glowColor: "rgba(6,182,212,0.7)" },
+      r_stick_click: { label: "R3", lane: 2, color: "#14b8a6", glowColor: "rgba(20,184,166,0.7)" },
+      l: { label: "L", lane: 3, color: "#ec4899", glowColor: "rgba(236,72,153,0.7)" },
+      zl: { label: "ZL", lane: 3, color: "#f43f5e", glowColor: "rgba(244,63,94,0.7)" },
+      r: { label: "R", lane: 3, color: "#ec4899", glowColor: "rgba(236,72,153,0.7)" },
+      zr: { label: "ZR", lane: 3, color: "#f43f5e", glowColor: "rgba(244,63,94,0.7)" },
+      minus: { label: "−", lane: 4, color: "#94a3b8", glowColor: "rgba(148,163,184,0.7)" },
+      plus: { label: "+", lane: 4, color: "#94a3b8", glowColor: "rgba(148,163,184,0.7)" },
+      capture: { label: "◉", lane: 4, color: "#94a3b8", glowColor: "rgba(148,163,184,0.7)" },
+      home: { label: "⌂", lane: 4, color: "#38bdf8", glowColor: "rgba(56,189,248,0.7)" },
+    };
+    return map[key] || null;
+  }
+
+  if (action.type === "dpad") {
+    const dpadLabels = ["▲", "↗", "▶", "↘", "▼", "↙", "◀", "↖"];
+    const dir = typeof action.dpad === "number" ? action.dpad : 8;
+    if (dir < 0 || dir >= dpadLabels.length) return null;
+    return { label: dpadLabels[dir], lane: 1, color: "#c084fc", glowColor: "rgba(192,132,252,0.7)" };
+  }
+
+  if (action.type === "stick" && action.stick) {
+    const isLeft = action.stick === "left";
+    const sx = typeof action.stickX === "number" ? action.stickX : 128;
+    const sy = typeof action.stickY === "number" ? action.stickY : 128;
+    const dir = getStickDirection(sx, sy, isLeft ? "L" : "R");
+    if (!dir) return null;
+    return {
+      label: dir,
+      lane: 2,
+      color: isLeft ? "#06b6d4" : "#14b8a6",
+      glowColor: isLeft ? "rgba(6,182,212,0.7)" : "rgba(20,184,166,0.7)",
+    };
+  }
+
+  return null;
+}
+
+export const InputTimelineStream: React.FC<Props> = ({
+  state,
+  previewScript = null,
+  previewPlayheadMs = null,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { t } = useTranslation("dashboard");
   const tRef = useRef(t);
   tRef.current = t;
+
+  // Refs for ghost scrub overlay (live stream keeps flowing underneath!)
+  const previewScriptRef = useRef<MacroScript | null>(previewScript);
+  const previewPlayheadMsRef = useRef<number | null>(previewPlayheadMs);
+  previewScriptRef.current = previewScript;
+  previewPlayheadMsRef.current = previewPlayheadMs;
 
   // Time window duration in seconds (default: 30s)
   const [duration, setDuration] = useState<number>(30);
@@ -362,6 +429,7 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
       ctx.clip();
 
       let visibleNotes = 0;
+      const isGhostPreview = Boolean(previewScriptRef.current && previewPlayheadMsRef.current !== null);
 
       notesRef.current = notesRef.current.filter((note) => {
         const laneY = RULER_TOP_H + note.lane * laneHeight + (laneHeight - NOTE_SIZE) / 2;
@@ -395,8 +463,11 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
 
         visibleNotes++;
 
-        // Render the Note Ribbon / Pill
+        // Render the Note Ribbon / Pill (lightly dimmed while ghost scrub preview is active)
         ctx.save();
+        if (isGhostPreview) {
+          ctx.globalAlpha = 0.35;
+        }
 
         if (isHeld) {
           ctx.shadowColor = note.glowColor;
@@ -439,6 +510,60 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
         ctx.restore();
         return true;
       });
+
+      // 3b. Ghost Scrubbing Preview Layer (only while hovering/dragging paused macro progress bar)
+      if (isGhostPreview && previewScriptRef.current && previewPlayheadMsRef.current !== null) {
+        const playheadMs = previewPlayheadMsRef.current;
+        const totalSec = Math.max(1, getScriptTotalDurationMs(previewScriptRef.current) / 1000);
+        // Smart zoom window so short macros (e.g. 2-5s) glide noticeably across the tracks
+        const previewWindowSec = Math.min(duration, Math.max(3, Math.ceil(totalSec)));
+
+        for (const act of previewScriptRef.current.actions) {
+          const startMs = Math.max(0, act.startTimeMs || 0);
+          if (startMs > playheadMs) continue;
+          const endMs = startMs + Math.max(10, act.durationMs || 0);
+          if (playheadMs - endMs > previewWindowSec * 1000 + 500) continue;
+
+          const meta = getMacroActionGhostMeta(act);
+          if (!meta) continue;
+
+          const laneY = RULER_TOP_H + meta.lane * laneHeight + (laneHeight - NOTE_SIZE) / 2;
+          const isHeldAtPlayhead = playheadMs < endMs;
+          const timeFromStart = Math.max(0, (playheadMs - startMs) / 1000);
+          const headCenter = strikeX + NOTE_SIZE / 2 + (timeFromStart / previewWindowSec) * trackWidth;
+          const headRight = headCenter + NOTE_SIZE / 2;
+          const tailLeft = isHeldAtPlayhead
+            ? strikeX
+            : strikeX + (Math.max(0, (playheadMs - endMs) / 1000) / previewWindowSec) * trackWidth;
+
+          const noteX = tailLeft;
+          const noteW = Math.max(NOTE_SIZE, headRight - tailLeft);
+          if (noteX > width + 5) continue;
+
+          const r = NOTE_SIZE / 2;
+          ctx.save();
+          ctx.globalAlpha = isHeldAtPlayhead ? 0.34 : 0.18;
+          ctx.fillStyle = meta.color;
+          ctx.beginPath();
+          ctx.roundRect(noteX, laneY, noteW, NOTE_SIZE, r);
+          ctx.fill();
+
+          ctx.globalAlpha = isHeldAtPlayhead ? 0.85 : 0.65;
+          ctx.setLineDash([4, 3]);
+          ctx.strokeStyle = isHeldAtPlayhead ? "#d97706" : meta.color;
+          ctx.lineWidth = isHeldAtPlayhead ? 1.6 : 1.2;
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.globalAlpha = isHeldAtPlayhead ? 0.88 : 0.6;
+          ctx.fillStyle = "#0f172a";
+          ctx.font = "800 10px system-ui, -apple-system, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(meta.label, headCenter, laneY + NOTE_SIZE / 2);
+          ctx.restore();
+        }
+      }
 
       ctx.restore(); // End clipping
 
@@ -507,8 +632,9 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
       }
 
       // 6. Draw Strike Line (Playhead Line - flush to left border of tracks)
-      ctx.strokeStyle = "#0284c7";
-      ctx.lineWidth = 1.5;
+      const strikeColor = isGhostPreview ? "#d97706" : "#0284c7";
+      ctx.strokeStyle = strikeColor;
+      ctx.lineWidth = isGhostPreview ? 2 : 1.5;
       ctx.beginPath();
       ctx.moveTo(strikeX, RULER_TOP_H);
       ctx.lineTo(strikeX, height - RULER_BOT_H);
@@ -541,7 +667,7 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
           ctx.lineTo(x, RULER_TOP_H);
           ctx.stroke();
 
-          ctx.fillStyle = sec === 0 ? "#0284c7" : "#64748b";
+          ctx.fillStyle = sec === 0 ? strikeColor : "#64748b";
           ctx.font = "bold 9px monospace";
           ctx.textAlign = sec === duration ? "right" : "center";
           ctx.textBaseline = "bottom";
@@ -554,7 +680,7 @@ export const InputTimelineStream: React.FC<Props> = ({ state }) => {
           ctx.lineTo(x, height - RULER_BOT_H + 4);
           ctx.stroke();
 
-          ctx.fillStyle = sec === 0 ? "#0284c7" : "#64748b";
+          ctx.fillStyle = sec === 0 ? strikeColor : "#64748b";
           ctx.font = "8px monospace";
           ctx.textAlign = sec === duration ? "right" : "center";
           ctx.textBaseline = "top";

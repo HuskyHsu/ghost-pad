@@ -59,13 +59,16 @@ pub enum SpecialCommand {
 
 /// A serial port kept open between sessions.
 ///
-/// Opening a serial port on macOS asserts DTR/RTS, which resets the ESP32 (and drops its
-/// Bluetooth link to the Switch). A verified port is therefore kept open and reused for
-/// probing and for stopping/starting the virtual gamepad; it is only released when another
-/// port is selected or the app exits.
+/// - After `probe_firmware`, the port is kept open with `in_reset = false` so immediately
+///   starting the virtual gamepad reuses the port without an extra reset.
+/// - After `disconnect()`, the port is kept open with `EN` held low (`RTS = true, DTR = false`,
+///   `in_reset = true`) so the ESP32 drops its Switch Bluetooth link and releases 1P without
+///   clearing stored pairing bonds. Starting again releases `EN` and re-runs the handshake.
 struct HeldPort {
     name: String,
+    baudrate: u32,
     port: Box<dyn SerialPort>,
+    in_reset: bool,
 }
 
 /// PRO-UART0 firmware acknowledges every input packet with 0x90 while linked to the Switch.
@@ -167,8 +170,27 @@ impl SerialManager {
         self.status.read().unwrap().clone()
     }
 
-    /// Take the held port if it is the requested one (reusing it does NOT reset the ESP32),
-    /// otherwise release whatever is held and open `port_name`. Returns `(port, reused)`.
+    /// Pull ESP32 `EN` low via the standard NodeMCU / DevKitC auto-reset circuit
+    /// (DTR=false / HIGH, RTS=true / LOW) while keeping `IO0` high.
+    /// Halts the ESP32 and drops its Bluetooth link to the Switch without clearing NVS bonds.
+    fn hold_esp32_in_reset(port: &mut dyn SerialPort) {
+        let _ = port.write_data_terminal_ready(false);
+        let _ = port.write_request_to_send(true);
+    }
+
+    /// Release `EN` (DTR=false, RTS=false) so the ESP32 boots into normal firmware and stabilize.
+    fn release_esp32_from_reset(port: &mut dyn SerialPort) {
+        let _ = port.write_data_terminal_ready(false);
+        let _ = port.write_request_to_send(false);
+        thread::sleep(Duration::from_millis(150));
+        let _ = port.clear(ClearBuffer::All);
+    }
+
+    /// Take the held port if it is the requested one, otherwise release whatever is held and
+    /// open `port_name`. Returns `(port, already_handshaked)`.
+    ///
+    /// If the held port was kept in hardware reset (`in_reset = true`), `EN` is released here
+    /// and `already_handshaked` is `false` so the caller runs a fresh handshake after boot.
     fn acquire_port(
         &self,
         port_name: &str,
@@ -178,6 +200,10 @@ impl SerialManager {
         if let Some(mut h) = held {
             if h.name == port_name && h.port.set_baud_rate(baudrate).is_ok() {
                 let _ = h.port.set_timeout(Duration::from_millis(200));
+                if h.in_reset {
+                    Self::release_esp32_from_reset(&mut *h.port);
+                    return Ok((h.port, false));
+                }
                 let _ = h.port.clear(ClearBuffer::All);
                 return Ok((h.port, true));
             }
@@ -196,25 +222,24 @@ impl SerialManager {
             })?;
 
         // Release DTR/RTS so ESP32 auto-reset circuits leave EN high, then let it stabilize
-        let _ = port.write_data_terminal_ready(false);
-        let _ = port.write_request_to_send(false);
-        thread::sleep(Duration::from_millis(150));
-        let _ = port.clear(ClearBuffer::All);
+        Self::release_esp32_from_reset(&mut *port);
         Ok((port, false))
     }
 
-    fn hold_port(&self, name: &str, port: Box<dyn SerialPort>) {
+    fn hold_port(&self, name: &str, baudrate: u32, port: Box<dyn SerialPort>, in_reset: bool) {
         *self.held_port.lock().unwrap_or_else(|e| e.into_inner()) = Some(HeldPort {
             name: name.to_string(),
+            baudrate,
             port,
+            in_reset,
         });
     }
 
     /// Start the 60Hz background transmission loop.
     ///
-    /// The serial port is kept open across stop/start (see [`HeldPort`]) so the ESP32 is not
-    /// reset, which would drop its Bluetooth link. The Switch link state is derived from the
-    /// 0x90 acks the firmware returns, never assumed.
+    /// Reuses an awake probed port directly, or releases `EN` and re-handshakes if the port was
+    /// held in hardware reset after a previous `disconnect()`. The Switch link state is derived
+    /// from the 0x90 acks the firmware returns, never assumed.
     pub fn connect(
         &self,
         port_name: &str,
@@ -227,9 +252,9 @@ impl SerialManager {
 
         let _open_guard = PORT_OPEN_LOCK.lock().unwrap_or_else(|e| e.into_inner());
 
-        let (mut port, reused) = self.acquire_port(port_name, baudrate)?;
-        if reused {
-            println!("[Serial Info] Reusing open port {} (ESP32 not reset, handshake already passed)", port_name);
+        let (mut port, already_handshaked) = self.acquire_port(port_name, baudrate)?;
+        if already_handshaked {
+            println!("[Serial Info] Reusing open port {} (ESP32 already awake, handshake passed)", port_name);
         } else {
             // Mandatory 3-step handshake with ESP32 (0xFF, 0x33, 0xCC).
             // Only genuine PRO-UART0 (UARTSwitchCon) firmware is allowed to start streaming.
@@ -419,13 +444,17 @@ impl SerialManager {
                     thread::sleep(Duration::from_millis(10));
                 }
 
-                // Keep the port open (hand it back) so stopping the service does not reset the
-                // ESP32 / drop its Switch link. A failed port is dropped instead.
+                // Hold the ESP32 in hardware reset (EN = LOW) while keeping the port open so its
+                // Switch Bluetooth link drops immediately and 1P is released, without clearing
+                // stored pairing bonds. A failed port is dropped instead.
                 if !io_failed {
+                    Self::hold_esp32_in_reset(&mut *port);
                     let _ = port.set_timeout(Duration::from_millis(200));
                     *held_clone.lock().unwrap_or_else(|e| e.into_inner()) = Some(HeldPort {
                         name: port_name_string.clone(),
+                        baudrate,
                         port,
+                        in_reset: true,
                     });
                 }
 
@@ -437,7 +466,7 @@ impl SerialManager {
                     s.switch_pairing_state = "disconnected".to_string();
                 }
                 emit_status(&status_arc);
-                println!("[Serial] Streaming stopped on {} (port kept open)", port_name_string);
+                println!("[Serial] Streaming stopped on {} (ESP32 held in reset to release Switch 1P)", port_name_string);
             })
             .map_err(|e| AppError::ThreadSpawnFailed { reason: e.to_string() }.to_json_string())?;
 
@@ -547,15 +576,25 @@ impl SerialManager {
 
     /// Probe whether a specific serial port is running genuine PRO-UART0 (UARTSwitchCon) firmware.
     ///
-    /// A port that passes is kept open and reused by `connect`, so probing followed by starting
-    /// the virtual gamepad resets the ESP32 at most once (when the port is first opened).
+    /// If the port is already verified and currently held in hardware reset (`in_reset = true`),
+    /// returns `Ok(true)` without waking the ESP32 so visiting the Hardware tab won't reconnect
+    /// it to the Switch unexpectedly.
     pub fn probe_firmware(&self, port_name: &str, baudrate: u32) -> Result<bool, String> {
         let _open_guard = PORT_OPEN_LOCK.lock().unwrap_or_else(|e| e.into_inner());
 
-        let (mut port, _reused) = self.acquire_port(port_name, baudrate)?;
+        {
+            let held = self.held_port.lock().unwrap_or_else(|e| e.into_inner());
+            if let Some(h) = held.as_ref() {
+                if h.name == port_name && h.baudrate == baudrate && h.in_reset {
+                    return Ok(true);
+                }
+            }
+        }
+
+        let (mut port, _already_handshaked) = self.acquire_port(port_name, baudrate)?;
         match Self::handshake_with_retry(&mut *port) {
             Ok(()) => {
-                self.hold_port(port_name, port);
+                self.hold_port(port_name, baudrate, port, false);
                 Ok(true)
             }
             Err(_) => Ok(false),

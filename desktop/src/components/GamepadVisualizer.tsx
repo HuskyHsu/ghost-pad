@@ -82,6 +82,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
   // Ghost only wakes up when ESP32 virtual controller service is started
   const isGhostAwake = Boolean(esp32Connected);
   const [showKeyGuide, setShowKeyGuide] = useState(false);
+  const [scrubPreviewMs, setScrubPreviewMs] = useState<number | null>(null);
   const { t } = useTranslation(["dashboard", "common"]);
 
   const handleManualTakeoverPause = useCallback(() => {
@@ -724,8 +725,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
                 }`}
                 title={
                   isGhostAwake
-                    ? t("live_controls.esp32_active_stop", "ESP32 服務運作中 (點擊停止)")
-                    : t("live_controls.esp32_idle_start", "ESP32 待命中 (點擊啟動)")
+                    ? t("live_controls.esp32_active_stop", "ESP32 已連線 (點擊斷開並釋放 1P)")
+                    : t("live_controls.esp32_idle_start", "ESP32 已斷開 (點擊開啟連線)")
                 }
               >
                 <span
@@ -853,9 +854,13 @@ export const GamepadVisualizer: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Real-Time Live Input Timeline Stream */}
+        {/* Real-Time Live Input Timeline Stream (with ghost overlay while scrubbing paused macro) */}
         <div className="w-full shrink-0 pt-1 pb-1">
-          <InputTimelineStream state={state} />
+          <InputTimelineStream
+            state={state}
+            previewScript={scrubPreviewMs !== null ? activeMacroScript : null}
+            previewPlayheadMs={scrubPreviewMs}
+          />
         </div>
       </div>
 
@@ -886,6 +891,7 @@ export const GamepadVisualizer: React.FC<Props> = ({
             onResume={onResumeMacro}
             onStop={onStopMacro}
             onSeek={onSeekMacro}
+            onPreviewSeek={setScrubPreviewMs}
           />
         )}
     </div>

@@ -44,12 +44,12 @@ describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
     render(<HardwareSettings />);
 
     expect(screen.getByText(/ESP32 硬體與連線控制台/i)).toBeInTheDocument();
-    expect(screen.getByText(/硬體與韌體/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/虛擬手把服務/i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/硬體與韌體/i)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/ESP32 連線/i)[0]).toBeInTheDocument();
     expect(screen.getAllByText(/Switch 主機連線/i)[0]).toBeInTheDocument();
 
     expect(screen.getByText(/步驟 0：檢查 USB 連線與 ESP32 韌體/i)).toBeInTheDocument();
-    expect(screen.getByText(/步驟 1：開關虛擬手把服務/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /步驟 1：ESP32 連線/i })).toBeInTheDocument();
     expect(screen.getByText(/步驟 2：Switch 自動配對與連線/i)).toBeInTheDocument();
   });
 
@@ -74,10 +74,10 @@ describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("開啟虛擬手把").closest("button")).not.toBeDisabled();
+      expect(screen.getByText("開啟 ESP32 連線").closest("button")).not.toBeDisabled();
     });
 
-    const toggleBtn = screen.getByText("開啟虛擬手把");
+    const toggleBtn = screen.getByText("開啟 ESP32 連線");
     fireEvent.click(toggleBtn);
 
     await waitFor(() => {
@@ -122,10 +122,10 @@ describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
         portName: "/dev/cu.usbserial-0001",
         baudrate: 19200,
       });
-      expect(screen.getByText(/未通過 PRO-UART0 韌體交握/)).toBeInTheDocument();
+      expect(screen.getAllByText(/韌體驗證未通過/)[0]).toBeInTheDocument();
     });
 
-    const toggleBtn = screen.getByText("開啟虛擬手把").closest("button")!;
+    const toggleBtn = screen.getByText("開啟 ESP32 連線").closest("button")!;
     expect(toggleBtn).toBeDisabled();
     fireEvent.click(toggleBtn);
     expect(invoke).not.toHaveBeenCalledWith("connect_serial", expect.anything());
@@ -159,13 +159,13 @@ describe("HardwareSettings Component (Sequential Two-Step Management)", () => {
     render(<HardwareSettings onConnectionChange={onConn} />);
 
     await waitFor(() => {
-      expect(screen.getByText("開啟虛擬手把").closest("button")).not.toBeDisabled();
+      expect(screen.getByText("開啟 ESP32 連線").closest("button")).not.toBeDisabled();
     });
-    fireEvent.click(screen.getByText("開啟虛擬手把"));
+    fireEvent.click(screen.getByText("開啟 ESP32 連線"));
 
     await waitFor(() => {
       expect(invoke).toHaveBeenCalledWith("connect_serial", expect.anything());
-      expect(screen.getByText("開啟虛擬手把").closest("button")).toBeDisabled();
+      expect(screen.getByText("開啟 ESP32 連線").closest("button")).toBeDisabled();
     });
     expect(onConn).not.toHaveBeenCalledWith(true);
   });

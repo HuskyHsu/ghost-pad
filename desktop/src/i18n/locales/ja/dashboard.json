@@ -5,8 +5,8 @@
     "local_mode": "ローカル制御モード",
     "local_mode_desc": "キーボードと画面上のボタンで直接操作可能（外部ゲームパッド対応）",
     "gamepad_mixed": "ゲームパッド接続中：キーボード・マウスクリック・スティック操作の混用可能",
-    "esp32_active_stop": "ESP32 サービス稼働中（クリックで停止）",
-    "esp32_idle_start": "ESP32 待機中（クリックで起動）",
+    "esp32_active_stop": "ESP32 接続中（クリックで切断・1P 解放）",
+    "esp32_idle_start": "ESP32 切断中（クリックで接続）",
     "help_tooltip": "キーボード操作対応表を表示",
     "rec_tooltip_start": "操作の録画を開始（3秒カウントダウン後に開始）",
     "rec_tooltip_stop": "録画を停止してマクロを保存",
@@ -67,8 +67,8 @@
     "macro_studio_desc": "タイムライン譜面編集、再生および録画インポート"
   },
   "timeline": {
-    "title": "リアルタイム入力タイムライン (Live Stream)",
-    "subtitle": "5トラック リアルタイム譜面ストリーム",
+    "title": "リアルタイム入力タイムライン",
+    "subtitle": "5トラック リアルタイム操作ログ",
     "tracks_header": "トラック",
     "op_count": "操作回数: {{count}}",
     "duration_badge": "全長 {{duration}}s",

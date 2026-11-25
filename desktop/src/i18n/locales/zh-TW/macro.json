@@ -36,9 +36,7 @@
   "library_title": "巨集腳本庫",
   "library_subtitle": "可直接前往即時儀表板執行並隨時手動接手，或點選進入多軌五線譜編輯",
   "footer": {
-    "scripts_total": "● 巨集庫共 {{count}} 個腳本 (點選編輯進入多軌五線譜)",
-    "format": "格式: PRO-UART0 JSON v2",
-    "switch_output": "Switch 輸出: 1P Pro Controller"
+    "scripts_total": "● 巨集庫共 {{count}} 個腳本 (點選編輯進入多軌五線譜)"
   },
   "invalid_json_alert": "無法識別此 JSON 格式，請確認是否為 Ghost-Pad 腳本檔案。",
   "player": {

@@ -61,9 +61,10 @@ describe("UI Components", () => {
       expect(onSelectGamepad).toHaveBeenCalledWith(0);
     });
 
-    it("triggers onToggleVirtualController when Ghost-Pad switch is clicked", () => {
+    it("triggers onToggleVirtualController and onToggleMute via dual equal switches", () => {
       const onToggleVirtualController = vi.fn();
-      render(
+      const onToggleMute = vi.fn();
+      const { rerender } = render(
         <Sidebar
           activeTab="dashboard"
           onTabChange={vi.fn()}
@@ -71,16 +72,38 @@ describe("UI Components", () => {
           isMuted={false}
           onRefreshGamepads={vi.fn()}
           onSelectGamepad={vi.fn()}
-          onToggleMute={vi.fn()}
+          onToggleMute={onToggleMute}
           esp32Connected={false}
           isStep0Ready={true}
           onToggleVirtualController={onToggleVirtualController}
         />
       );
 
-      const switchBtn = screen.getByRole("switch");
-      fireEvent.click(switchBtn);
-      expect(onToggleVirtualController).toHaveBeenCalled();
+      const esp32Switch = screen.getByRole("switch", { name: "ESP32 連線" });
+      const signalSwitch = screen.getByRole("switch", { name: "輸入轉發" });
+      expect(signalSwitch).toBeDisabled();
+
+      fireEvent.click(esp32Switch);
+      expect(onToggleVirtualController).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <Sidebar
+          activeTab="dashboard"
+          onTabChange={vi.fn()}
+          gamepads={mockGamepads}
+          isMuted={false}
+          onRefreshGamepads={vi.fn()}
+          onSelectGamepad={vi.fn()}
+          onToggleMute={onToggleMute}
+          esp32Connected={true}
+          isStep0Ready={true}
+          onToggleVirtualController={onToggleVirtualController}
+        />
+      );
+
+      expect(signalSwitch).not.toBeDisabled();
+      fireEvent.click(signalSwitch);
+      expect(onToggleMute).toHaveBeenCalledTimes(1);
     });
 
     it("triggers onRefreshGamepads when refresh button is clicked", () => {
