@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "screenshots": "node scripts/capture-screenshots.mjs",
     "tauri": "tauri"
   },
   "dependencies": {
