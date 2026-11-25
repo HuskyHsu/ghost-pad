@@ -22,28 +22,27 @@
 
 ## 專案簡介
 
-**Ghost-Pad** 將電腦轉變為 Nintendo Switch 的智慧控制器核心。桌面應用程式（基於 Tauri v2、Rust 與 React 19）整合實體手把、鍵盤、螢幕操作與巨集腳本的輸入，透過 USB 序列埠（`19200 bps`，UARTSwitchCon 9-Byte + CRC-8 協定）以 60Hz 串流至 ESP32 開發板，並以 Bluetooth Classic 無線模擬原廠 **Nintendo Switch Pro Controller**（`VID: 0x057E`、`PID: 0x2009`）。
+**Ghost-Pad** 將電腦轉變為 Nintendo Switch 的控制器核心。整合實體手把、鍵盤、螢幕操作與巨集腳本的輸入，透過 USB 序列埠以 60Hz 串流至 ESP32 開發板，並以 Bluetooth Classic 無線模擬原廠 **Nintendo Switch Pro Controller**。
 
 ```mermaid
-flowchart TD
-    subgraph Inputs["三路輸入來源"]
-        direction LR
+flowchart LR
+    subgraph Inputs["輸入來源"]
         G["實體手把"]
         K["鍵盤 / 螢幕觸控"]
         M["巨集工作坊"]
     end
 
-    PC["Ghost-Pad 桌面端 (Tauri v2 · Rust · React 19)"]
-    ESP["ESP32 開發板 (Bluetooth Classic HID)"]
-    SW["Nintendo Switch (Pro Controller)"]
+    PC["Ghost-Pad 桌面端<br/>Tauri v2 · Rust · React 19"]
+    ESP["ESP32 開發板<br/>Bluetooth Classic HID"]
+    SW["Nintendo Switch<br/>Pro Controller"]
 
     Inputs --> PC
-    PC -->|"USB 序列埠 · 19200 bps · 60Hz (9-Byte CRC-8)"| ESP
-    ESP -->|"無線藍牙 · VID 0x057E / PID 0x2009"| SW
+    PC -->|"USB 序列埠 · 60Hz<br/>19200 bps · CRC-8"| ESP
+    ESP -->|"Bluetooth Classic<br/>0x057E / 0x2009"| SW
 ```
 
 > [!NOTE]
-> 本系統需搭配支援 **Bluetooth Classic (BR/EDR)** 的 ESP32 開發板使用。專案已預先整合編譯完成的韌體（`firmware/PRO-UART0.bin`），可直接在應用程式中一鍵燒錄。
+> 需搭配支援 **Bluetooth Classic (BR/EDR)** 的 ESP32 開發板。專案已內建預編譯韌體（`firmware/PRO-UART0.bin`），可於應用程式中一鍵燒錄。
 
 ## 畫面預覽
 
@@ -57,27 +56,12 @@ flowchart TD
 
 ## 核心特色
 
-- **三路並行輸入橋接 (Tri-Input Bridge)**：
-  - **實體手把**：透過 `gilrs` 以低延遲（< 1ms）原生輪詢 8BitDo Micro、Switch Pro Controller 與 Joy-Con（支援藍牙與 USB）。
-  - **鍵盤直控**：內建 WASD 類比搖桿模擬與 Switch 動作／系統鍵位映射。
-  - **螢幕觸控 / 滑鼠**：可直接點擊幽靈手把按鍵，或以 120Hz 硬體加速拖曳類比搖桿（支援 Pointer Capture 與物理彈簧回彈）。
-  - **智慧狀態合併**：數位按鍵採用聯集（OR）邏輯，搖桿與十字鍵支援動態覆蓋，並提供一鍵靜音（Mute）模式防止誤觸。
-- **幽靈手把視覺化與迷你 HUD 模式**：
-  - 互動式幽靈造型 2D 手把，具動態表情回饋與雙搖桿角度顯示。
-  - 支援自動等比縮放（Auto Scale-to-Fit），視窗縮小至 `720×460` 以下時自動切換為迷你懸浮 HUD。
-- **即時輸入時序流 (Live Input Timeline)**：
-  - 5 軌五線譜架構（動作鍵、十字鍵、搖桿、肩鍵、系統鍵），即時繪製長按光帶，提供 `10s` / `15s` / `30s` / `60s` 捲動速度與操作計數統計。
-- **巨集工作坊與循環播放引擎**：
-  - **即時差分側錄**：3-2-1 倒數緩衝，以毫秒精度記錄按鍵時長與搖桿向量。
-  - **視覺化時間軸與卡片編輯器**：微調每步動作時長（`durationMs`）與間隔延遲（`delayAfterMs`），支援拖曳排序與一鍵修剪空白時間。
-  - **彈性循環與安全中斷**：支援單次播放、指定次數（`2–999`）或無限循環（`∞`），可調整 `0.5x–2.0x` 速度，並提供全域 `Esc` 緊急中斷保護。
-  - **範本與備份**：內建寶可夢孵蛋、動森流星許願等實用範本，支援單一腳本 JSON 匯出／匯入與全庫備份。
-- **硬體與韌體管理**：
-  - 自動偵測 ESP32 序列埠與晶片（CH340 / CP2102 / FTDI），並過濾虛擬藍牙序列埠。
-  - 60Hz 心跳封包與 200ms 看門狗防暴走保護（Watchdog Fail-Safe），斷線時自動歸零防卡鍵。
-  - 內建 Switch 配對引導、配對記憶、A / Home 鍵快速喚醒回連與一鍵韌體燒錄。
-- **多語系介面**：
-  - 原生支援繁體中文（`zh-TW`）、英文（`en`）與日文（`ja`），可即時切換。
+- **三路並行輸入橋接**：整合實體手把（`gilrs` < 1ms 輪詢，支援 8BitDo Micro、Pro Controller、Joy-Con）、WASD 鍵盤直控與 120Hz 螢幕觸控／滑鼠操作，具備按鍵聯集（OR）、搖桿動態覆蓋與一鍵靜音模式。
+- **即時視覺化與迷你 HUD**：互動式幽靈造型 2D 手把，具動態表情與雙搖桿角度回饋；視窗縮小至 `720×460` 以下時自動切換為迷你懸浮 HUD。
+- **即時輸入時序流**：5 軌五線譜架構（動作鍵、十字鍵、搖桿、肩鍵、系統鍵），即時繪製長按光帶、提供 `10s`–`60s` 捲動速度與操作計數。
+- **巨集工作坊與循環引擎**：支援 3-2-1 倒數毫秒級錄製、拖曳排序與一鍵修剪空白的視覺化編輯器、多模式循環播放（`0.5x–2.0x`、單次／`2–999`／無限、全域 `Esc` 中斷）、內建範本與 JSON 匯出／匯入。
+- **硬體與韌體管理**：自動偵測 ESP32 序列埠（CH340 / CP2102 / FTDI），具 60Hz 心跳與 200ms 斷線防卡鍵保護，內建 Switch 配對引導與一鍵韌體燒錄。
+- **多語系介面**：支援繁體中文（`zh-TW`）、英文（`en`）與日文（`ja`）即時切換。
 
 ## 快速開始
 

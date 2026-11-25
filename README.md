@@ -22,28 +22,27 @@ High-performance PC-to-Nintendo Switch virtual controller bridge, live visualize
 
 ## Overview
 
-**Ghost-Pad** turns your computer into an intelligent controller core for the Nintendo Switch. The desktop application (built with Tauri v2, Rust, and React 19) merges inputs from physical gamepads, keyboards, pointer controls, and automated macros, then streams 60Hz binary control packets over USB Serial (`19200 bps`, UARTSwitchCon 9-Byte + CRC-8) to an ESP32 development board. The ESP32 emulates a native **Nintendo Switch Pro Controller** over Bluetooth Classic (`VID: 0x057E`, `PID: 0x2009`).
+**Ghost-Pad** turns your computer into a Nintendo Switch controller hub. It merges inputs from physical gamepads, keyboards, pointer controls, and automated macros, then streams 60Hz control packets over USB Serial to an ESP32 board that emulates a native **Nintendo Switch Pro Controller** over Bluetooth Classic.
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph Inputs["Input Sources"]
-        direction LR
         G["Physical Gamepad"]
         K["Keyboard / Pointer"]
         M["Macro Studio"]
     end
 
-    PC["Ghost-Pad Desktop (Tauri v2 · Rust · React 19)"]
-    ESP["ESP32 Dev Board (Bluetooth Classic HID)"]
-    SW["Nintendo Switch (Pro Controller)"]
+    PC["Ghost-Pad Desktop<br/>Tauri v2 · Rust · React 19"]
+    ESP["ESP32 Dev Board<br/>Bluetooth Classic HID"]
+    SW["Nintendo Switch<br/>Pro Controller"]
 
     Inputs --> PC
-    PC -->|"USB Serial · 19200 bps · 60Hz (9-Byte CRC-8)"| ESP
-    ESP -->|"Bluetooth Classic · VID 0x057E / PID 0x2009"| SW
+    PC -->|"USB Serial · 60Hz<br/>19200 bps · CRC-8"| ESP
+    ESP -->|"Bluetooth Classic<br/>0x057E / 0x2009"| SW
 ```
 
 > [!NOTE]
-> An ESP32 development board with **Bluetooth Classic (BR/EDR)** support is required to bridge commands to the Nintendo Switch. Pre-compiled firmware (`firmware/PRO-UART0.bin`) is bundled directly in the app with a built-in one-click flasher.
+> Requires an ESP32 board with **Bluetooth Classic (BR/EDR)** support. Pre-compiled firmware (`firmware/PRO-UART0.bin`) is bundled in the app with a one-click flasher.
 
 ## Screenshots
 
@@ -57,27 +56,12 @@ flowchart TD
 
 ## Features
 
-- **Tri-Input Bridge**:
-  - **Physical Gamepad**: Low-latency native polling via `gilrs` (< 1ms) for 8BitDo Micro, Switch Pro Controller, and Joy-Con over Bluetooth or USB.
-  - **Keyboard Direct Control**: Default WASD analog stick simulation and Switch action/system keybindings.
-  - **Touch & Mouse Control**: Interactive ghost controller buttons and 120Hz hardware-accelerated analog stick dragging with pointer capture and spring return physics.
-  - **Smart Input Merging**: Digital button OR-merging, dynamic stick/D-Pad override, and one-click Mute mode to prevent accidental inputs.
-- **Live Visualizer & Floating HUD**:
-  - Ghost-themed 2D controller with dynamic facial expressions and dual-stick angle feedback.
-  - Responsive auto scale-to-fit layout that switches to a compact floating HUD when resized below `720×460`.
-- **Live Input Timeline**:
-  - 5-track DAW / reverse-Taiko score sheet (Actions, D-Pad, Sticks, Shoulders, System) with real-time hold trails, speed presets (`10s` / `15s` / `30s` / `60s`), and action counters.
-- **Macro Studio & Loop Engine**:
-  - **Real-Time Delta Recording**: 3-2-1 countdown buffer capturing button holds and stick vectors at millisecond precision.
-  - **Visual Timeline & Card Editor**: Edit hold duration (`durationMs`) and delay (`delayAfterMs`), reorder steps by drag-and-drop, and trim idle gaps in one click.
-  - **Loop Playback & Fail-Safe**: Single run, N-repeat (`2–999`), or infinite loop (`∞`) at `0.5x–2.0x` speed, with a global `Esc` emergency abort.
-  - **Presets & Backup**: Built-in automation scripts (e.g., Pokémon egg hatching, Animal Crossing star wishing) with single-macro JSON import/export and full-library backup.
-- **Hardware & Firmware Management**:
-  - Automatic ESP32 serial port detection (CH340 / CP2102 / FTDI) with virtual Bluetooth port filtering.
-  - 60Hz heartbeat packet loop with a 200ms watchdog fail-safe to prevent stuck inputs on disconnect.
-  - Guided Switch pairing, persistent bond memory, quick A / Home wake-up reconnection, and built-in firmware flashing.
-- **Multi-Language UI**:
-  - Native English (`en`), Traditional Chinese (`zh-TW`), and Japanese (`ja`) interface with instant switching.
+- **Tri-Input Bridge**: Merges physical gamepads (`gilrs` < 1ms polling for 8BitDo Micro, Pro Controller, Joy-Con), WASD keyboard controls, and 120Hz touch/mouse inputs with OR-merging, dynamic stick override, and one-click Mute.
+- **Live Visualizer & Floating HUD**: Interactive ghost-themed 2D controller with dynamic expressions and stick angle feedback; auto-scales to a compact floating HUD below `720×460`.
+- **Live Input Timeline**: 5-track DAW-style timeline (Actions, D-Pad, Sticks, Shoulders, System) with hold trails, speed presets (`10s`–`60s`), and action counters.
+- **Macro Studio & Loop Engine**: Millisecond-precision delta recording (3-2-1 countdown), drag-and-drop visual editor with idle-gap trimming, loop playback (`0.5x–2.0x`, `1` / `2–999` / `∞`, global `Esc` abort), built-in presets, and JSON import/export.
+- **Hardware & Firmware**: Auto-detects ESP32 USB serial ports (CH340 / CP2102 / FTDI), maintains a 60Hz heartbeat with a 200ms disconnect watchdog, and includes guided Switch pairing and one-click firmware flashing.
+- **Multi-Language UI**: Instant switching between English (`en`), Traditional Chinese (`zh-TW`), and Japanese (`ja`).
 
 ## Getting Started
 
