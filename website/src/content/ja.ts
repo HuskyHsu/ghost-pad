@@ -65,6 +65,13 @@ export const jaContent: SiteContent = {
         tip: "一度ペアリングすれば、次回からは「手動ウェイク再接続」で一瞬でつながります。",
       },
     ],
+    hardwarePhoto: {
+      badge: "実機接続イメージ",
+      title: "必要な配線は USB ケーブル 1 本だけ",
+      caption: "Mac と標準の ESP32-WROOM-32 開発ボードを USB ケーブル 1 本でつなぐだけ。ブレッドボードやジャンパー線は不要で、Bluetooth で Nintendo Switch とつながります。",
+      alt: "Mac と ESP32 開発ボードを USB で接続し、Nintendo Switch と連携しているデスク写真",
+      image: "./hardware-setup.jpg",
+    },
     macosGatekeeper: {
       title: "macOS で「開発元を検証できない」や「壊れている」と表示されたら？",
       why: "Ghost-Pad は無料のオープンソースソフトのため、Apple の有料公証を受けておらず初回起動時にブロックされる場合があります。クリックして解除方法を見る。",

@@ -549,6 +549,40 @@ export function QuickStartSection() {
           ))}
         </div>
 
+        {/* Real hardware setup photo slot (taped Polaroid-style card) */}
+        <div className="mt-10 sm:mt-12">
+          <SketchCard
+            tone="warm"
+            tape="corners"
+            roughBorder
+            className="p-4 sm:p-6"
+          >
+            <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-12">
+              <div className="lg:col-span-7">
+                <div className="overflow-hidden rounded-2xl border-2 border-ink/15 bg-paper-card">
+                  <img
+                    src={content.quickStart.hardwarePhoto.image}
+                    alt={content.quickStart.hardwarePhoto.alt}
+                    loading="lazy"
+                    className="aspect-video w-full object-cover"
+                  />
+                </div>
+              </div>
+              <div className="lg:col-span-5">
+                <span className="inline-flex items-center rounded-full border border-ink/20 bg-paper-card px-3 py-1 font-[family-name:var(--font-mono)] text-xs font-bold text-ghost-sky-deep">
+                  {content.quickStart.hardwarePhoto.badge}
+                </span>
+                <h3 className="mt-3 font-[family-name:var(--font-display)] text-xl font-bold text-ink sm:text-2xl">
+                  {content.quickStart.hardwarePhoto.title}
+                </h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-ink-soft sm:text-base">
+                  {content.quickStart.hardwarePhoto.caption}
+                </p>
+              </div>
+            </div>
+          </SketchCard>
+        </div>
+
         {/* Prominent expandable macOS Gatekeeper hand-drawn note card */}
         <div className="mt-10 sm:mt-12">
           <SketchCard

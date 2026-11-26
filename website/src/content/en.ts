@@ -65,6 +65,13 @@ export const enContent: SiteContent = {
         tip: "Once paired, just click \"Wake & Reconnect\" next time to jump right back in.",
       },
     ],
+    hardwarePhoto: {
+      badge: "Real Hardware Setup",
+      title: "All You Need Is One USB Cable",
+      caption: "Your Mac connects to a standard ESP32-WROOM-32 board over a single USB cable—no breadboard, jumper wires, or soldering required—to bridge wirelessly to Nintendo Switch.",
+      alt: "Desk setup showing a Mac connected via USB to an ESP32 development board alongside a Nintendo Switch",
+      image: "./hardware-setup.jpg",
+    },
     macosGatekeeper: {
       title: "macOS Says \"Unverified Developer\" or \"App Is Damaged\"?",
       why: "Ghost-Pad is free open-source software without paid Apple notarization, so macOS may block it on first launch. Click to view two quick fixes.",

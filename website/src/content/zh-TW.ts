@@ -77,6 +77,13 @@ export interface SiteContent {
       summary: string;
       tip: string;
     }>;
+    hardwarePhoto: {
+      badge: string;
+      title: string;
+      caption: string;
+      alt: string;
+      image: string;
+    };
     macosGatekeeper: {
       title: string;
       why: string;
@@ -296,6 +303,13 @@ export const zhTWContent: SiteContent = {
         tip: "配對成功後，下次只要點「手動喚醒重連」就能秒速接回來。",
       },
     ],
+    hardwarePhoto: {
+      badge: "實機連線參考",
+      title: "實際硬體只需要這樣接",
+      caption: "Mac 透過一條 USB 線接上標準 ESP32-WROOM-32 開發板，無需麵包板或杜邦線，即可透過藍牙連線 Nintendo Switch。",
+      alt: "Mac 透過 USB 連接 ESP32 開發板並與 Nintendo Switch 配對的桌面實拍示意圖",
+      image: "./hardware-setup.jpg",
+    },
     macosGatekeeper: {
       title: "macOS 跳出「無法驗證開發者」或「已損毀」怎麼辦？",
       why: "Ghost-Pad 是免費開源軟體，尚未付費申請 Apple 公證，首次開啟可能被系統擋下。點此查看 10 秒解除方式。",
