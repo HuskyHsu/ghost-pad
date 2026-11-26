@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { CheckCircle2, Download, Gamepad2, Laptop } from "lucide-react";
+import { CheckCircle2, Download, Gamepad2 } from "lucide-react";
 import { useContent } from "../../i18n/useContent";
 import {
   GhostMascot,
@@ -9,11 +9,59 @@ import {
   SpeechBubble,
 } from "../sketch";
 
+function LaptopGlyph() {
+  return (
+    <svg
+      viewBox="0 0 64 48"
+      className="h-11 w-14 text-ink sm:h-12 sm:w-16"
+      fill="none"
+      aria-hidden="true"
+    >
+      {/* Screen lid */}
+      <rect
+        x="12"
+        y="7"
+        width="40"
+        height="26"
+        rx="3.5"
+        fill="#FFFFFF"
+        stroke="currentColor"
+        strokeWidth="2.2"
+      />
+      {/* Inner screen */}
+      <rect
+        x="16"
+        y="11"
+        width="32"
+        height="18"
+        rx="1.5"
+        fill="#E8F6FD"
+      />
+      {/* Tiny Ghost-Pad signal indicator on screen */}
+      <circle cx="26" cy="20" r="2.2" fill="#033157" />
+      <path
+        d="M33 20h7"
+        stroke="#0284C7"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      {/* Laptop base */}
+      <path
+        d="M6 34h52l-3 6.5a2 2 0 0 1-1.8 1.2H10.8a2 2 0 0 1-1.8-1.2L6 34Z"
+        fill="#F6F1E7"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function Esp32BoardGlyph() {
   return (
     <svg
       viewBox="0 0 64 48"
-      className="h-11 w-14 text-ink"
+      className="h-11 w-14 text-ink sm:h-12 sm:w-16"
       fill="none"
       aria-hidden="true"
     >
@@ -76,7 +124,7 @@ function SwitchConsoleGlyph() {
   return (
     <svg
       viewBox="0 0 68 48"
-      className="h-11 w-15 text-ink"
+      className="h-11 w-14 text-ink sm:h-12 sm:w-16"
       fill="none"
       aria-hidden="true"
     >
@@ -136,9 +184,9 @@ function SignalPath({
   const dotColor = variant === "usb" ? "#56C2F0" : "#047857";
 
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 py-1 md:px-1 md:py-0">
+    <div className="flex flex-row items-center justify-center gap-2 py-0 md:flex-col md:gap-1.5 md:px-1 md:py-0">
       <span
-        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+        className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold sm:text-xs ${
           variant === "usb"
             ? "bg-ghost-sky-pale text-ghost-sky-deep"
             : "bg-marker-mint/55 text-marker-mint-deep"
@@ -217,7 +265,7 @@ function SignalPath({
       {/* Vertical path (mobile) */}
       <svg
         viewBox="0 0 24 44"
-        className="h-9 w-6 md:hidden"
+        className="h-6 w-5 md:hidden"
         fill="none"
         aria-hidden="true"
       >
@@ -300,7 +348,7 @@ export function HeroSection() {
             >
               <a
                 href="#quickstart"
-                className="inline-flex items-center gap-2 rounded-2xl bg-ink px-6 py-3.5 text-base font-semibold text-paper paper-shadow-sm transition-[transform,background-color] duration-150 ease-out hover:bg-ink-soft active:scale-[0.96]"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-ink px-6 py-3.5 text-base font-semibold text-paper paper-shadow-sm transition-[transform,background-color] duration-150 ease-out hover:bg-ink-soft active:scale-[0.96] sm:w-auto"
               >
                 <Gamepad2 className="h-5 w-5" aria-hidden="true" />
                 <span>{content.hero.primaryCta}</span>
@@ -310,7 +358,7 @@ export function HeroSection() {
                 href={content.meta.releasesUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-2xl border-2 border-ink/20 bg-paper-card px-5 py-3.5 text-base font-semibold text-ink transition-[transform,background-color,border-color] duration-150 ease-out hover:border-ink/35 hover:bg-paper-warm active:scale-[0.96]"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-ink/20 bg-paper-card px-5 py-3.5 text-base font-semibold text-ink transition-[transform,background-color,border-color] duration-150 ease-out hover:border-ink/35 hover:bg-paper-warm active:scale-[0.96] sm:w-auto"
               >
                 <Download className="h-5 w-5 text-ghost-sky-deep" aria-hidden="true" />
                 <span>{content.hero.secondaryCta}</span>
@@ -343,20 +391,20 @@ export function HeroSection() {
         </div>
 
         {/* 10-second visual signal flow diagram */}
-        <div className="mt-10 sm:mt-12">
+        <div className="mt-8 sm:mt-12">
           <SketchCard
             tone="warm"
             tape="corners"
             roughBorder
-            className="p-5 sm:p-7"
+            className="p-4 sm:p-7"
           >
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <h2 className="font-[family-name:var(--font-display)] text-xl font-bold tracking-[-0.02em] text-ink sm:text-2xl">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 sm:gap-3">
+              <h2 className="font-[family-name:var(--font-display)] text-lg font-bold tracking-[-0.02em] text-ink sm:text-2xl">
                 <SketchHighlight variant="underline" color="sky">
                   {content.hero.diagram.title}
                 </SketchHighlight>
               </h2>
-              <p className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft">
+              <p className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-soft sm:text-sm">
                 <CheckCircle2
                   className="h-4 w-4 shrink-0 text-marker-mint-deep"
                   aria-hidden="true"
@@ -365,14 +413,14 @@ export function HeroSection() {
               </p>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 items-center gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:gap-2">
+            <div className="mt-4 grid grid-cols-1 items-center gap-1.5 md:mt-6 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:gap-2">
               {/* Node 1: PC Ghost-Pad */}
-              <div className="flex items-center gap-3.5 border-2 border-ink/15 bg-paper-card p-4 sketch-corner">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-paper-warm text-ink">
-                  <Laptop className="h-6 w-6" aria-hidden="true" />
+              <div className="flex items-center gap-3 border-2 border-ink/15 bg-paper-card px-3.5 py-2.5 sketch-corner sm:gap-3.5 sm:p-4">
+                <div className="flex w-14 shrink-0 items-center justify-center sm:w-16">
+                  <LaptopGlyph />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-[family-name:var(--font-display)] text-base font-bold text-ink">
+                  <p className="font-[family-name:var(--font-display)] text-sm font-bold text-ink sm:text-base">
                     {content.hero.diagram.nodes[0].title}
                   </p>
                   <p className="mt-0.5 text-xs font-medium text-ink-muted sm:text-sm">
@@ -388,12 +436,12 @@ export function HeroSection() {
               />
 
               {/* Node 2: ESP32 */}
-              <div className="flex items-center gap-3.5 border-2 border-ghost-sky-deep/25 bg-ghost-sky-pale/75 p-4 sketch-corner">
-                <div className="shrink-0">
+              <div className="flex items-center gap-3 border-2 border-ghost-sky-deep/25 bg-ghost-sky-pale/75 px-3.5 py-2.5 sketch-corner sm:gap-3.5 sm:p-4">
+                <div className="flex w-14 shrink-0 items-center justify-center sm:w-16">
                   <Esp32BoardGlyph />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-[family-name:var(--font-display)] text-base font-bold text-ink">
+                  <p className="font-[family-name:var(--font-display)] text-sm font-bold text-ink sm:text-base">
                     {content.hero.diagram.nodes[1].title}
                   </p>
                   <p className="mt-0.5 text-xs font-medium text-ink-soft sm:text-sm">
@@ -409,12 +457,12 @@ export function HeroSection() {
               />
 
               {/* Node 3: Nintendo Switch */}
-              <div className="flex items-center gap-3.5 border-2 border-ink/15 bg-paper-card p-4 sketch-corner">
-                <div className="shrink-0">
+              <div className="flex items-center gap-3 border-2 border-ink/15 bg-paper-card px-3.5 py-2.5 sketch-corner sm:gap-3.5 sm:p-4">
+                <div className="flex w-14 shrink-0 items-center justify-center sm:w-16">
                   <SwitchConsoleGlyph />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-[family-name:var(--font-display)] text-base font-bold text-ink">
+                  <p className="font-[family-name:var(--font-display)] text-sm font-bold text-ink sm:text-base">
                     {content.hero.diagram.nodes[2].title}
                   </p>
                   <p className="mt-0.5 text-xs font-medium text-ink-muted sm:text-sm">

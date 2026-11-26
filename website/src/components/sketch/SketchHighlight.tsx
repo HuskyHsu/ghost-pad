@@ -27,23 +27,32 @@ export function SketchHighlight({
   const prefersReducedMotion = useReducedMotion();
   const palette = HIGHLIGHT_COLORS[color];
 
+  if (variant === "marker") {
+    return (
+      <motion.span
+        className={`relative inline px-1 py-0.5 rounded-[5px] ${className}`}
+        style={{
+          boxDecorationBreak: "clone",
+          WebkitBoxDecorationBreak: "clone",
+          backgroundImage: `linear-gradient(transparent 40%, ${palette.marker} 40%, ${palette.marker} 94%, transparent 94%)`,
+          backgroundRepeat: "no-repeat",
+        }}
+        initial={
+          prefersReducedMotion
+            ? { opacity: 0.9, backgroundSize: "100% 100%" }
+            : { opacity: 0.7, backgroundSize: "0% 100%" }
+        }
+        whileInView={{ opacity: 1, backgroundSize: "100% 100%" }}
+        viewport={{ once: true, amount: 0.5 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {children}
+      </motion.span>
+    );
+  }
+
   return (
     <span className={`relative inline-block ${className}`}>
-      {variant === "marker" && (
-        <motion.span
-          aria-hidden="true"
-          className="pointer-events-none absolute -inset-x-1 bottom-0.5 h-[56%] -rotate-[0.6deg] rounded-[5px]"
-          style={{
-            backgroundColor: palette.marker,
-            transformOrigin: "left center",
-          }}
-          initial={prefersReducedMotion ? { opacity: 0 } : { scaleX: 0, opacity: 0.5 }}
-          whileInView={prefersReducedMotion ? { opacity: 0.85 } : { scaleX: 1, opacity: 0.85 }}
-          viewport={{ once: true, amount: 0.5 }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        />
-      )}
-
       {variant === "underline" && (
         <svg
           aria-hidden="true"

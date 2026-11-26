@@ -35,7 +35,7 @@ export function FaqAndFooterSection() {
               {faq.subheading}
             </p>
 
-            <div className="mt-6 flex items-end gap-4">
+            <div className="mt-6 flex items-center gap-4">
               <GhostMascot className="h-24 w-24 shrink-0" mood="happy" />
               <SpeechBubble tail="left" className="text-xs leading-relaxed text-ink-soft">
                 {faq.mascotBubble}
@@ -124,7 +124,7 @@ export function FaqAndFooterSection() {
                     href={meta.releasesUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-xl border-2 border-ink bg-ghost-sky px-5 py-3 text-sm font-bold text-ink paper-shadow-sm transition-[background-color,transform] duration-150 ease-out hover:bg-ghost-sky/85 active:scale-[0.96]"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-ink bg-ghost-sky px-5 py-3 text-sm font-bold text-ink paper-shadow-sm transition-[background-color,transform] duration-150 ease-out hover:bg-ghost-sky/85 active:scale-[0.96] sm:w-auto"
                   >
                     <Download className="h-4 w-4" aria-hidden="true" />
                     {footer.downloadButton}
@@ -133,7 +133,7 @@ export function FaqAndFooterSection() {
                     href={meta.githubUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-xl border-2 border-ink/25 bg-paper-card px-5 py-3 text-sm font-bold text-ink transition-[background-color,border-color,transform] duration-150 ease-out hover:border-ink hover:bg-marker-yellow/40 active:scale-[0.96]"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-ink/25 bg-paper-card px-5 py-3 text-sm font-bold text-ink transition-[background-color,border-color,transform] duration-150 ease-out hover:border-ink hover:bg-marker-yellow/40 active:scale-[0.96] sm:w-auto"
                   >
                     <BookOpen className="h-4 w-4" aria-hidden="true" />
                     {footer.docsButton}

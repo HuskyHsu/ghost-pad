@@ -51,7 +51,7 @@ export function AppTourSection() {
       <div
         role="tablist"
         aria-label={tour.tablistAriaLabel}
-        className="mt-6 inline-flex flex-wrap gap-2 rounded-2xl border border-ink/15 bg-paper-warm/80 p-1.5"
+        className="mt-6 grid w-full grid-cols-3 gap-1 rounded-2xl border border-ink/15 bg-paper-warm/80 p-1.5 sm:inline-flex sm:w-auto sm:gap-2"
       >
         {tour.tabs.map((tab) => {
           const Icon = TAB_ICONS[tab.id];
@@ -65,7 +65,7 @@ export function AppTourSection() {
               aria-selected={isSelected}
               aria-controls={`tour-panel-${tab.id}`}
               onClick={() => handleSelectTab(tab)}
-              className={`relative inline-flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-[color,transform] duration-150 ease-out active:scale-[0.96] ${
+              className={`relative inline-flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-2 text-center text-[11px] font-bold leading-tight transition-[color,transform] duration-150 ease-out active:scale-[0.96] sm:flex-row sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm ${
                 isSelected ? "text-ink" : "text-ink-muted hover:text-ink"
               }`}
             >
@@ -76,7 +76,7 @@ export function AppTourSection() {
                   className="absolute inset-0 rounded-xl border-2 border-ink bg-paper-card paper-shadow-sm"
                 />
               )}
-              <Icon className="relative z-10 h-4 w-4" aria-hidden="true" />
+              <Icon className="relative z-10 h-4 w-4 shrink-0" aria-hidden="true" />
               <span className="relative z-10">{tab.label}</span>
             </button>
           );
