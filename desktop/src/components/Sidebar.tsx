@@ -57,6 +57,7 @@ export const Sidebar: React.FC<Props> = ({
 }) => {
   const [showGuide, setShowGuide] = useState(false);
   const { t } = useTranslation("common");
+  const isAwake = esp32Connected && !isMuted;
 
   return (
     <aside className="w-80 bg-surface-sidebar border-r border-border-subtle flex flex-col h-full select-none shrink-0">
@@ -65,12 +66,12 @@ export const Sidebar: React.FC<Props> = ({
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <div
             className={`w-9 h-9 flex items-center justify-center shrink-0 transition-all duration-300 ${
-              esp32Connected
+              isAwake
                 ? "drop-shadow-[0_0_8px_rgba(56,189,248,0.55)] drop-shadow-[0_2px_4px_rgba(3,49,87,0.14)]"
                 : "drop-shadow-[0_2px_5px_rgba(3,49,87,0.14)]"
             }`}
           >
-            <GhostPadLogo active={esp32Connected} />
+            <GhostPadLogo active={isAwake} muted={!isAwake} />
           </div>
           <div
             className="font-brand font-extrabold text-[18px] tracking-[-0.025em] leading-none truncate translate-y-[0.5px] select-none"

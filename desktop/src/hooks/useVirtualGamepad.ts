@@ -13,13 +13,11 @@ export const KEYBOARD_MAP: Record<string, string> = {
   KeyI: "x", // North
   KeyJ: "y", // West
 
-  // Triggers / Bumpers
-  KeyQ: "l",
-  KeyE: "r",
-  KeyU: "zl",
-  Digit1: "zl",
+  // Triggers / Bumpers (Mirrored ergonomic layout: Left Q/E = ZL/L, Right U/O = R/ZR)
+  KeyQ: "zl",
+  KeyE: "l",
+  KeyU: "r",
   KeyO: "zr",
-  Digit2: "zr",
 
   // System Buttons
   Minus: "minus",
@@ -55,10 +53,10 @@ export const KEYBOARD_GUIDE: KeyGuideItem[] = [
   { id: "btn_b", key: "K", button: "B", label: "B 鍵", desc: "取消 / 南側鍵" },
   { id: "btn_x", key: "I", button: "X", label: "X 鍵", desc: "選單 / 北側鍵" },
   { id: "btn_y", key: "J", button: "Y", label: "Y 鍵", desc: "功能 / 西側鍵" },
-  { id: "btn_l", key: "Q", button: "L", label: "L 鍵", desc: "左肩鍵" },
-  { id: "btn_r", key: "E", button: "R", label: "R 鍵", desc: "右肩鍵" },
-  { id: "btn_zl", key: "U / 1", button: "ZL", label: "ZL 鍵", desc: "左板機鍵" },
-  { id: "btn_zr", key: "O / 2", button: "ZR", label: "ZR 鍵", desc: "右板機鍵" },
+  { id: "btn_zl", key: "Q", button: "ZL", label: "ZL 鍵", desc: "左板機鍵" },
+  { id: "btn_l", key: "E", button: "L", label: "L 鍵", desc: "左肩鍵" },
+  { id: "btn_r", key: "U", button: "R", label: "R 鍵", desc: "右肩鍵" },
+  { id: "btn_zr", key: "O", button: "ZR", label: "ZR 鍵", desc: "右板機鍵" },
   { id: "btn_minus", key: "M / -", button: "−", label: "Minus 鍵", desc: "減號 / Select" },
   { id: "btn_plus", key: "P / =", button: "+", label: "Plus 鍵", desc: "加號 / Start" },
   { id: "btn_home", key: "H", button: "⌂", label: "Home 鍵", desc: "主畫面鍵" },

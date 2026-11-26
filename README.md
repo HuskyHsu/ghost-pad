@@ -6,6 +6,8 @@
 
 **[English](README.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md)**
 
+**[Interactive Guide & Visual Manual →](https://huskyhsu.github.io/ghost-pad/)**
+
 High-performance PC-to-Nintendo Switch virtual controller bridge, live visualizer dashboard, and macro automation studio.
 
 [![Tauri v2](https://img.shields.io/badge/Tauri-v2-24C8DB?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app/)
@@ -59,7 +61,7 @@ flowchart LR
 - **Tri-Input Bridge**: Merges physical gamepads (`gilrs` < 1ms polling for 8BitDo Micro, Pro Controller, Joy-Con), WASD keyboard controls, and 120Hz touch/mouse inputs with OR-merging, dynamic stick override, and one-click Mute.
 - **Live Visualizer & Floating HUD**: Interactive ghost-themed 2D controller with dynamic expressions and stick angle feedback; auto-scales to a compact floating HUD below `720×460`.
 - **Live Input Timeline**: 5-track DAW-style timeline (Actions, D-Pad, Sticks, Shoulders, System) with hold trails, speed presets (`10s`–`60s`), and action counters.
-- **Macro Studio & Loop Engine**: Millisecond-precision delta recording (3-2-1 countdown), drag-and-drop visual editor with idle-gap trimming, loop playback (`0.5x–2.0x`, `1` / `2–999` / `∞`, global `Esc` abort), built-in presets, and JSON import/export.
+- **Macro Studio & Loop Engine**: Millisecond-precision delta recording (3-2-1 countdown), 5-track multi-row visual editor (right-click to edit ms duration, swap buttons, or delete; insert gamepad actions or blank Wait blocks; undo/redo), loop playback (`1` / `2–999` / `∞` with global `Esc` abort), built-in presets, and JSON import/export.
 - **Hardware & Firmware**: Auto-detects ESP32 USB serial ports (CH340 / CP2102 / FTDI), maintains a 60Hz heartbeat with a 200ms disconnect watchdog, and includes guided Switch pairing and one-click firmware flashing.
 - **Multi-Language UI**: Instant switching between English (`en`), Traditional Chinese (`zh-TW`), and Japanese (`ja`).
 
@@ -69,7 +71,7 @@ flowchart LR
 
 For end users who do not need to build from source:
 
-1. Open the **[GitHub Releases](https://github.com/shihchi/ghost-pad/releases)** page.
+1. Open the **[GitHub Releases](https://github.com/HuskyHsu/ghost-pad/releases)** page.
 2. Download the latest **`Ghost-Pad_<version>_universal.dmg`** (supports both Apple Silicon and Intel Macs).
 3. Open the `.dmg` archive and drag **Ghost-Pad** into your **Applications** folder.
 

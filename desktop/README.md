@@ -116,10 +116,10 @@ Click the **Keyboard Map** button in the top-right corner of the application to 
 | **B Button** | `K` | Cancel / South button |
 | **X Button** | `I` | Menu / North button |
 | **Y Button** | `J` | Function / West button |
-| **L Button** | `Q` | Left Shoulder |
-| **R Button** | `E` | Right Shoulder |
-| **ZL Trigger** | `U` or `1` | Left Trigger |
-| **ZR Trigger** | `O` or `2` | Right Trigger |
+| **ZL Trigger** | `Q` | Left Trigger |
+| **L Button** | `E` | Left Shoulder |
+| **R Button** | `U` | Right Shoulder |
+| **ZR Trigger** | `O` | Right Trigger |
 | **Minus (-)** | `M` or `-` | Minus / Select |
 | **Plus (+)** | `P` or `=` | Plus / Start |
 | **Home (⌂)** | `H` | Home Button |

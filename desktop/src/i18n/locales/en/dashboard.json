@@ -93,7 +93,8 @@
   "compact": {
     "running": "Active",
     "paused": "Paused",
-    "waiting": "Waiting"
+    "waiting": "Waiting",
+    "no_macros": "No macro scripts"
   },
   "guide_keys": {
     "l_stick": "Left Analog Stick",

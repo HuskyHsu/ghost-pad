@@ -93,7 +93,8 @@
   "compact": {
     "running": "稼働中",
     "paused": "一時停止",
-    "waiting": "接続待機"
+    "waiting": "接続待機",
+    "no_macros": "マクロがありません"
   },
   "guide_keys": {
     "l_stick": "左アナログスティック",

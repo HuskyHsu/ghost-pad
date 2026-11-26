@@ -93,7 +93,8 @@
   "compact": {
     "running": "已啟用",
     "paused": "已暫停",
-    "waiting": "等待連線"
+    "waiting": "等待連線",
+    "no_macros": "尚無巨集腳本"
   },
   "guide_keys": {
     "l_stick": "左類比搖桿",

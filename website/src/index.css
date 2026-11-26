@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+@theme {
+  /* Warm Sketchbook Palette anchored to Ghost-Pad Mascot */
+  --color-paper: #FDFBF7;
+  --color-paper-warm: #F6F1E7;
+  --color-paper-card: #FFFFFF;
+
+  --color-ink: #033157;
+  --color-ink-soft: #2B4F70;
+  --color-ink-muted: #55728D;
+
+  --color-ghost-sky: #56C2F0;
+  --color-ghost-sky-deep: #0284C7;
+  --color-ghost-sky-pale: #E8F6FD;
+  --color-ghost-blush: #BCB6D7;
+  --color-ghost-blush-pale: #F2F0F8;
+
+  --color-marker-yellow: #FDE68A;
+  --color-marker-mint: #A7F3D0;
+  --color-marker-mint-deep: #047857;
+  --color-marker-coral: #FECACA;
+  --color-marker-coral-deep: #B91C1C;
+
+  --font-display: "Zen Maru Gothic", "Fredoka", "Hiragino Maru Gothic ProN", sans-serif;
+  --font-body: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "PingFang TC", sans-serif;
+  --font-hand: "Caveat", "Zen Maru Gothic", cursive;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-block-start: 5.5rem;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+  }
+
+  body {
+    overflow-x: clip;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+  }
+
+  /* Custom browser surfaces from palette */
+  ::selection {
+    background-color: #FDE68A;
+    color: #033157;
+  }
+
+  :focus-visible {
+    outline: 2.5px solid #0284C7;
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  a {
+    text-underline-offset: 4px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #F6F1E7;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(3, 49, 87, 0.22);
+    border-radius: 999px;
+    border: 2px solid #F6F1E7;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(3, 49, 87, 0.38);
+  }
+}
+
+/* Subtle notebook dot-paper texture */
+.bg-notebook-dots {
+  background-color: var(--color-paper);
+  background-image: radial-gradient(rgba(3, 49, 87, 0.1) 1.1px, transparent 1.1px);
+  background-size: 24px 24px;
+}
+
+/* Gentle paper lift shadow (offset + soft blur, never harsh block shadow) */
+.paper-shadow {
+  box-shadow:
+    0 2px 6px rgba(3, 49, 87, 0.05),
+    0 10px 24px -8px rgba(3, 49, 87, 0.08);
+}
+
+.paper-shadow-sm {
+  box-shadow:
+    0 1px 3px rgba(3, 49, 87, 0.06),
+    0 4px 12px -4px rgba(3, 49, 87, 0.07);
+}
+
+/* Organic hand-cut notebook corners */
+.sketch-corner {
+  border-radius: 18px 14px 20px 15px / 15px 19px 14px 18px;
+}
+
+.sketch-pill {
+  border-radius: 255px 22px 225px 25px / 25px 225px 22px 255px;
+}
+
+/* Tactile keycap press feel */
+.keycap-surface {
+  box-shadow: 0 3px 0 rgba(3, 49, 87, 0.22), 0 4px 8px rgba(3, 49, 87, 0.06);
+  transition-property: transform, background-color, border-color, box-shadow;
+  transition-duration: 120ms;
+  transition-timing-function: ease-out;
+}
+
+.keycap-surface-pressed {
+  transform: translateY(2px) scale(0.96);
+  box-shadow: 0 1px 0 rgba(3, 49, 87, 0.22);
+}
+
+/* Ghost mascot float animation */
+@keyframes ghostBob {
+  0%, 100% {
+    transform: translateY(2px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes ghostShadowBreath {
+  0%, 100% {
+    transform: scale(1.04, 1);
+    opacity: 0.36;
+  }
+  50% {
+    transform: scale(0.84, 0.85);
+    opacity: 0.18;
+  }
+}
+
+@keyframes signalPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+  25% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.85);
+  }
+}
+
+.animate-ghost-bob {
+  animation: ghostBob 3.6s ease-in-out infinite;
+}
+
+.animate-ghost-shadow {
+  animation: ghostShadowBreath 3.6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.animate-signal-1 {
+  animation: signalPulse 2.4s linear infinite;
+}
+
+.animate-signal-2 {
+  animation: signalPulse 2.4s linear -0.8s infinite;
+}
+
+.animate-signal-3 {
+  animation: signalPulse 2.4s linear -1.6s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-ghost-bob,
+  .animate-ghost-shadow,
+  .animate-signal-1,
+  .animate-signal-2,
+  .animate-signal-3 {
+    animation: none;
+  }
+}

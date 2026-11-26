@@ -8,6 +8,7 @@ interface Props {
   onTabChange: (tab: "dashboard" | "macro" | "hardware") => void;
   gamepadConnected: boolean;
   esp32Connected: boolean;
+  isMuted?: boolean;
 }
 
 export const Navbar: React.FC<Props> = ({
@@ -15,8 +16,10 @@ export const Navbar: React.FC<Props> = ({
   onTabChange,
   gamepadConnected,
   esp32Connected,
+  isMuted = false,
 }) => {
   const { t } = useTranslation("common");
+  const isAwake = esp32Connected && !isMuted;
 
   return (
     <header className="h-14 px-6 bg-surface-card/90 border-b border-border-subtle flex items-center justify-between backdrop-blur-md select-none sticky top-0 z-50 gap-4">
@@ -24,12 +27,12 @@ export const Navbar: React.FC<Props> = ({
       <div className="flex items-center gap-2 shrink-0">
         <div
           className={`w-9 h-9 flex items-center justify-center shrink-0 transition-all duration-300 ${
-            esp32Connected
+            isAwake
               ? "drop-shadow-[0_0_8px_rgba(56,189,248,0.55)] drop-shadow-[0_2px_4px_rgba(3,49,87,0.14)]"
               : "drop-shadow-[0_2px_5px_rgba(3,49,87,0.14)]"
           }`}
         >
-          <GhostPadLogo active={esp32Connected} />
+          <GhostPadLogo active={isAwake} muted={!isAwake} />
         </div>
         <div className="flex items-baseline gap-2 whitespace-nowrap">
           <span className="font-brand font-extrabold text-[18px] tracking-[-0.025em] leading-none text-[#033157]">

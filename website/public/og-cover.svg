@@ -1,0 +1,107 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="dots" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="14" cy="14" r="1.3" fill="#033157" fill-opacity="0.12" />
+    </pattern>
+    <radialGradient id="ghost-fill" cx="50%" cy="46%" r="58%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="68%" stop-color="#FCFBF7" />
+      <stop offset="100%" stop-color="#EAF6FD" />
+    </radialGradient>
+    <radialGradient id="shadow-grad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#033157" stop-opacity="0.28" />
+      <stop offset="60%" stop-color="#033157" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#033157" stop-opacity="0" />
+    </radialGradient>
+    <filter id="ghost-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="blurWide" />
+      <feFlood flood-color="#7DD3FC" flood-opacity="0.5" result="glowColor" />
+      <feComposite in="glowColor" in2="blurWide" operator="in" result="softGlow" />
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blurDepth" />
+      <feOffset in="blurDepth" dx="0" dy="1.5" result="offsetDepth" />
+      <feFlood flood-color="#033157" flood-opacity="0.16" result="depthColor" />
+      <feComposite in="depthColor" in2="offsetDepth" operator="in" result="softDepth" />
+      <feMerge>
+        <feMergeNode in="softGlow" />
+        <feMergeNode in="softDepth" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Warm paper with dot grid -->
+  <rect width="1200" height="630" fill="#FDFBF7" />
+  <rect width="1200" height="630" fill="url(#dots)" />
+  <rect x="14" y="14" width="1172" height="602" rx="22" stroke="#033157" stroke-opacity="0.14" stroke-width="2" />
+
+  <!-- Title block -->
+  <g font-family="'Zen Maru Gothic','Hiragino Maru Gothic ProN','Arial Rounded MT Bold','Helvetica Neue',Arial,sans-serif">
+    <!-- Marker highlight behind title -->
+    <rect x="74" y="236" width="470" height="36" rx="8" transform="rotate(-0.8 74 236)" fill="#FDE68A" fill-opacity="0.9" />
+    <text x="76" y="272" font-size="108" font-weight="800" fill="#033157" letter-spacing="-2">Ghost-Pad</text>
+
+    <text x="80" y="346" font-size="40" font-weight="600" fill="#2B4F70">Turn your computer into a</text>
+    <text x="80" y="396" font-size="40" font-weight="600" fill="#2B4F70">Nintendo Switch controller hub</text>
+
+    <!-- Hand-drawn underline stroke -->
+    <path d="M80 418 C 220 410 420 424 560 414" stroke="#56C2F0" stroke-width="5" stroke-linecap="round" />
+  </g>
+
+  <!-- PC -> ESP32 -> Switch pill strip -->
+  <g font-family="'JetBrains Mono','SF Mono',Menlo,'Courier New',monospace" font-size="26" font-weight="700">
+    <rect x="80" y="470" width="132" height="58" rx="29" fill="#FFFFFF" stroke="#033157" stroke-width="2.5" />
+    <text x="146" y="508" text-anchor="middle" fill="#033157">PC</text>
+
+    <path d="M222 499 H 262" stroke="#0284C7" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 9" />
+    <path d="M254 489 L 268 499 L 254 509" stroke="#0284C7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+
+    <rect x="278" y="470" width="168" height="58" rx="29" fill="#E8F6FD" stroke="#0284C7" stroke-width="2.5" />
+    <text x="362" y="508" text-anchor="middle" fill="#033157">ESP32</text>
+
+    <path d="M456 499 H 496" stroke="#0284C7" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 9" />
+    <path d="M488 489 L 502 499 L 488 509" stroke="#0284C7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+
+    <rect x="512" y="470" width="176" height="58" rx="29" fill="#A7F3D0" fill-opacity="0.7" stroke="#047857" stroke-width="2.5" />
+    <text x="600" y="508" text-anchor="middle" fill="#033157">Switch</text>
+  </g>
+
+  <!-- Mascot -->
+  <g transform="translate(910 446)">
+    <ellipse cx="0" cy="0" rx="130" ry="14" fill="url(#shadow-grad)" />
+  </g>
+  <g transform="translate(910 455) scale(2.2) translate(-96 -183)">
+    <!-- Signal waves -->
+    <g transform="translate(146 44)" stroke="#56C2F0" stroke-linecap="round" fill="none">
+      <path d="M0 -15.5319C8.308 -15.5319 15.164 -9.0925 15.271 0" stroke-width="6" transform="scale(1)" />
+      <path d="M0 -15.5319C8.308 -15.5319 15.164 -9.0925 15.271 0" stroke-width="4.2" transform="scale(1.8)" opacity="0.75" />
+      <path d="M0 -15.5319C8.308 -15.5319 15.164 -9.0925 15.271 0" stroke-width="3" transform="scale(2.6)" opacity="0.4" />
+    </g>
+    <!-- Body -->
+    <path
+      d="M96.6437 21.0062C62.8517 21.0062 34.4854 44.7057 28.3995 74.9323C27.3433 80.362 27 86.2117 27 91.8535V147.571C27 150.048 27.0792 152.21 27.3433 153.843C28.7164 163.489 37.3241 169.998 46.3559 169.998C54.0138 169.998 61.0899 165.227 64.0214 158.506C65.5002 155.266 68.3001 153.657 71.7845 153.657C75.1637 153.657 78.2004 155.502 79.4423 158.719C82.1366 165.466 89.1859 169.998 95.9464 169.998C103.154 169.998 110.02 165.149 112.504 158.719C113.824 155.424 116.834 153.606 120.03 153.606C123.541 153.606 126.235 155.24 127.661 158.404C130.776 165.202 138.091 170 145.326 170C154.911 170 163.361 162.752 164.657 153.054C164.921 151.157 165 149.154 165 147.178V90.9248C165 85.2316 164.472 79.5919 163.284 74.4525C156.391 44.7819 129.636 21 96.628 21L96.6437 21.0062Z"
+      fill="url(#ghost-fill)"
+      stroke="#033157"
+      stroke-opacity="0.18"
+      stroke-width="1.8"
+      stroke-linejoin="round"
+      filter="url(#ghost-glow)"
+    />
+    <!-- D-Pad eye -->
+    <rect x="52.0244" y="81.5619" width="31.5388" height="10.5129" rx="5" fill="#033157" />
+    <rect width="31.5388" height="10.5129" rx="5" transform="matrix(0 -1 -1 0 73.0503 102.167)" fill="#033157" />
+    <!-- Analog stick eye -->
+    <circle cx="124.564" cy="86.3979" r="15.7694" fill="#033157" />
+    <circle cx="124.774" cy="86.6083" r="10.5129" fill="#AFDDF5" />
+    <!-- Blush -->
+    <g fill="#BCB6D7">
+      <rect width="10.5608" height="4.30668" rx="2.15334" transform="matrix(0.5 -0.866025 -0.866025 -0.5 55.7539 121.036)" />
+      <rect width="10.5608" height="4.30668" rx="2.15334" transform="matrix(0.5 -0.866025 -0.866025 -0.5 64.5845 121.036)" />
+      <rect width="10.5608" height="4.30668" rx="2.15334" transform="matrix(0.5 -0.866025 -0.866025 -0.5 73.4155 121.036)" />
+      <rect width="10.5608" height="4.30668" rx="2.15334" transform="matrix(0.5 -0.866025 -0.866025 -0.5 117.57 121.036)" />
+      <rect width="10.5608" height="4.30668" rx="2.15334" transform="matrix(0.5 -0.866025 -0.866025 -0.5 126.401 121.036)" />
+      <rect width="10.5608" height="4.30668" rx="2.15334" transform="matrix(0.5 -0.866025 -0.866025 -0.5 135.231 121.036)" />
+    </g>
+    <!-- Smile -->
+    <path d="M85 104C85 104 87.8243 110 96 110C104.176 110 107 104 107 104" stroke="#033157" stroke-width="9" stroke-linecap="round" />
+  </g>
+</svg>

@@ -1,0 +1,162 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .ghost-float {
+      animation: ghost-sleep-float 4.8s ease-in-out infinite;
+    }
+
+    @keyframes ghost-sleep-float {
+      0%,
+      100% {
+        transform: translateY(2px);
+      }
+      50% {
+        transform: translateY(-3.5px);
+      }
+    }
+
+    .ghost-shadow {
+      animation: ghost-sleep-shadow 4.8s ease-in-out infinite;
+    }
+
+    @keyframes ghost-sleep-shadow {
+      0%,
+      100% {
+        transform: scale(1.04, 1.03);
+        opacity: 0.72;
+      }
+      50% {
+        transform: scale(0.84, 0.85);
+        opacity: 0.42;
+      }
+    }
+
+    .zzz {
+      fill: none;
+      stroke: #56c2f0;
+      stroke-width: 3.2px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      animation: zzz-drift 3.8s ease-out infinite;
+    }
+
+    .zzz-1 {
+      animation-delay: 0s;
+    }
+
+    .zzz-2 {
+      animation-delay: -1.9s;
+    }
+
+    @keyframes zzz-drift {
+      0% {
+        opacity: 0;
+        transform: translate(0px, 4px) scale(0.62);
+      }
+      20% {
+        opacity: 0.9;
+      }
+      70% {
+        opacity: 0.55;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(14px, -18px) scale(1.12);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ghost-float,
+      .ghost-shadow,
+      .zzz {
+        animation: none;
+      }
+      .zzz-1 {
+        opacity: 0.85;
+        transform: translate(2px, -3px) scale(0.82);
+      }
+      .zzz-2 {
+        opacity: 0.55;
+        transform: translate(13px, -15px) scale(1.02);
+      }
+    }
+  </style>
+  <defs>
+    <radialGradient id="shadow-grad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#033157" stop-opacity="0.34" />
+      <stop offset="60%" stop-color="#033157" stop-opacity="0.17" />
+      <stop offset="100%" stop-color="#033157" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="ghost-fill" cx="50%" cy="46%" r="58%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="68%" stop-color="#FCFBF7" />
+      <stop offset="100%" stop-color="#EAF6FD" />
+    </radialGradient>
+    <filter id="ghost-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="blurWide" />
+      <feFlood flood-color="#7DD3FC" flood-opacity="0.12" result="glowColor" />
+      <feComposite in="glowColor" in2="blurWide" operator="in" result="softGlow" />
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blurDepth" />
+      <feOffset in="blurDepth" dx="0" dy="1.5" result="offsetDepth" />
+      <feFlood flood-color="#033157" flood-opacity="0.14" result="depthColor" />
+      <feComposite in="depthColor" in2="offsetDepth" operator="in" result="softDepth" />
+      <feMerge>
+        <feMergeNode in="softGlow" />
+        <feMergeNode in="softDepth" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <g transform="translate(96 183)">
+    <g class="ghost-shadow">
+      <ellipse cx="0" cy="0" rx="52" ry="6.5" fill="url(#shadow-grad)" />
+    </g>
+  </g>
+  <g class="ghost-float">
+    <g transform="translate(152 44)">
+      <path class="zzz zzz-1" d="M-5.5 -5.5 H5.5 L-5.5 5.5 H5.5" />
+      <path class="zzz zzz-2" d="M-5.5 -5.5 H5.5 L-5.5 5.5 H5.5" />
+    </g>
+    <path
+      d="M96.6437 21.0062C62.8517 21.0062 34.4854 44.7057 28.3995 74.9323C27.3433 80.362 27 86.2117 27 91.8535V147.571C27 150.048 27.0792 152.21 27.3433 153.843C28.7164 163.489 37.3241 169.998 46.3559 169.998C54.0138 169.998 61.0899 165.227 64.0214 158.506C65.5002 155.266 68.3001 153.657 71.7845 153.657C75.1637 153.657 78.2004 155.502 79.4423 158.719C82.1366 165.466 89.1859 169.998 95.9464 169.998C103.154 169.998 110.02 165.149 112.504 158.719C113.824 155.424 116.834 153.606 120.03 153.606C123.541 153.606 126.235 155.24 127.661 158.404C130.776 165.202 138.091 170 145.326 170C154.911 170 163.361 162.752 164.657 153.054C164.921 151.157 165 149.154 165 147.178V90.9248C165 85.2316 164.472 79.5919 163.284 74.4525C156.391 44.7819 129.636 21 96.628 21L96.6437 21.0062Z"
+      fill="url(#ghost-fill)"
+      stroke="#033157"
+      stroke-opacity="0.16"
+      stroke-width="1.8"
+      stroke-linejoin="round"
+      filter="url(#ghost-glow)"
+    />
+    <!-- Gently closed sleepy eyes -->
+    <path
+      d="M53.5 85.5C58 92.2 74.5 93.2 82 87"
+      stroke="#033157"
+      stroke-width="6.5"
+      stroke-linecap="round"
+      fill="none"
+    />
+    <path
+      d="M110 87C117.5 93.2 134 92.2 138.5 85.5"
+      stroke="#033157"
+      stroke-width="6.5"
+      stroke-linecap="round"
+      fill="none"
+    />
+    <!-- Soft lavender blush -->
+    <g opacity="0.65">
+      <rect width="10.5608" height="4.30668" rx="2.15334" transform="matrix(0.5 -0.866025 -0.866025 -0.5 55.7539 121.036)" fill="#BCB6D7" />
+      <rect width="10.5608" height="4.30668" rx="2.15334" transform="matrix(0.5 -0.866025 -0.866025 -0.5 64.5845 121.036)" fill="#BCB6D7" />
+      <rect width="10.5608" height="4.30668" rx="2.15334" transform="matrix(0.5 -0.866025 -0.866025 -0.5 73.4155 121.036)" fill="#BCB6D7" />
+      <rect width="10.5608" height="4.30668" rx="2.15334" transform="matrix(0.5 -0.866025 -0.866025 -0.5 117.57 121.036)" fill="#BCB6D7" />
+      <rect width="10.5608" height="4.30668" rx="2.15334" transform="matrix(0.5 -0.866025 -0.866025 -0.5 126.401 121.036)" fill="#BCB6D7" />
+      <rect width="10.5608" height="4.30668" rx="2.15334" transform="matrix(0.5 -0.866025 -0.866025 -0.5 135.231 121.036)" fill="#BCB6D7" />
+    </g>
+    <!-- Gentle resting mouth -->
+    <path
+      d="M89 107.5C91.5 106.2 100.5 106.2 103 107.5"
+      stroke="#033157"
+      stroke-width="7"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+  </g>
+</svg>

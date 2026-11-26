@@ -46,6 +46,7 @@ interface Props {
 export const GamepadVisualizer: React.FC<Props> = ({
   state,
   gamepadName,
+  isMuted = false,
   esp32Connected = false,
   onTriggerButton,
   onTriggerStick,
@@ -79,8 +80,8 @@ export const GamepadVisualizer: React.FC<Props> = ({
         macros.find((m) => m.id === selectedMacroId) ||
         macros[0]
       : null;
-  // Ghost only wakes up when ESP32 virtual controller service is started
-  const isGhostAwake = Boolean(esp32Connected);
+  // Ghost only wakes up when ESP32 virtual controller service is started AND input forwarding is active
+  const isGhostAwake = Boolean(esp32Connected && !isMuted);
   const [showKeyGuide, setShowKeyGuide] = useState(false);
   const [scrubPreviewMs, setScrubPreviewMs] = useState<number | null>(null);
   const { t } = useTranslation(["dashboard", "common"]);

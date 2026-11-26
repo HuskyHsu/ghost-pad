@@ -173,6 +173,54 @@ describe("UI Components", () => {
       fireEvent.click(confirmCloseBtn);
       expect(screen.queryByText("官方手把藍牙配對指引")).not.toBeInTheDocument();
     });
+
+    it("shows GhostPadLogo awake only when ESP32 is connected and not muted", () => {
+      const { container, rerender } = render(
+        <Sidebar
+          activeTab="dashboard"
+          onTabChange={vi.fn()}
+          gamepads={mockGamepads}
+          isMuted={false}
+          onRefreshGamepads={vi.fn()}
+          onSelectGamepad={vi.fn()}
+          onToggleMute={vi.fn()}
+          esp32Connected={false}
+        />
+      );
+
+      // Disconnected -> asleep by default
+      expect(container.querySelector('[data-muted="true"]')).toBeInTheDocument();
+
+      // Connected + muted -> still asleep
+      rerender(
+        <Sidebar
+          activeTab="dashboard"
+          onTabChange={vi.fn()}
+          gamepads={mockGamepads}
+          isMuted={true}
+          onRefreshGamepads={vi.fn()}
+          onSelectGamepad={vi.fn()}
+          onToggleMute={vi.fn()}
+          esp32Connected={true}
+        />
+      );
+      expect(container.querySelector('[data-muted="true"]')).toBeInTheDocument();
+
+      // Connected + unmuted -> awake!
+      rerender(
+        <Sidebar
+          activeTab="dashboard"
+          onTabChange={vi.fn()}
+          gamepads={mockGamepads}
+          isMuted={false}
+          onRefreshGamepads={vi.fn()}
+          onSelectGamepad={vi.fn()}
+          onToggleMute={vi.fn()}
+          esp32Connected={true}
+        />
+      );
+      expect(container.querySelector('[data-muted="false"]')).toBeInTheDocument();
+    });
   });
 
   describe("GamepadVisualizer", () => {
@@ -256,6 +304,20 @@ describe("UI Components", () => {
       fireEvent.click(ghostPadBadge);
       expect(onToggleEsp32).toHaveBeenCalled();
     });
+
+    it("puts ghost back to sleep when ESP32 is connected but input forwarding is muted", () => {
+      const { container } = render(
+        <GamepadVisualizer
+          state={DEFAULT_CONTROLLER_STATE}
+          gamepadName="8BitDo Micro"
+          isMuted={true}
+          esp32Connected={true}
+        />
+      );
+
+      expect(container.querySelector('path[fill="url(#cuteGhostGradTranslucent)"]')).toBeInTheDocument();
+      expect(screen.getByText("Z")).toBeInTheDocument();
+    });
   });
 
   describe("CompactWidget", () => {
@@ -275,6 +337,91 @@ describe("UI Components", () => {
       const muteBtn = screen.getByText("已啟用");
       fireEvent.click(muteBtn);
       expect(onToggleMute).toHaveBeenCalled();
+    });
+
+    it("renders compact macro playback, loop toggle, and record controls", () => {
+      const onPlayMacro = vi.fn();
+      const onPauseMacro = vi.fn();
+      const onResumeMacro = vi.fn();
+      const onStopMacro = vi.fn();
+      const onSelectMacro = vi.fn();
+      const onChangeConfig = vi.fn();
+      const onStartRecord = vi.fn();
+      const onStopRecord = vi.fn();
+      const onToggleEsp32 = vi.fn();
+
+      const mockMacros = [
+        {
+          id: "m1",
+          name: "自動孵蛋",
+          description: "",
+          createdAt: 1,
+          updatedAt: 1,
+          actions: [{ id: "a1", type: "button" as const, button: "a" as const, startTimeMs: 0, durationMs: 100 }],
+        },
+        {
+          id: "m2",
+          name: "流星許願",
+          description: "",
+          createdAt: 2,
+          updatedAt: 2,
+          actions: [{ id: "a2", type: "button" as const, button: "b" as const, startTimeMs: 0, durationMs: 100 }],
+        },
+      ];
+
+      render(
+        <CompactWidget
+          state={DEFAULT_CONTROLLER_STATE}
+          gamepads={[]}
+          isMuted={false}
+          onToggleMute={vi.fn()}
+          fps={60}
+          esp32Connected={true}
+          onToggleEsp32={onToggleEsp32}
+          recordingPhase="idle"
+          onStartRecord={onStartRecord}
+          onStopRecord={onStopRecord}
+          macros={mockMacros}
+          selectedMacroId="m1"
+          onSelectMacro={onSelectMacro}
+          macroPlayerStatus={{
+            isPlaying: false,
+            isPaused: false,
+            currentScriptId: null,
+            currentActionIndex: 0,
+            currentLoop: 0,
+            totalLoops: 1,
+            elapsedMs: 0,
+            progressPercent: 0,
+          }}
+          macroPlayerConfig={{ loopMode: "once", loopCount: 3, loopDelayMs: 0, speedMultiplier: 1 }}
+          onChangeMacroPlayerConfig={onChangeConfig}
+          onPlayMacro={onPlayMacro}
+          onPauseMacro={onPauseMacro}
+          onResumeMacro={onResumeMacro}
+          onStopMacro={onStopMacro}
+        />
+      );
+
+      // Select another macro
+      fireEvent.change(screen.getByLabelText("選擇巨集腳本"), { target: { value: "m2" } });
+      expect(onSelectMacro).toHaveBeenCalledWith("m2");
+
+      // Play macro
+      fireEvent.click(screen.getByText("播放"));
+      expect(onPlayMacro).toHaveBeenCalledWith(mockMacros[0]);
+
+      // Cycle loop mode (once -> count)
+      fireEvent.click(screen.getByText("1x"));
+      expect(onChangeConfig).toHaveBeenCalledWith({ loopMode: "count" });
+
+      // Start recording
+      fireEvent.click(screen.getByTitle(/開始側錄/i));
+      expect(onStartRecord).toHaveBeenCalled();
+
+      // Toggle ESP32 badge
+      fireEvent.click(screen.getByText("GHOST-PAD"));
+      expect(onToggleEsp32).toHaveBeenCalled();
     });
   });
 

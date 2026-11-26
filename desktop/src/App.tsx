@@ -673,15 +673,62 @@ export function App() {
   // Responsive: If resized small, automatically switch to Compact HUD Floater mode!
   if (isCompact) {
     return (
-      <CompactWidget
-        state={controllerState}
-        gamepads={gamepads}
-        isMuted={isMuted}
-        onToggleMute={handleToggleMute}
-        onTriggerButton={sendButton}
-        onTriggerStick={sendStick}
-        fps={fps}
-      />
+      <ToastProvider>
+        <CompactWidget
+          state={controllerState}
+          gamepads={gamepads}
+          isMuted={isMuted}
+          onToggleMute={handleToggleMute}
+          esp32Connected={esp32Connected}
+          onToggleEsp32={handleToggleVirtualController}
+          onTriggerButton={sendButton}
+          onTriggerStick={sendStick}
+          fps={fps}
+          recordingPhase={recorder.phase}
+          recordingElapsedMs={recorder.recordingElapsedMs}
+          recordedActionsCount={recorder.recordedActions.length}
+          onStartRecord={() => {
+            if (player.status.isPlaying) {
+              player.stop();
+            }
+            recorder.startCountdown();
+          }}
+          onStopRecord={recorder.stopRecording}
+          macros={macros}
+          selectedMacroId={selectedScriptId}
+          onSelectMacro={setSelectedScriptId}
+          macroPlayerStatus={player.status}
+          macroPlayerConfig={player.config}
+          onChangeMacroPlayerConfig={(cfg) => player.setConfig({ ...player.config, ...cfg })}
+          onPlayMacro={(script, startOffsetMs) => player.play(script, undefined, startOffsetMs)}
+          onPauseMacro={player.pause}
+          onAutoPauseMacro={() => {
+            player.pause();
+            setIsAutoPaused(true);
+          }}
+          onResumeMacro={player.resume}
+          onStopMacro={player.stop}
+          isAutoPaused={isAutoPaused}
+        />
+
+        {/* 3-2-1 Countdown Overlay */}
+        {recorder.phase === "countdown" && (
+          <CountdownOverlay
+            countdown={recorder.countdown}
+            onCancel={recorder.cancelCountdown}
+          />
+        )}
+
+        {/* Save Recording Modal */}
+        {pendingSaveRecording && (
+          <SaveMacroModal
+            actions={pendingSaveRecording.actions}
+            durationMs={pendingSaveRecording.durationMs}
+            onSave={handleSaveRecordedScript}
+            onDiscard={() => setPendingSaveRecording(null)}
+          />
+        )}
+      </ToastProvider>
     );
   }
 

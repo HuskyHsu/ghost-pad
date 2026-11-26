@@ -6,6 +6,8 @@
 
 **[English](README.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md)**
 
+**[互動式圖解操作手冊 →](https://huskyhsu.github.io/ghost-pad/?lang=zh-TW)**
+
 高效能 PC 轉 Nintendo Switch 虛擬手把橋接器、即時視覺化儀表板與巨集自動化工作坊。
 
 [![Tauri v2](https://img.shields.io/badge/Tauri-v2-24C8DB?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app/)
@@ -59,7 +61,7 @@ flowchart LR
 - **三路並行輸入橋接**：整合實體手把（`gilrs` < 1ms 輪詢，支援 8BitDo Micro、Pro Controller、Joy-Con）、WASD 鍵盤直控與 120Hz 螢幕觸控／滑鼠操作，具備按鍵聯集（OR）、搖桿動態覆蓋與一鍵靜音模式。
 - **即時視覺化與迷你 HUD**：互動式幽靈造型 2D 手把，具動態表情與雙搖桿角度回饋；視窗縮小至 `720×460` 以下時自動切換為迷你懸浮 HUD。
 - **即時輸入時序流**：5 軌五線譜架構（動作鍵、十字鍵、搖桿、肩鍵、系統鍵），即時繪製長按光帶、提供 `10s`–`60s` 捲動速度與操作計數。
-- **巨集工作坊與循環引擎**：支援 3-2-1 倒數毫秒級錄製、拖曳排序與一鍵修剪空白的視覺化編輯器、多模式循環播放（`0.5x–2.0x`、單次／`2–999`／無限、全域 `Esc` 中斷）、內建範本與 JSON 匯出／匯入。
+- **巨集工作坊與循環引擎**：支援 3-2-1 倒數毫秒級錄製、5 軌多列視覺化編輯器（支援右鍵修改按住毫秒、換鍵與刪除、手動新增手把動作與空白等待 Wait、復原／重做）、多模式循環播放（單次／`2–999`／無限，全域 `Esc` 中斷）、內建範本與 JSON 匯出／匯入。
 - **硬體與韌體管理**：自動偵測 ESP32 序列埠（CH340 / CP2102 / FTDI），具 60Hz 心跳與 200ms 斷線防卡鍵保護，內建 Switch 配對引導與一鍵韌體燒錄。
 - **多語系介面**：支援繁體中文（`zh-TW`）、英文（`en`）與日文（`ja`）即時切換。
 
@@ -69,7 +71,7 @@ flowchart LR
 
 一般使用者無需配置開發環境或自行編譯：
 
-1. 前往 **[GitHub Releases](https://github.com/shihchi/ghost-pad/releases)** 頁面。
+1. 前往 **[GitHub Releases](https://github.com/HuskyHsu/ghost-pad/releases)** 頁面。
 2. 下載最新的 **`Ghost-Pad_<version>_universal.dmg`**（通用版本，同時支援 Apple Silicon 與 Intel Mac）。
 3. 開啟 `.dmg` 檔案，將 **Ghost-Pad** 拖入「應用程式 (Applications)」資料夾即可使用。
 

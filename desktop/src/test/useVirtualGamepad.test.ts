@@ -70,10 +70,12 @@ describe("useVirtualGamepad and helpers", () => {
     });
 
     it("maps shoulder triggers and system buttons", () => {
-      expect(KEYBOARD_MAP["KeyQ"]).toBe("l");
-      expect(KEYBOARD_MAP["KeyE"]).toBe("r");
-      expect(KEYBOARD_MAP["KeyU"]).toBe("zl");
+      expect(KEYBOARD_MAP["KeyQ"]).toBe("zl");
+      expect(KEYBOARD_MAP["KeyE"]).toBe("l");
+      expect(KEYBOARD_MAP["KeyU"]).toBe("r");
       expect(KEYBOARD_MAP["KeyO"]).toBe("zr");
+      expect(KEYBOARD_MAP["Digit1"]).toBeUndefined();
+      expect(KEYBOARD_MAP["Digit2"]).toBeUndefined();
       expect(KEYBOARD_MAP["KeyM"]).toBe("minus");
       expect(KEYBOARD_MAP["KeyP"]).toBe("plus");
       expect(KEYBOARD_MAP["KeyH"]).toBe("home");
