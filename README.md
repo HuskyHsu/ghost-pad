@@ -15,6 +15,7 @@ High-performance PC-to-Nintendo Switch virtual controller bridge, live visualize
 [![Rust 2024](https://img.shields.io/badge/Rust-2024-DEA584?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![TypeScript 6](https://img.shields.io/badge/TypeScript-6-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tests](https://img.shields.io/badge/Tests-109%20Passed-brightgreen?style=flat-square)](desktop/README.md)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](LICENSE)
 
 <br />
 
@@ -50,8 +51,8 @@ flowchart LR
 
 <div align="center">
 
-| Macro Studio & Loop Engine | ESP32 Hardware & Switch Pairing |
-| :---: | :---: |
+|                                Macro Studio & Loop Engine                                |                              ESP32 Hardware & Switch Pairing                              |
+| :--------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------: |
 | <img src="docs/assets/screenshots/en/macro-studio.png" width="400" alt="Macro Studio" /> | <img src="docs/assets/screenshots/en/hardware.png" width="400" alt="Hardware Settings" /> |
 
 </div>
@@ -121,10 +122,19 @@ ghost-pad/
 
 ## Documentation
 
-| Document | Description |
-| :--- | :--- |
-| [Desktop Developer Guide](desktop/README.md) | Prerequisites, dev modes, default keyboard mappings, and test suite (109 tests) |
-| [Architecture Reference](desktop/ARCHITECTURE.md) | Tri-input state merging, component design, and UART protocol flow |
-| [Technical Specification](docs/technical_spec.md) | Low-level 9-byte CRC-8 / 10-byte XOR packet formats and ESP32 HID details |
-| [Implementation Plan](docs/desktop_app_plan.md) | Module specifications, roadmap, and verification checklist |
-| [Firmware Guide](firmware/README.md) | Pre-compiled firmware details and manual `esptool` flashing commands |
+| Document                                          | Description                                                                     |
+| :------------------------------------------------ | :------------------------------------------------------------------------------ |
+| [Desktop Developer Guide](desktop/README.md)      | Prerequisites, dev modes, default keyboard mappings, and test suite (109 tests) |
+| [Architecture Reference](desktop/ARCHITECTURE.md) | Tri-input state merging, component design, and UART protocol flow               |
+| [Technical Specification](docs/technical_spec.md) | Low-level 9-byte CRC-8 / 10-byte XOR packet formats and ESP32 HID details       |
+| [Implementation Plan](docs/desktop_app_plan.md)   | Module specifications, roadmap, and verification checklist                      |
+| [Firmware Guide](firmware/README.md)              | Pre-compiled firmware details and manual `esptool` flashing commands            |
+
+## License
+
+This project is licensed under the **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)**.
+
+### Third-Party Firmware & Trademarks
+
+- **Pre-compiled ESP32 Firmware (`firmware/PRO-UART0.bin`)**: Originates from **[UARTSwitchCon](https://github.com/nullstalgia/UARTSwitchCon)** (also distributed via [pynscontroller](https://github.com/shinyypig/pynscontroller)), licensed under **GPL-3.0**.
+- **Disclaimer**: _Nintendo Switch_ and _Pro Controller_ are trademarks of Nintendo Co., Ltd. Ghost-Pad is an independent open-source project and is not affiliated with, endorsed by, or associated with Nintendo.

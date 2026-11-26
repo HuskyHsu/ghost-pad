@@ -15,6 +15,7 @@
 [![Rust 2024](https://img.shields.io/badge/Rust-2024-DEA584?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![TypeScript 6](https://img.shields.io/badge/TypeScript-6-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tests](https://img.shields.io/badge/Tests-109%20Passed-brightgreen?style=flat-square)](desktop/README.md)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](LICENSE)
 
 <br />
 
@@ -50,8 +51,8 @@ flowchart LR
 
 <div align="center">
 
-| 巨集工作坊與循環播放引擎 | ESP32 硬體設定與 Switch 配對 |
-| :---: | :---: |
+|                                 巨集工作坊與循環播放引擎                                  |                            ESP32 硬體設定與 Switch 配對                             |
+| :---------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------: |
 | <img src="docs/assets/screenshots/zh-TW/macro-studio.png" width="400" alt="巨集工作坊" /> | <img src="docs/assets/screenshots/zh-TW/hardware.png" width="400" alt="硬體設定" /> |
 
 </div>
@@ -121,10 +122,19 @@ ghost-pad/
 
 ## 相關文件
 
-| 文件 | 說明 |
-| :--- | :--- |
-| [桌面端開發與使用手冊](desktop/README.md) | 環境需求、開發模式、預設鍵盤對照表與自動化測試（109 項） |
-| [系統架構手冊](desktop/ARCHITECTURE.md) | 三路輸入狀態合併演算法、元件設計與 UART 通訊流程 |
+| 文件                                                   | 說明                                                     |
+| :----------------------------------------------------- | :------------------------------------------------------- |
+| [桌面端開發與使用手冊](desktop/README.md)              | 環境需求、開發模式、預設鍵盤對照表與自動化測試（109 項） |
+| [系統架構手冊](desktop/ARCHITECTURE.md)                | 三路輸入狀態合併演算法、元件設計與 UART 通訊流程         |
 | [底層通訊與硬體協定規範](docs/technical_spec.zh-TW.md) | 9-Byte CRC-8 / 10-Byte XOR 封包格式與 ESP32 HID 實作細節 |
-| [系統實作規格手冊](docs/desktop_app_plan.zh-TW.md) | 模組規格、開發里程碑與驗收清單 |
-| [ESP32 韌體說明](firmware/README.md) | 預編譯韌體資訊與 `esptool` 手動燒錄指令 |
+| [系統實作規格手冊](docs/desktop_app_plan.zh-TW.md)     | 模組規格、開發里程碑與驗收清單                           |
+| [ESP32 韌體說明](firmware/README.md)                   | 預編譯韌體資訊與 `esptool` 手動燒錄指令                  |
+
+## 授權條款
+
+本專案採用 **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)** 授權。
+
+### 第三方韌體與商標聲明
+
+- **預編譯 ESP32 韌體（`firmware/PRO-UART0.bin`）**：源自 **[UARTSwitchCon](https://github.com/nullstalgia/UARTSwitchCon)**（亦收錄於 [pynscontroller](https://github.com/shinyypig/pynscontroller)），同為 **GPL-3.0** 授權。
+- **免責聲明**：_Nintendo Switch_ 與 _Pro Controller_ 為 Nintendo Co., Ltd. 之註冊商標。Ghost-Pad 為獨立開源專案，與任天堂（Nintendo）無任何關聯亦未獲其背書。

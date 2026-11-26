@@ -15,6 +15,7 @@ Nintendo Switch 向けの高性能 PC 仮想コントローラーブリッジ、
 [![Rust 2024](https://img.shields.io/badge/Rust-2024-DEA584?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![TypeScript 6](https://img.shields.io/badge/TypeScript-6-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tests](https://img.shields.io/badge/Tests-109%20Passed-brightgreen?style=flat-square)](desktop/README.md)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](LICENSE)
 
 <br />
 
@@ -128,3 +129,13 @@ ghost-pad/
 | [技術・通信プロトコル仕様書](docs/technical_spec.ja.md) | 9-Byte CRC-8 / 10-Byte XOR パケット形式および ESP32 HID 実装詳細 |
 | [システム実装仕様書](docs/desktop_app_plan.ja.md) | モジュール仕様、ロードマップ、検証チェックリスト |
 | [ファームウェアガイド](firmware/README.md) | 同梱ファームウェア情報および `esptool` 手動書き込みコマンド |
+
+## ライセンス
+
+本プロジェクトは **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)** の下で公開されています。
+
+### サードパーティファームウェアおよび商標について
+
+- **同梱 ESP32 ファームウェア（`firmware/PRO-UART0.bin`）**：**[UARTSwitchCon](https://github.com/nullstalgia/UARTSwitchCon)**（[pynscontroller](https://github.com/shinyypig/pynscontroller) にも収録）に由来し、同じく **GPL-3.0** ライセンスの下で公開されています。
+- **免責事項**：*Nintendo Switch* および *Pro Controller* は任天堂株式会社の登録商標です。Ghost-Pad は独立したオープンソースプロジェクトであり、任天堂株式会社とは一切関係なく、公式に承認されたものではありません。
+
