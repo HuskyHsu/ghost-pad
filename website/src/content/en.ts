@@ -423,6 +423,6 @@ export const enContent: SiteContent = {
     downloadButton: "Download on GitHub Releases",
     docsButton: "View Repository & Tech Docs",
     releasesLinkLabel: "Releases",
-    copyright: "Ghost-Pad · Open Source · MIT License",
+    copyright: "Ghost-Pad · Open Source · GPL-3.0 License",
   },
 };

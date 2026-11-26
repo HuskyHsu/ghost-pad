@@ -423,6 +423,6 @@ export const jaContent: SiteContent = {
     downloadButton: "GitHub Releases からダウンロード",
     docsButton: "リポジトリと技術ドキュメントを見る",
     releasesLinkLabel: "Releases",
-    copyright: "Ghost-Pad · オープンソース · MIT License",
+    copyright: "Ghost-Pad · Open Source · GPL-3.0 License",
   },
 };

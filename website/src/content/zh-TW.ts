@@ -655,6 +655,6 @@ export const zhTWContent: SiteContent = {
     downloadButton: "前往 GitHub Releases 下載",
     docsButton: "查看完整專案與技術文件",
     releasesLinkLabel: "Releases",
-    copyright: "Ghost-Pad · 開源專案 · MIT License",
+    copyright: "Ghost-Pad · Open Source · GPL-3.0 License",
   },
 };
