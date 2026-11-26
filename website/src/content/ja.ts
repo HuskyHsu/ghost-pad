@@ -277,11 +277,6 @@ export const jaContent: SiteContent = {
         'website/public/demos/Geodude_Self-Destruct_Nugget_app.mp4 を配置して有効化',
       scriptReady: true,
       scriptSrc: './demos/Geodude_Self-Destruct_Nugget.json',
-      scriptReadyLabel: 'きんのたま周回マクロ (.json) をダウンロード',
-      scriptPlaceholderLabel: 'きんのたま周回マクロ (.json) 準備中',
-      scriptHint:
-        '公開後、ダウンロードした .json を Ghost-Pad の「マクロスタジオ」へドラッグするだけで取り込めます',
-      scriptSrc: './demos/Geodude_Self-Destruct_Nugget.json',
       scriptReadyLabel: 'Geodude_Self-Destruct_Nugget.json をダウンロード',
       scriptPlaceholderLabel: 'Geodude_Self-Destruct_Nugget.json 準備中',
       scriptHint:
