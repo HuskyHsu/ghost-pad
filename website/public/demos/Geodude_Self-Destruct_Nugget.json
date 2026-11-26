@@ -1,0 +1,504 @@
+{
+  "id": "macro-1794757768541-wvn4q",
+  "name": "自爆刷金珠",
+  "description": "",
+  "createdAt": 1794757768541,
+  "updatedAt": 1795363130457,
+  "actions": [
+    {
+      "id": "act-1794757676834-0koi",
+      "type": "stick",
+      "stick": "left",
+      "stickX": 128,
+      "stickY": 0,
+      "startTimeMs": 0,
+      "durationMs": 1702
+    },
+    {
+      "id": "act-1794757691499-7qgy",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 4267,
+      "durationMs": 12101
+    },
+    {
+      "id": "act-1794757680101-f0sc",
+      "type": "stick",
+      "stick": "left",
+      "stickX": 1,
+      "stickY": 128,
+      "startTimeMs": 4384,
+      "durationMs": 585
+    },
+    {
+      "id": "act-1794757680731-6qcp",
+      "type": "stick",
+      "stick": "left",
+      "stickX": 128,
+      "stickY": 254,
+      "startTimeMs": 5267,
+      "durationMs": 332
+    },
+    {
+      "id": "act-1794757682199-5wh2",
+      "type": "stick",
+      "stick": "left",
+      "stickX": 1,
+      "stickY": 128,
+      "startTimeMs": 5919,
+      "durationMs": 1148
+    },
+    {
+      "id": "act-1794757683298-pk0r",
+      "type": "stick",
+      "stick": "left",
+      "stickX": 128,
+      "stickY": 254,
+      "startTimeMs": 7368,
+      "durationMs": 799
+    },
+    {
+      "id": "act-1794757685498-5e7u",
+      "type": "stick",
+      "stick": "left",
+      "stickX": 255,
+      "stickY": 128,
+      "startTimeMs": 8585,
+      "durationMs": 1781
+    },
+    {
+      "id": "act-1794757691500-egng",
+      "type": "stick",
+      "stick": "left",
+      "stickX": 128,
+      "stickY": 254,
+      "startTimeMs": 10618,
+      "durationMs": 5750
+    },
+    {
+      "id": "act-1794757693849-ymof",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 18552,
+      "durationMs": 165
+    },
+    {
+      "id": "act-1794757694651-iqyo",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 19367,
+      "durationMs": 153
+    },
+    {
+      "id": "act-1794757695866-jumd",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 20567,
+      "durationMs": 167
+    },
+    {
+      "id": "act-1794757696964-a306",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 21686,
+      "durationMs": 147
+    },
+    {
+      "id": "act-1794757698449-g7fs",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 23102,
+      "durationMs": 216
+    },
+    {
+      "id": "act-1794757699400-89g8",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 24168,
+      "durationMs": 100
+    },
+    {
+      "id": "act-1794757700367-ndc4",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 25099,
+      "durationMs": 137
+    },
+    {
+      "id": "act-1794757701447-mqbr",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 26169,
+      "durationMs": 147
+    },
+    {
+      "id": "act-1794757702565-pb3o",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 27285,
+      "durationMs": 149
+    },
+    {
+      "id": "act-1794757703450-j5e5",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 28169,
+      "durationMs": 150
+    },
+    {
+      "id": "act-1794757704231-jr8h",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 28970,
+      "durationMs": 130
+    },
+    {
+      "id": "act-1794757705247-254h",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 29970,
+      "durationMs": 146
+    },
+    {
+      "id": "act-1794757706049-zffx",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 30785,
+      "durationMs": 133
+    },
+    {
+      "id": "act-1794757706814-92yi",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 31536,
+      "durationMs": 147
+    },
+    {
+      "id": "act-1794757713549-03rz",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 38270,
+      "durationMs": 148
+    },
+    {
+      "id": "act-1794757721434-4e6k",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 46187,
+      "durationMs": 116
+    },
+    {
+      "id": "act-1794757722365-ovfg",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 47084,
+      "durationMs": 151
+    },
+    {
+      "id": "act-1794757724082-d5w4",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 48802,
+      "durationMs": 150
+    },
+    {
+      "id": "act-1794757725966-mk9x",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 50650,
+      "durationMs": 186
+    },
+    {
+      "id": "act-1794757727064-f9kq",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 51802,
+      "durationMs": 132
+    },
+    {
+      "id": "act-1794757727913-c0zm",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 52685,
+      "durationMs": 98
+    },
+    {
+      "id": "act-1794757728764-vg9v",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 53500,
+      "durationMs": 134
+    },
+    {
+      "id": "act-1794757729614-gg2j",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 54336,
+      "durationMs": 148
+    },
+    {
+      "id": "act-1794757730680-dexm",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 55402,
+      "durationMs": 148
+    },
+    {
+      "id": "act-1794757731531-yrvu",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 56302,
+      "durationMs": 99
+    },
+    {
+      "id": "act-1794757732313-5bys",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 57052,
+      "durationMs": 131
+    },
+    {
+      "id": "act-1794757733279-oyr1",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 58019,
+      "durationMs": 130
+    },
+    {
+      "id": "act-1794757734030-6f90",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 58783,
+      "durationMs": 117
+    },
+    {
+      "id": "act-1794757735064-a648",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 59804,
+      "durationMs": 130
+    },
+    {
+      "id": "act-1794757735931-mlru",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 60687,
+      "durationMs": 114
+    },
+    {
+      "id": "act-1794757736763-0flt",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 61520,
+      "durationMs": 113
+    },
+    {
+      "id": "act-1794757737947-i47s",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 62670,
+      "durationMs": 148
+    },
+    {
+      "id": "act-1794757738598-4m5e",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 63300,
+      "durationMs": 168
+    },
+    {
+      "id": "act-1794757739266-wzyx",
+      "type": "button",
+      "button": "a",
+      "startTimeMs": 63953,
+      "durationMs": 183
+    },
+    {
+      "id": "act-1794757740246-y809",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 64986,
+      "durationMs": 131
+    },
+    {
+      "id": "act-1794757740731-plvl",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 65436,
+      "durationMs": 165
+    },
+    {
+      "id": "act-1794757741081-3zdh",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 65817,
+      "durationMs": 134
+    },
+    {
+      "id": "act-1794757741450-mzky",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 66169,
+      "durationMs": 151
+    },
+    {
+      "id": "act-1794757742197-ljbk",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 66886,
+      "durationMs": 181
+    },
+    {
+      "id": "act-1794757742999-ngjx",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 67736,
+      "durationMs": 133
+    },
+    {
+      "id": "act-1794757743447-muik",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 68150,
+      "durationMs": 167
+    },
+    {
+      "id": "act-1794757743864-5wqz",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 68637,
+      "durationMs": 97
+    },
+    {
+      "id": "act-1794757744497-yvel",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 69203,
+      "durationMs": 164
+    },
+    {
+      "id": "act-1794757745047-d1he",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 69770,
+      "durationMs": 147
+    },
+    {
+      "id": "act-1794757745698-fy6u",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 70384,
+      "durationMs": 184
+    },
+    {
+      "id": "act-1794757746416-x1yh",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 71137,
+      "durationMs": 149
+    },
+    {
+      "id": "act-1794757747797-sedi",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 72503,
+      "durationMs": 164
+    },
+    {
+      "id": "act-wait-1794757888350-8r9n",
+      "type": "wait",
+      "startTimeMs": 72511,
+      "durationMs": 500
+    },
+    {
+      "id": "act-1794757748298-g772",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 73002,
+      "durationMs": 166
+    },
+    {
+      "id": "act-1794757748998-s9ob",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 73719,
+      "durationMs": 149
+    },
+    {
+      "id": "act-1794757749482-f5jp",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 74169,
+      "durationMs": 184
+    },
+    {
+      "id": "act-1794757749884-r0wa",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 74601,
+      "durationMs": 153
+    },
+    {
+      "id": "act-1794757751314-iumd",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 76021,
+      "durationMs": 163
+    },
+    {
+      "id": "act-1794757752315-b3y8",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 76970,
+      "durationMs": 216
+    },
+    {
+      "id": "act-1794757753081-9u1e",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 77785,
+      "durationMs": 166
+    },
+    {
+      "id": "act-1794757754031-p8fm",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 78720,
+      "durationMs": 182
+    },
+    {
+      "id": "act-1794757754647-geky",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 79352,
+      "durationMs": 166
+    },
+    {
+      "id": "act-wait-1794757757641-jb67",
+      "type": "wait",
+      "startTimeMs": 79518,
+      "durationMs": 2993
+    },
+    {
+      "id": "act-1795362674498-45ut",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 80611,
+      "durationMs": 310
+    },
+    {
+      "id": "act-1795363102066-mf6y",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 81320,
+      "durationMs": 640
+    },
+    {
+      "id": "act-1795363116462-7avd",
+      "type": "button",
+      "button": "b",
+      "startTimeMs": 82511,
+      "durationMs": 310
+    }
+  ]
+}

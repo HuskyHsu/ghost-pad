@@ -70,7 +70,7 @@ describe("Ghost-Pad Guide Website", () => {
       screen.getByText(new RegExp(escapeRegExp(enContent.controls.handyTips[0].title))),
     ).toBeInTheDocument();
 
-    // MacroStudio + reserved Pokemon FireRed/LeafGreen Nugget Bridge showcase
+    // MacroStudio + Pokemon FireRed/LeafGreen Nugget Bridge showcase
     expect(screen.getByText(enContent.macro.heading)).toBeInTheDocument();
     expect(
       screen.getByText(enContent.macro.emergencyNote),
@@ -79,14 +79,19 @@ describe("Ghost-Pad Guide Website", () => {
       screen.getByText(enContent.macro.showcase.title),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(enContent.macro.showcase.switchVideoPlaceholderTitle),
+      screen.getByText(enContent.macro.showcase.syncStatusReady),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(enContent.macro.showcase.appVideoPlaceholderTitle),
+      screen.getByText(enContent.macro.showcase.switchVideoCaption),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(enContent.macro.showcase.scriptPlaceholderLabel),
+      screen.getByText(enContent.macro.showcase.appVideoCaption),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", {
+        name: new RegExp(escapeRegExp(enContent.macro.showcase.scriptReadyLabel)),
+      }),
+    ).toHaveAttribute("href", enContent.macro.showcase.scriptSrc);
 
     // AppTour
     expect(screen.getByText(enContent.tour.heading)).toBeInTheDocument();
