@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { BookOpen, ChevronDown, Download, Github } from "lucide-react";
 import { useContent } from "../../i18n/useContent";
-import { GhostMascot, SketchCard, SpeechBubble } from "../sketch";
+import { GhostDock, GhostMascot, SketchCard, SpeechBubble } from "../sketch";
 
 export function FaqAndFooterSection() {
   const content = useContent();
@@ -36,7 +36,7 @@ export function FaqAndFooterSection() {
             </p>
 
             <div className="mt-6 flex items-center gap-4">
-              <GhostMascot className="h-24 w-24 shrink-0" mood="happy" />
+              <GhostDock id="faq" className="h-24 w-24 shrink-0" mood="happy" />
               <SpeechBubble tail="left" className="text-xs leading-relaxed text-ink-soft">
                 {faq.mascotBubble}
               </SpeechBubble>
@@ -142,7 +142,12 @@ export function FaqAndFooterSection() {
               </div>
 
               <div className="flex justify-center lg:col-span-4 lg:justify-end">
-                <GhostMascot className="h-32 w-32 sm:h-36 sm:w-36" mood="excited" showSignals />
+                <GhostDock
+                  id="cta"
+                  className="h-32 w-32 sm:h-36 sm:w-36"
+                  mood="excited"
+                  showSignals
+                />
               </div>
             </div>
           </SketchCard>
@@ -153,7 +158,11 @@ export function FaqAndFooterSection() {
       <footer className="border-t border-ink/12 bg-paper-warm/50">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-6 text-sm text-ink-muted sm:flex-row sm:px-8">
           <div className="flex items-center gap-2.5 font-[family-name:var(--font-display)] font-bold text-ink">
-            <GhostMascot className="h-7 w-7" mood="happy" />
+            <GhostMascot
+              className="h-7 w-7 shrink-0"
+              mood="happy"
+              staticMode
+            />
             <span>{footer.copyright}</span>
           </div>
 

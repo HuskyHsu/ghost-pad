@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { CheckCircle2, Download } from "lucide-react";
 import { useContent } from "../../i18n/useContent";
 import {
-  GhostMascot,
+  GhostDock,
   SketchCard,
   SketchHighlight,
   SpeechBubble,
@@ -303,6 +303,15 @@ export function HeroSection() {
   const prefersReducedMotion = Boolean(useReducedMotion());
   const [mascotExcited, setMascotExcited] = useState(false);
 
+  const handlePoke = useCallback(() => {
+    setMascotExcited(true);
+  }, []);
+
+  const heroActiveButtons = useMemo(
+    () => (mascotExcited ? ["A", "X"] : []),
+    [mascotExcited],
+  );
+
   useEffect(() => {
     if (!mascotExcited) return;
     const timer = window.setTimeout(() => setMascotExcited(false), 1400);
@@ -358,7 +367,7 @@ export function HeroSection() {
             </motion.div>
           </div>
 
-          {/* Right column: Animated GhostMascot + SpeechBubble */}
+          {/* Right column: Traveling Ghost dock + SpeechBubble */}
           <div className="flex flex-col items-center lg:col-span-5">
             <SpeechBubble tail="bottom" className="mb-3 max-w-sm">
               <p className="text-sm font-medium leading-relaxed text-ink sm:text-base">
@@ -366,19 +375,17 @@ export function HeroSection() {
               </p>
             </SpeechBubble>
 
-            <button
-              type="button"
-              onClick={() => setMascotExcited(true)}
-              aria-label={content.meta.brand}
-              className="group relative rounded-full p-2 transition-[transform] duration-150 ease-out active:scale-[0.96]"
-            >
-              <GhostMascot
+            <div className="p-2">
+              <GhostDock
+                id="hero"
                 className="h-52 w-52 sm:h-60 sm:w-60"
                 mood={mascotExcited ? "excited" : "happy"}
-                activeButtons={mascotExcited ? ["A", "X"] : []}
+                activeButtons={heroActiveButtons}
                 showSignals={true}
+                onPoke={handlePoke}
+                ariaLabel={content.meta.brand}
               />
-            </button>
+            </div>
           </div>
         </div>
 

@@ -156,6 +156,43 @@
   }
 }
 
+@keyframes ghostSleepBreath {
+  0%, 100% {
+    transform: translateY(4px) scale(1, 0.99);
+  }
+  50% {
+    transform: translateY(1px) scale(1.015, 1.01);
+  }
+}
+
+@keyframes ghostSleepShadow {
+  0%, 100% {
+    transform: scale(1.06, 1);
+    opacity: 0.34;
+  }
+  50% {
+    transform: scale(0.98, 0.94);
+    opacity: 0.26;
+  }
+}
+
+@keyframes sleepZzz {
+  0% {
+    opacity: 0;
+    transform: translate(0, 6px) scale(0.75);
+  }
+  25% {
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(8px, -16px) scale(1.1);
+  }
+}
+
 .animate-ghost-bob {
   animation: ghostBob 3.6s ease-in-out infinite;
 }
@@ -163,6 +200,30 @@
 .animate-ghost-shadow {
   animation: ghostShadowBreath 3.6s ease-in-out infinite;
   transform-origin: center;
+}
+
+.animate-ghost-sleep {
+  animation: ghostSleepBreath 5.2s ease-in-out infinite;
+  transform-origin: center 120px;
+}
+
+.animate-ghost-sleep-shadow {
+  animation: ghostSleepShadow 5.2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.animate-sleep-z-1 {
+  animation: sleepZzz 3.2s ease-out infinite;
+}
+
+.animate-sleep-z-2 {
+  animation: sleepZzz 3.2s ease-out 1.05s infinite;
+  opacity: 0;
+}
+
+.animate-sleep-z-3 {
+  animation: sleepZzz 3.2s ease-out 2.1s infinite;
+  opacity: 0;
 }
 
 .animate-signal-1 {
@@ -184,6 +245,11 @@
 
   .animate-ghost-bob,
   .animate-ghost-shadow,
+  .animate-ghost-sleep,
+  .animate-ghost-sleep-shadow,
+  .animate-sleep-z-1,
+  .animate-sleep-z-2,
+  .animate-sleep-z-3,
   .animate-signal-1,
   .animate-signal-2,
   .animate-signal-3 {

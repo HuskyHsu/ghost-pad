@@ -1,4 +1,5 @@
 import { LocaleProvider, useContent } from "./i18n/useContent";
+import { GhostCompanionProvider, TravelingGhostLayer } from "./components/sketch";
 import { Navbar } from "./components/sections/Navbar";
 import { HeroSection } from "./components/sections/HeroSection";
 import { QuickStartSection } from "./components/sections/QuickStartSection";
@@ -11,7 +12,7 @@ function AppShell() {
   const content = useContent();
 
   return (
-    <div className="min-h-dvh bg-notebook-dots text-ink">
+    <div className="relative min-h-dvh bg-notebook-dots text-ink">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-xl focus:border-2 focus:border-ink focus:bg-marker-yellow focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-ink"
@@ -29,6 +30,8 @@ function AppShell() {
         <QuickStartSection />
         <FaqAndFooterSection />
       </main>
+
+      <TravelingGhostLayer />
     </div>
   );
 }
@@ -36,7 +39,9 @@ function AppShell() {
 export function App() {
   return (
     <LocaleProvider>
-      <AppShell />
+      <GhostCompanionProvider>
+        <AppShell />
+      </GhostCompanionProvider>
     </LocaleProvider>
   );
 }

@@ -19,7 +19,7 @@ import {
   Undo2,
 } from "lucide-react";
 import { useContent } from "../../i18n/useContent";
-import { GhostMascot, SketchCard, SketchHighlight } from "../sketch";
+import { SketchCard, SketchHighlight } from "../sketch";
 
 type MacroStepId = "record" | "edit" | "loop";
 type LoopMode = "once" | "count" | "infinite";
@@ -371,67 +371,49 @@ export function MacroStudioSection() {
                   </div>
 
                   {/* Countdown visual stage */}
-                  <div className="grid items-center gap-5 rounded-2xl border border-ink/12 bg-paper-warm/65 p-5 sm:grid-cols-12">
-                    <div className="flex flex-col items-center justify-center sm:col-span-5">
-                      <GhostMascot
-                        className="h-28 w-28"
-                        mood={countdownPhase === "rec" ? "excited" : "focused"}
-                        stickY={activeCaptureIndex === 1 ? -0.8 : 0}
-                        activeButtons={
-                          activeCaptureIndex === 0 || activeCaptureIndex === 2
-                            ? ["A"]
-                            : activeCaptureIndex === 3
-                              ? ["B"]
-                              : []
-                        }
-                        showSignals={countdownPhase === "rec"}
-                      />
+                  <div className="space-y-4 rounded-2xl border border-ink/12 bg-paper-warm/65 p-5">
+                    <div className="flex items-center gap-2.5">
+                      {([3, 2, 1, "rec"] as const).map((phase) => {
+                        const isCurrent = countdownPhase === phase;
+                        return (
+                          <div
+                            key={String(phase)}
+                            className={`flex h-12 flex-1 items-center justify-center rounded-xl border-2 font-[family-name:var(--font-display)] text-lg font-bold tabular-nums transition-[transform,background-color,border-color,color] duration-150 ease-out ${
+                              isCurrent
+                                ? phase === "rec"
+                                  ? "scale-105 border-marker-coral-deep bg-marker-coral text-marker-coral-deep"
+                                  : "scale-105 border-ink bg-marker-yellow text-ink"
+                                : "border-ink/15 bg-paper text-ink-muted"
+                            }`}
+                          >
+                            {phase === "rec" ? "REC" : phase}
+                          </div>
+                        );
+                      })}
                     </div>
 
-                    <div className="space-y-4 sm:col-span-7">
-                      <div className="flex items-center gap-2.5">
-                        {([3, 2, 1, "rec"] as const).map((phase) => {
-                          const isCurrent = countdownPhase === phase;
+                    {/* Captured input pulse strip */}
+                    <div className="rounded-xl border border-ink/12 bg-paper-card p-3.5">
+                      <div className="flex items-center justify-between text-xs text-ink-muted">
+                        <span>{macro.workbench.record.capturedTitle}</span>
+                        <span className="font-[family-name:var(--font-mono)] tabular-nums">60Hz / 16ms</span>
+                      </div>
+                      <div className="mt-2.5 flex items-center gap-2">
+                        {capturedSignals.map((sig, idx) => {
+                          const lit = countdownPhase === "rec" && idx <= activeCaptureIndex;
                           return (
                             <div
-                              key={String(phase)}
-                              className={`flex h-12 flex-1 items-center justify-center rounded-xl border-2 font-[family-name:var(--font-display)] text-lg font-bold tabular-nums transition-[transform,background-color,border-color,color] duration-150 ease-out ${
-                                isCurrent
-                                  ? phase === "rec"
-                                    ? "scale-105 border-marker-coral-deep bg-marker-coral text-marker-coral-deep"
-                                    : "scale-105 border-ink bg-marker-yellow text-ink"
-                                  : "border-ink/15 bg-paper text-ink-muted"
+                              key={`${sig}-${idx}`}
+                              className={`flex h-9 flex-1 items-center justify-center rounded-lg border font-[family-name:var(--font-mono)] text-sm font-bold transition-[background-color,border-color,color,transform] duration-150 ease-out ${
+                                lit
+                                  ? "border-ghost-sky-deep bg-ghost-sky-pale text-ink"
+                                  : "border-dashed border-ink/20 bg-paper-warm/50 text-ink-muted/60"
                               }`}
                             >
-                              {phase === "rec" ? "REC" : phase}
+                              {sig}
                             </div>
                           );
                         })}
-                      </div>
-
-                      {/* Captured input pulse strip */}
-                      <div className="rounded-xl border border-ink/12 bg-paper-card p-3.5">
-                        <div className="flex items-center justify-between text-xs text-ink-muted">
-                          <span>{macro.workbench.record.capturedTitle}</span>
-                          <span className="font-[family-name:var(--font-mono)] tabular-nums">60Hz / 16ms</span>
-                        </div>
-                        <div className="mt-2.5 flex items-center gap-2">
-                          {capturedSignals.map((sig, idx) => {
-                            const lit = countdownPhase === "rec" && idx <= activeCaptureIndex;
-                            return (
-                              <div
-                                key={`${sig}-${idx}`}
-                                className={`flex h-9 flex-1 items-center justify-center rounded-lg border font-[family-name:var(--font-mono)] text-sm font-bold transition-[background-color,border-color,color,transform] duration-150 ease-out ${
-                                  lit
-                                    ? "border-ghost-sky-deep bg-ghost-sky-pale text-ink"
-                                    : "border-dashed border-ink/20 bg-paper-warm/50 text-ink-muted/60"
-                                }`}
-                              >
-                                {sig}
-                              </div>
-                            );
-                          })}
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -815,7 +797,6 @@ export function MacroStudioSection() {
 
                   {/* Live playback bar */}
                   <div className="flex items-center gap-4 rounded-2xl border border-ink/12 bg-paper-card p-4">
-                    <GhostMascot className="h-14 w-14 shrink-0" mood="happy" showSignals />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between text-xs font-semibold text-ink">
                         <span className="inline-flex items-center gap-1.5">
@@ -940,8 +921,7 @@ export function MacroStudioSection() {
                     />
                   ) : (
                     <div className="flex h-full flex-col items-center justify-center px-5 py-5 text-center">
-                      <GhostMascot className="h-16 w-16 sm:h-20 sm:w-20" mood="happy" showSignals />
-                      <p className="mt-3 font-[family-name:var(--font-display)] text-base font-bold text-ink">
+                      <p className="font-[family-name:var(--font-display)] text-base font-bold text-ink">
                         {macro.showcase.appVideoPlaceholderTitle}
                       </p>
                       <p className="mt-2 max-w-md rounded-lg bg-paper-warm px-3 py-1.5 font-[family-name:var(--font-mono)] text-[11px] leading-relaxed text-ink-soft">
@@ -983,8 +963,7 @@ export function MacroStudioSection() {
                     />
                   ) : (
                     <div className="flex h-full flex-col items-center justify-center px-5 py-5 text-center">
-                      <GhostMascot className="h-16 w-16 sm:h-20 sm:w-20" mood="focused" />
-                      <p className="mt-3 font-[family-name:var(--font-display)] text-base font-bold text-ink">
+                      <p className="font-[family-name:var(--font-display)] text-base font-bold text-ink">
                         {macro.showcase.switchVideoPlaceholderTitle}
                       </p>
                       <p className="mt-2 max-w-md rounded-lg bg-paper-warm px-3 py-1.5 font-[family-name:var(--font-mono)] text-[11px] leading-relaxed text-ink-soft">

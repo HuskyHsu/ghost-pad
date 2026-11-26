@@ -65,7 +65,11 @@ export function Navbar() {
             href="#"
             className="group flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg py-0.5 pr-1 text-ink transition-[opacity] duration-150 ease-out hover:opacity-85"
           >
-            <GhostMascot className="h-9 w-9 shrink-0" mood="happy" />
+            <GhostMascot
+              className="h-9 w-9 shrink-0"
+              mood="happy"
+              staticMode
+            />
             <span className="font-[family-name:var(--font-display)] text-lg font-bold tracking-[-0.02em] text-ink">
               {content.meta.brand}
             </span>

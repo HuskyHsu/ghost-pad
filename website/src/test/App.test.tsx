@@ -1,6 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import App from "../App";
+import { IDLE_SLEEP_MS } from "../components/sketch";
 import { zhTWContent } from "../content/zh-TW";
 import { enContent } from "../content/en";
 import { jaContent } from "../content/ja";
@@ -352,5 +353,39 @@ describe("Ghost-Pad Guide Website", () => {
     expect(screen.getByText(enContent.hero.title)).toBeInTheDocument();
     expect(window.location.search).toBe("");
     expect(window.location.hash).toBe("#quickstart");
+  });
+
+  it("renders a single traveling GhostMascot across 4 dock slots and sleeps after idle timeout", () => {
+    vi.useFakeTimers();
+    try {
+      const { container } = render(<App />);
+
+      // Exactly 1 living GhostMascot across the entire page
+      const mascots = screen.getAllByRole("img", { name: /^Ghost-Pad mascot/ });
+      expect(mascots).toHaveLength(1);
+      expect(mascots[0]).toHaveAttribute("aria-label", "Ghost-Pad mascot (happy)");
+
+      // 4 reserved dock slots (hero, controls, faq, cta)
+      const docks = Array.from(container.querySelectorAll("[data-ghost-dock]")).map((el) =>
+        el.getAttribute("data-ghost-dock"),
+      );
+      expect(docks).toEqual(["hero", "controls", "faq", "cta"]);
+
+      // Enters sleeping mode after IDLE_SLEEP_MS of inactivity
+      act(() => {
+        vi.advanceTimersByTime(IDLE_SLEEP_MS + 50);
+      });
+      expect(
+        screen.getByRole("img", { name: "Ghost-Pad mascot (sleeping)" }),
+      ).toBeInTheDocument();
+
+      // Wakes up immediately on user activity
+      fireEvent.keyDown(window, { key: "w", code: "KeyW" });
+      expect(
+        screen.getByRole("img", { name: "Ghost-Pad mascot (happy)" }),
+      ).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

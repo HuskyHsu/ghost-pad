@@ -12,7 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useContent } from "../../i18n/useContent";
-import { GhostMascot, SketchCard } from "../sketch";
+import { GhostDock, SketchCard } from "../sketch";
 
 type TrackId = "action" | "dpad" | "stick" | "shoulder" | "system";
 
@@ -544,9 +544,10 @@ export function InteractiveControlsSection() {
 
             {/* Center: Reactive Mascot + Virtual Keycap Deck */}
             <div className="mt-4 grid grid-cols-1 items-center gap-4 lg:mt-6 lg:grid-cols-12 lg:gap-8">
-              {/* Mascot column */}
+              {/* Mascot dock column */}
               <div className="flex flex-col items-center justify-center lg:col-span-4">
-                <GhostMascot
+                <GhostDock
+                  id="controls"
                   className="h-24 w-24 sm:h-40 sm:w-40 lg:h-48 lg:w-48"
                   mood={mascotMood}
                   stickX={stickX}
