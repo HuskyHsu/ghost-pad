@@ -23,10 +23,10 @@ function AppShell() {
 
       <main id="main-content">
         <HeroSection />
-        <QuickStartSection />
+        <AppTourSection />
         <InteractiveControlsSection />
         <MacroStudioSection />
-        <AppTourSection />
+        <QuickStartSection />
         <FaqAndFooterSection />
       </main>
     </div>

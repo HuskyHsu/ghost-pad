@@ -11,10 +11,10 @@ export const jaContent: SiteContent = {
   },
   nav: {
     items: [
-      { id: "quickstart", label: "3ステップ" },
+      { id: "tour", label: "画面案内" },
       { id: "controls", label: "操作体験" },
       { id: "macro", label: "マクロ" },
-      { id: "tour", label: "画面案内" },
+      { id: "quickstart", label: "3ステップ" },
       { id: "faq", label: "FAQ" },
     ],
     downloadCta: "Download macOS",
@@ -23,7 +23,7 @@ export const jaContent: SiteContent = {
     languageLabel: "言語を切り替え",
   },
   hero: {
-    title: "PC を Nintendo Switch のかわいい操作ハブに",
+    title: "PC から Nintendo Switch をワイヤレス操作",
     lead: "キーボード、マウス、手元のゲームパッドを使って、小さな ESP32 ボード経由で Switch を 60Hz で安定ワイヤレス操作。周回用のマクロ録画・自動再生も思いのままです。",
     primaryCta: "おばけと 3 分セットアップ",
     secondaryCta: "macOS 版をダウンロード",
@@ -94,8 +94,8 @@ export const jaContent: SiteContent = {
     },
   },
   controls: {
-    heading: "押しながら覚えよう：キーボードを直接お試し",
-    subheading: "Ghost-Pad は「物理コントローラー・キーボード・マウスクリック」の 3 系統を同時に入力できます。今すぐキーボードを打つか下のキーキャップを押して、おばけとタイムラインの動きを見てみよう！",
+    heading: "リアルタイム操作デモ",
+    subheading: "物理コントローラー・キーボード・マウスの 3 系統を同時入力できます。キーボードや下のボタンを押して、画面とタイムラインの動きを試してみてください。",
     simulationBadge: "シミュレーション",
     simulationBanner: "ブラウザ上の体験プレビューです（実際の Switch へは送信されません）",
     tryHint: "W A S D で左スティック、I J K L で X Y B A を押してみよう",
@@ -167,8 +167,8 @@ export const jaContent: SiteContent = {
     ],
   },
   macro: {
-    heading: "マクロスタジオ：音編集のように自動で周回",
-    subheading: "同じ操作を繰り返す素材集めや周回も、一度録画してタイムラインで微調整するだけ。あとはおばけにループ再生をおまかせできます。",
+    heading: "マクロ録画＆自動ループ",
+    subheading: "素材集めや周回などの反復操作は、一度録画してタイムラインで微調整するだけで自動ループ実行できます。",
     steps: [
       {
         id: "record",
@@ -231,15 +231,15 @@ export const jaContent: SiteContent = {
     },
     emergencyNote: "緊急ブレーキ：マクロ実行中でもキーボードの Esc キーを押せば即座に強制停止し、すべてのボタンを離します！",
     showcase: {
-      title: "実戦ショーケース枠：『ポケモン ファイアレッド／リーフグリーン』ゴールデンボールブリッジ周回",
+      title: "実例：『ポケモン ファイアレッド／リーフグリーン』ゴールデンボールブリッジ周回",
       subtitle: "ハナダシティ北のロケット団員で「きんのたま」を無限回収する自動化スクリプト",
       description:
-        "会話・移動・リセットの一連の操作を Ghost-Pad で録画して無限ループに設定すれば、Switch 上で安定してきんのたまを自動回収できます。下に「Ghost-Pad アプリ側」と「Nintendo Switch 実機側」の同期録画および JSON スクリプト配布枠を用意しています。",
+        "会話・移動・リセットの一連の操作を Ghost-Pad で録画して無限ループに設定すれば、Switch 上で安定してきんのたまを自動回収できます。",
       syncBadge: "2 画面同期再生",
       syncLinkLabel: "App ⇄ Switch",
       syncStatusReady: "16:9 × 2 同期準備完了",
       syncStatusWaiting: "16:9 × 2 動画準備中",
-      syncStandbyHint: "2 本の録画ファイルを配置すると、ワンクリックで同期再生とシークが可能になります",
+      syncStandbyHint: "録画ファイルと JSON スクリプトが揃うと、この場で同期再生やダウンロード取り込みができるようになります。",
       pauseSyncAriaLabel: "同期再生を一時停止",
       playSyncAriaLabel: "同期再生を開始",
       restartSyncAriaLabel: "最初から再生",
@@ -265,14 +265,14 @@ export const jaContent: SiteContent = {
     },
   },
   tour: {
-    heading: "実際のアプリ画面を見て、迷わずスタート",
-    subheading: "上のタブで画面を切り替え、画像内の番号ピンをクリックするとわかりやすい解説が表示されます。",
+    heading: "アプリ画面ガイド",
+    subheading: "タブを切り替えて各画面を表示し、画像上の番号をクリックすると機能の説明を確認できます。",
     tablistAriaLabel: "アプリ画面ツアーのタブ",
     pinListAriaLabel: "画面ガイド番号リスト",
     tabs: [
       {
         id: "dashboard",
-        label: "ライブダッシュボード",
+        label: "ダッシュボード",
         caption: "普段のプレイでいちばん使う画面。コントローラーの動き、ミュート切替、接続状況を一目で確認できます。",
         image: "./screenshots/ja/dashboard.png",
         alt: "Ghost-Pad ライブダッシュボードと入力タイムライン画面",
@@ -283,7 +283,7 @@ export const jaContent: SiteContent = {
             x: 11,
             y: 24,
             title: "左サイドバー＆ハードウェア状態",
-            detail: "「ライブダッシュボード / マクロライブラリ / ESP32 とファームウェア」を切り替え、コントローラー → PC → ESP32 → Switch の接続ランプをリアルタイム表示します。",
+            detail: "「ダッシュボード / マクロライブラリ / ESP32 とファームウェア」を切り替え、コントローラー → PC → ESP32 → Switch の接続ランプをリアルタイム表示します。",
           },
           {
             id: "d2",
@@ -321,7 +321,7 @@ export const jaContent: SiteContent = {
       },
       {
         id: "macro",
-        label: "マクロスタジオ",
+        label: "マクロライブラリ",
         caption: "自動化スクリプトの録画・編集・ループ再生を行う場所。ドラッグ並び替えや JSON 共有に対応。",
         image: "./screenshots/ja/macro-studio.png",
         alt: "Ghost-Pad マクロスタジオ編集画面とループ再生エンジン",
@@ -354,7 +354,7 @@ export const jaContent: SiteContent = {
       },
       {
         id: "hardware",
-        label: "ESP32 とペアリング",
+        label: "ESP32 とファームウェア",
         caption: "初回の ESP32 ファームウェア書き込みと、Nintendo Switch との Bluetooth ペアリングはここで行います。",
         image: "./screenshots/ja/hardware.png",
         alt: "Ghost-Pad ESP32 ハードウェア設定と Switch ペアリング画面",
@@ -389,7 +389,7 @@ export const jaContent: SiteContent = {
   },
   faq: {
     heading: "よくある質問",
-    subheading: "はじめる前によく聞かれるポイントをわかりやすくまとめました。",
+    subheading: "はじめる前によくある質問をまとめました。",
     mascotBubble: "解決しないときは GitHub Issues で気軽に聞いてね！",
     items: [
       {
@@ -425,7 +425,7 @@ export const jaContent: SiteContent = {
     ],
   },
   footer: {
-    ctaTitle: "おばけと一緒に Switch へつなぐ準備はできた？",
+    ctaTitle: "Ghost-Pad をダウンロード",
     ctaBody: "最新の macOS ユニバーサル版（Apple Silicon / Intel 両対応）をダウンロード。無料・オープンソースで開発環境の構築は不要です。",
     downloadButton: "GitHub Releases からダウンロード",
     docsButton: "リポジトリと技術ドキュメントを見る",

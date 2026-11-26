@@ -11,10 +11,10 @@ export const enContent: SiteContent = {
   },
   nav: {
     items: [
-      { id: "quickstart", label: "3-Step Setup" },
+      { id: "tour", label: "App Tour" },
       { id: "controls", label: "Try Controls" },
       { id: "macro", label: "Macro Studio" },
-      { id: "tour", label: "App Tour" },
+      { id: "quickstart", label: "3-Step Setup" },
       { id: "faq", label: "FAQ" },
     ],
     downloadCta: "Download macOS",
@@ -23,7 +23,7 @@ export const enContent: SiteContent = {
     languageLabel: "Switch language",
   },
   hero: {
-    title: "Turn Your Computer into a Cute Nintendo Switch Control Hub",
+    title: "Control Your Nintendo Switch from Your Computer",
     lead: "Use your keyboard, mouse, or any controller you already own—bridged through a tiny ESP32 board—to play Nintendo Switch wirelessly at a rock-solid 60Hz, and record macros for repetitive grinds.",
     primaryCta: "3-Minute Setup with Ghost",
     secondaryCta: "Download for macOS",
@@ -94,8 +94,8 @@ export const enContent: SiteContent = {
     },
   },
   controls: {
-    heading: "Learn by Pressing: Try Your Keyboard Right Here",
-    subheading: "Ghost-Pad blends physical gamepads, keyboard, and mouse clicks at the same time. Press keys on your keyboard or click the keycaps below to watch the little ghost and timeline react!",
+    heading: "Interactive Controls Playground",
+    subheading: "Ghost-Pad blends physical gamepads, keyboard, and mouse clicks at the same time. Press keys or click the buttons below to see the visualizer and timeline respond.",
     simulationBadge: "Live Preview",
     simulationBanner: "Interactive browser simulation—does not send real signals to your Switch",
     tryHint: "Try W A S D to move the left stick, or I J K L for X Y B A",
@@ -167,8 +167,8 @@ export const enContent: SiteContent = {
     ],
   },
   macro: {
-    heading: "Macro Studio: Edit Combos Like an Audio Track",
-    subheading: "Tired of repetitive farming loops? Record your run once, fine-tune the rhythm on a visual timeline, and let the little ghost loop it cleanly for you.",
+    heading: "Macro Recording & Auto-Loop",
+    subheading: "For repetitive farming or grinding, record your inputs once, fine-tune the timing on the timeline, and let Ghost-Pad loop it automatically.",
     steps: [
       {
         id: "record",
@@ -231,15 +231,15 @@ export const enContent: SiteContent = {
     },
     emergencyNote: "Emergency Brake: Press Esc on your keyboard anytime during playback to stop immediately and release all buttons!",
     showcase: {
-      title: "Real-World Showcase Slot: Pokémon FireRed / LeafGreen Nugget Bridge Farm",
+      title: "Example: Pokémon FireRed / LeafGreen Nugget Bridge Farm",
       subtitle: "Automated Team Rocket Grunt Nugget farming loop north of Cerulean City",
       description:
-        "Record the full dialogue, movement, and faint-reset loop once in Ghost-Pad, then run it on infinite loop for hands-free Nugget farming on Switch. Dual-screen synced footage (Ghost-Pad App + Nintendo Switch) and the downloadable JSON macro are reserved below.",
+        "Record the full dialogue, movement, and faint-reset loop once in Ghost-Pad, then run it on infinite loop for hands-free Nugget farming on Switch.",
       syncBadge: "Dual-Screen Synced Playback",
       syncLinkLabel: "App ⇄ Switch",
       syncStatusReady: "16:9 × 2 Sync Ready",
       syncStatusWaiting: "16:9 × 2 Videos Pending",
-      syncStandbyHint: "Add both recordings to unlock one-click synced playback and scrubbing",
+      syncStandbyHint: "Once the recordings and JSON macro are added, you can watch them side-by-side and import the script here.",
       pauseSyncAriaLabel: "Pause synced playback",
       playSyncAriaLabel: "Play synced recordings",
       restartSyncAriaLabel: "Restart from beginning",
@@ -265,8 +265,8 @@ export const enContent: SiteContent = {
     },
   },
   tour: {
-    heading: "Tour the Real App—Know Where Everything Lives",
-    subheading: "Switch tabs above and click any numbered pin on the screenshot for a plain-English walkthrough.",
+    heading: "App Interface Tour",
+    subheading: "Switch tabs to view each screen, and click the numbered pins to see what each area does.",
     tablistAriaLabel: "App interface tour tabs",
     pinListAriaLabel: "Screenshot callout directory",
     tabs: [
@@ -321,7 +321,7 @@ export const enContent: SiteContent = {
       },
       {
         id: "macro",
-        label: "Macro Studio",
+        label: "Macro Library",
         caption: "Record, trim, and loop automated scripts with drag-and-drop sorting and JSON sharing.",
         image: "./screenshots/en/macro-studio.png",
         alt: "Ghost-Pad Macro Studio visual editor and playback engine",
@@ -354,7 +354,7 @@ export const enContent: SiteContent = {
       },
       {
         id: "hardware",
-        label: "ESP32 & Pairing",
+        label: "ESP32 & Firmware",
         caption: "Flash the bundled firmware onto your ESP32 and pair with your Nintendo Switch right here.",
         image: "./screenshots/en/hardware.png",
         alt: "Ghost-Pad ESP32 hardware setup and Switch pairing guide",
@@ -389,7 +389,7 @@ export const enContent: SiteContent = {
   },
   faq: {
     heading: "Frequently Asked Questions",
-    subheading: "Quick, plain-English answers to the most common questions before you get started.",
+    subheading: "Common questions and quick answers before you get started.",
     mascotBubble: "Still stuck? Drop by GitHub Issues anytime and say hi!",
     items: [
       {
@@ -425,7 +425,7 @@ export const enContent: SiteContent = {
     ],
   },
   footer: {
-    ctaTitle: "Ready to let the little ghost link up with your Switch?",
+    ctaTitle: "Download Ghost-Pad",
     ctaBody: "Download the latest universal macOS build (Apple Silicon & Intel). Free, open-source, and zero dev setup required.",
     downloadButton: "Download on GitHub Releases",
     docsButton: "View Repository & Tech Docs",

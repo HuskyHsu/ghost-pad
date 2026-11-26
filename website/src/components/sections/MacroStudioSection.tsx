@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
-  ArrowLeftRight,
   CircleDot,
   Clock,
   Download,
@@ -896,14 +895,6 @@ export function MacroStudioSection() {
 
             {/* Connected Dual 16:9 Screens */}
             <div className="relative grid grid-cols-1 divide-y-2 divide-ink/15 bg-paper-warm/25 lg:grid-cols-2 lg:divide-x-2 lg:divide-y-0">
-              {/* Visual lockstep bridge indicator between the two screens on desktop */}
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute top-1/2 left-1/2 z-10 hidden h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-ink bg-marker-yellow text-ink paper-shadow-sm lg:flex"
-              >
-                <ArrowLeftRight className="h-4 w-4" />
-              </div>
-
               {/* Left Screen: Ghost-Pad Desktop App */}
               <div className="flex flex-col">
                 <div className="flex items-center justify-between gap-2 border-b border-ink/10 bg-ghost-sky-pale/45 px-4 py-2">

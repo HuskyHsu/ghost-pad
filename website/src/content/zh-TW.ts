@@ -249,10 +249,10 @@ export const zhTWContent: SiteContent = {
   },
   nav: {
     items: [
-      { id: "quickstart", label: "3 步驟連線" },
+      { id: "tour", label: "畫面導覽" },
       { id: "controls", label: "邊按邊學" },
       { id: "macro", label: "巨集自動玩" },
-      { id: "tour", label: "畫面導覽" },
+      { id: "quickstart", label: "3 步驟連線" },
       { id: "faq", label: "常見問題" },
     ],
     downloadCta: "Download macOS",
@@ -261,7 +261,7 @@ export const zhTWContent: SiteContent = {
     languageLabel: "切換語言",
   },
   hero: {
-    title: "把電腦變成 Nintendo Switch 的可愛遙控中心",
+    title: "用電腦直接控制 Nintendo Switch",
     lead: "用鍵盤、滑鼠或手邊的實體手把，透過一塊小小的 ESP32 開發板，就能以 60Hz 穩定無線操控 Switch，還能錄製巨集幫你重複刷關。",
     primaryCta: "跟著小幽靈 3 分鐘上手",
     secondaryCta: "前往下載 macOS 版",
@@ -332,8 +332,8 @@ export const zhTWContent: SiteContent = {
     },
   },
   controls: {
-    heading: "邊按邊學：直接敲鍵盤試試看",
-    subheading: "Ghost-Pad 支援「實體手把、電腦鍵盤、滑鼠點擊」三路同時輸入。現在就可以敲你電腦的鍵盤，或直接點下面畫出來的按鍵帽，看看小幽靈跟五線譜怎麼動！",
+    heading: "即時操作試玩",
+    subheading: "支援實體手把、鍵盤與滑鼠同時輸入。現在就可以敲敲鍵盤或點下方按鍵，看看畫面與時序流怎麼反應。",
     simulationBadge: "模擬預覽",
     simulationBanner: "網頁互動模擬畫面，不會實際傳送訊號至 Switch",
     tryHint: "試著按鍵盤 W A S D 移動搖桿，或按 I J K L 觸發 X Y B A",
@@ -405,8 +405,8 @@ export const zhTWContent: SiteContent = {
     ],
   },
   macro: {
-    heading: "巨集工作坊：像剪音軌一樣自動掛機",
-    subheading: "遇到需要一直重複按的農素材關卡？只要錄一次操作、在時間軸微調好節奏，剩下的交給小幽靈循環幫你按。",
+    heading: "巨集錄製與自動循環",
+    subheading: "遇到需要重複刷關或農素材的場景，只要錄一次操作、在時間軸微調好節奏，就能交給程式自動循環執行。",
     steps: [
       {
         id: "record",
@@ -469,16 +469,16 @@ export const zhTWContent: SiteContent = {
     },
     emergencyNote: "安全煞車提醒：巨集執行中隨時按鍵盤 Esc 鍵，就會立刻強制中止並放開所有按鍵！",
     showcase: {
-      title: "實戰案例預留：《寶可夢 火紅／葉綠》金珠橋重複刷金珠",
+      title: "實戰範例：《寶可夢 火紅／葉綠》金珠橋自動刷金珠",
       subtitle: "第二道館（華藍市北方）重複自爆打火箭隊刷金珠自動化腳本",
       description:
-        "透過 Ghost-Pad 錄製完整的對話、推進與自爆循環流程，設定無限循環即可在 Switch 上穩定自動刷取金珠。下方已預留「Switch 遊戲端」與「Ghost-Pad 應用程式端」雙畫面實機錄影，以及 JSON 腳本下載位置，待檔案補齊後即可對照觀看與匯入使用。",
+        "透過 Ghost-Pad 錄製完整的對話、推進與自爆循環流程，設定無限循環即可在 Switch 上穩定自動刷取金珠。",
       // Flip switchVideoReady / appVideoReady / scriptReady to true once files are added under website/public/demos/
       syncBadge: "雙畫面同步播放",
       syncLinkLabel: "App ⇄ Switch",
       syncStatusReady: "16:9 × 2 同步就緒",
       syncStatusWaiting: "16:9 × 2 待放入影片",
-      syncStandbyHint: "放入兩段錄影檔後即可一鍵同步播放與拖曳進度",
+      syncStandbyHint: "待錄影檔與 JSON 腳本補齊後，即可於此同步對照觀看、拖曳進度並下載匯入使用。",
       pauseSyncAriaLabel: "暫停同步播放",
       playSyncAriaLabel: "開始同步播放",
       restartSyncAriaLabel: "從頭重播",
@@ -504,8 +504,8 @@ export const zhTWContent: SiteContent = {
     },
   },
   tour: {
-    heading: "對照真實軟體畫面，一眼不迷路",
-    subheading: "點選上方分頁切換介面，點擊圖片上的編號圓點就能看到白話功能解說。",
+    heading: "軟體介面導覽",
+    subheading: "點選分頁切換畫面，點擊圖上的編號可查看對應功能。",
     tablistAriaLabel: "軟體介面導覽分頁",
     pinListAriaLabel: "畫面標註清單",
     tabs: [
@@ -560,7 +560,7 @@ export const zhTWContent: SiteContent = {
       },
       {
         id: "macro",
-        label: "巨集工作坊",
+        label: "巨集腳本庫",
         caption: "錄製、剪輯與循環播放自動化腳本的地方，支援拖曳排序與 JSON 備份。",
         image: "./screenshots/zh-TW/macro-studio.png",
         alt: "Ghost-Pad 巨集工作坊與循環播放引擎畫面",
@@ -593,7 +593,7 @@ export const zhTWContent: SiteContent = {
       },
       {
         id: "hardware",
-        label: "ESP32 與配對",
+        label: "ESP32 與韌體",
         caption: "第一次接上 ESP32 燒錄韌體，以及跟 Nintendo Switch 進行藍牙配對都在這裡完成。",
         image: "./screenshots/zh-TW/hardware.png",
         alt: "Ghost-Pad ESP32 硬體設定與 Switch 配對畫面",
@@ -628,7 +628,7 @@ export const zhTWContent: SiteContent = {
   },
   faq: {
     heading: "新手常見問題",
-    subheading: "開始前最常被問到的幾件事，直接用白話回答你。",
+    subheading: "開始前常遇到的幾個問題，整理在這裡。",
     mascotBubble: "找不到答案的話，也可以直接到 GitHub Issues 問我喔！",
     items: [
       {
@@ -664,7 +664,7 @@ export const zhTWContent: SiteContent = {
     ],
   },
   footer: {
-    ctaTitle: "準備好讓小幽靈幫你接上 Switch 了嗎？",
+    ctaTitle: "立即下載試用",
     ctaBody: "下載最新 macOS 通用版（支援 Apple Silicon 與 Intel），免費開源、無需設定開發環境。",
     downloadButton: "前往 GitHub Releases 下載",
     docsButton: "查看完整專案與技術文件",
