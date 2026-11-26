@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { CheckCircle2, Download, Gamepad2 } from "lucide-react";
+import { CheckCircle2, Download } from "lucide-react";
 import { useContent } from "../../i18n/useContent";
 import {
   GhostMascot,
@@ -347,20 +347,12 @@ export function HeroSection() {
               className="mt-8 flex flex-wrap items-center gap-3.5"
             >
               <a
-                href="#quickstart"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-ink px-6 py-3.5 text-base font-semibold text-paper paper-shadow-sm transition-[transform,background-color] duration-150 ease-out hover:bg-ink-soft active:scale-[0.96] sm:w-auto"
-              >
-                <Gamepad2 className="h-5 w-5" aria-hidden="true" />
-                <span>{content.hero.primaryCta}</span>
-              </a>
-
-              <a
                 href={content.meta.releasesUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-ink/20 bg-paper-card px-5 py-3.5 text-base font-semibold text-ink transition-[transform,background-color,border-color] duration-150 ease-out hover:border-ink/35 hover:bg-paper-warm active:scale-[0.96] sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-ink px-6 py-3.5 text-base font-semibold text-paper paper-shadow-sm transition-[transform,background-color] duration-150 ease-out hover:bg-ink-soft active:scale-[0.96] sm:w-auto"
               >
-                <Download className="h-5 w-5 text-ghost-sky-deep" aria-hidden="true" />
+                <Download className="h-5 w-5" aria-hidden="true" />
                 <span>{content.hero.secondaryCta}</span>
               </a>
             </motion.div>

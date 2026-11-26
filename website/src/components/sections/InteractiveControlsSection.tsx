@@ -137,16 +137,20 @@ function KeycapButton({
         }
       }}
       className={`keycap-surface select-none touch-none flex flex-col items-center justify-center rounded-xl border-2 font-[family-name:var(--font-mono)] ${
-        wide ? "h-11 min-w-[3.4rem] px-2.5" : "h-12 w-12"
+        wide
+          ? "h-9 min-w-[2.9rem] px-2 sm:h-11 sm:min-w-[3.4rem] sm:px-2.5"
+          : "h-10 w-10 sm:h-12 sm:w-12"
       } ${
         pressed
           ? `keycap-surface-pressed border-ink text-paper ${accentBg}`
           : "border-ink/25 bg-paper-card text-ink hover:border-ink/45 hover:bg-paper-warm"
       }`}
     >
-      <span className="text-sm font-bold leading-none">{keyDef.keyLabel}</span>
+      <span className="text-xs font-bold leading-none sm:text-sm">
+        {keyDef.keyLabel}
+      </span>
       <span
-        className={`mt-1 text-[10px] font-semibold leading-none ${
+        className={`mt-0.5 text-[9px] font-semibold leading-none sm:mt-1 sm:text-[10px] ${
           pressed ? "text-paper/90" : "text-ink-muted"
         }`}
       >
@@ -446,7 +450,7 @@ export function InteractiveControlsSection() {
             tone="paper"
             tape="corners"
             roughBorder
-            className="p-5 sm:p-7"
+            className="p-4 sm:p-7"
           >
             {/* Clear browser-simulation preview banner */}
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-ghost-sky-deep/25 bg-ghost-sky-pale/80 px-3.5 py-2.5 text-ink">
@@ -539,11 +543,11 @@ export function InteractiveControlsSection() {
             </div>
 
             {/* Center: Reactive Mascot + Virtual Keycap Deck */}
-            <div className="mt-6 grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
+            <div className="mt-4 grid grid-cols-1 items-center gap-4 lg:mt-6 lg:grid-cols-12 lg:gap-8">
               {/* Mascot column */}
               <div className="flex flex-col items-center justify-center lg:col-span-4">
                 <GhostMascot
-                  className="h-44 w-44 sm:h-48 sm:w-48"
+                  className="h-24 w-24 sm:h-40 sm:w-40 lg:h-48 lg:w-48"
                   mood={mascotMood}
                   stickX={stickX}
                   stickY={stickY}
@@ -553,7 +557,7 @@ export function InteractiveControlsSection() {
 
                 <div
                   aria-live="polite"
-                  className="mt-2 flex min-h-[2rem] flex-wrap items-center justify-center gap-1.5"
+                  className="mt-1.5 flex min-h-[1.75rem] flex-wrap items-center justify-center gap-1.5 sm:mt-2 sm:min-h-[2rem]"
                 >
                   {isMuted ? (
                     <span className="rounded-full bg-marker-coral/40 px-3 py-0.5 font-[family-name:var(--font-mono)] text-xs font-semibold text-marker-coral-deep">
@@ -583,11 +587,11 @@ export function InteractiveControlsSection() {
                 </div>
               </div>
 
-              {/* Virtual keycap deck */}
-              <div className="space-y-5 lg:col-span-8">
+              {/* Virtual keycap deck (Switch Pro Controller layout) */}
+              <div className="space-y-3 sm:space-y-4 lg:col-span-8">
                 {/* Shoulder triggers row: [Q: ZL] [E: L]   [U: R] [O: ZR] */}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <KeycapButton
                       keyDef={getKey("Q")}
                       pressed={pressedIds.has("Q")}
@@ -605,7 +609,7 @@ export function InteractiveControlsSection() {
                       wide
                     />
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <KeycapButton
                       keyDef={getKey("U")}
                       pressed={pressedIds.has("U")}
@@ -625,10 +629,10 @@ export function InteractiveControlsSection() {
                   </div>
                 </div>
 
-                {/* Main clusters: WASD + System + IJKL + Arrows */}
-                <div className="grid grid-cols-1 gap-5 rounded-2xl bg-paper-warm/70 p-4 sm:grid-cols-3 sm:items-center">
-                  {/* WASD Left Stick */}
-                  <div className="flex flex-col items-center gap-1.5">
+                {/* Main controller body: Left Stick + Action Diamond side-by-side on mobile, 3-column on sm+ */}
+                <div className="grid grid-cols-2 items-center gap-x-2 gap-y-3 rounded-2xl bg-paper-warm/70 p-3 sm:grid-cols-[1fr_auto_1fr] sm:gap-4 sm:p-4">
+                  {/* Left Stick (WASD) */}
+                  <div className="flex flex-col items-center gap-1 sm:gap-1.5">
                     <KeycapButton
                       keyDef={getKey("W")}
                       pressed={pressedIds.has("W")}
@@ -636,7 +640,7 @@ export function InteractiveControlsSection() {
                       onPress={pressKey}
                       onRelease={releaseKey}
                     />
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1 sm:gap-1.5">
                       <KeycapButton
                         keyDef={getKey("A")}
                         pressed={pressedIds.has("A")}
@@ -661,40 +665,10 @@ export function InteractiveControlsSection() {
                     </div>
                   </div>
 
-                  {/* Center System keys + Arrow D-Pad */}
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="flex flex-wrap items-center justify-center gap-1.5">
-                      <KeycapButton
-                        keyDef={getKey("M")}
-                        pressed={pressedIds.has("M")}
-                        accentBg="bg-[#64748b]"
-                        onPress={pressKey}
-                        onRelease={releaseKey}
-                      />
-                      <KeycapButton
-                        keyDef={getKey("H")}
-                        pressed={pressedIds.has("H")}
-                        accentBg="bg-[#0284c7]"
-                        onPress={pressKey}
-                        onRelease={releaseKey}
-                      />
-                      <KeycapButton
-                        keyDef={getKey("N")}
-                        pressed={pressedIds.has("N")}
-                        accentBg="bg-[#64748b]"
-                        onPress={pressKey}
-                        onRelease={releaseKey}
-                      />
-                      <KeycapButton
-                        keyDef={getKey("P")}
-                        pressed={pressedIds.has("P")}
-                        accentBg="bg-[#64748b]"
-                        onPress={pressKey}
-                        onRelease={releaseKey}
-                      />
-                    </div>
-
-                    <div className="flex flex-col items-center gap-1">
+                  {/* Center System keys + Arrow D-Pad (spans bottom row on mobile, center column on sm+) */}
+                  <div className="col-span-2 order-3 grid grid-cols-2 items-center gap-2 border-t border-ink/10 pt-3 sm:col-span-1 sm:order-none sm:flex sm:flex-col sm:gap-3 sm:border-t-0 sm:pt-0">
+                    {/* D-Pad cross */}
+                    <div className="flex flex-col items-center gap-1 sm:order-2">
                       <KeycapButton
                         keyDef={getKey("UP")}
                         pressed={pressedIds.has("UP")}
@@ -726,18 +700,52 @@ export function InteractiveControlsSection() {
                         />
                       </div>
                     </div>
+
+                    {/* System keys (-, HOME, CAP, +): 2x2 on mobile, 4-in-a-row on sm+ */}
+                    <div className="grid grid-cols-2 place-items-center gap-1.5 justify-self-center sm:order-1 sm:flex sm:flex-wrap sm:justify-center">
+                      <KeycapButton
+                        keyDef={getKey("M")}
+                        pressed={pressedIds.has("M")}
+                        accentBg="bg-[#64748b]"
+                        onPress={pressKey}
+                        onRelease={releaseKey}
+                      />
+                      <KeycapButton
+                        keyDef={getKey("P")}
+                        pressed={pressedIds.has("P")}
+                        accentBg="bg-[#64748b]"
+                        onPress={pressKey}
+                        onRelease={releaseKey}
+                      />
+                      <KeycapButton
+                        keyDef={getKey("H")}
+                        pressed={pressedIds.has("H")}
+                        accentBg="bg-[#0284c7]"
+                        onPress={pressKey}
+                        onRelease={releaseKey}
+                      />
+                      <KeycapButton
+                        keyDef={getKey("N")}
+                        pressed={pressedIds.has("N")}
+                        accentBg="bg-[#64748b]"
+                        onPress={pressKey}
+                        onRelease={releaseKey}
+                      />
+                    </div>
                   </div>
 
-                  {/* IJKL Action Diamond */}
-                  <div className="flex flex-col items-center gap-1.5">
-                    <KeycapButton
-                      keyDef={getKey("I")}
-                      pressed={pressedIds.has("I")}
-                      accentBg="bg-[#0284c7]"
-                      onPress={pressKey}
-                      onRelease={releaseKey}
-                    />
-                    <div className="flex items-center gap-1.5">
+                  {/* Right Action Diamond (Switch ABXY layout: X top, Y left, A right, B bottom) */}
+                  <div className="grid grid-cols-3 place-items-center gap-1 justify-self-center sm:gap-1.5">
+                    <div className="col-start-2 row-start-1">
+                      <KeycapButton
+                        keyDef={getKey("I")}
+                        pressed={pressedIds.has("I")}
+                        accentBg="bg-[#0284c7]"
+                        onPress={pressKey}
+                        onRelease={releaseKey}
+                      />
+                    </div>
+                    <div className="col-start-1 row-start-2">
                       <KeycapButton
                         keyDef={getKey("J")}
                         pressed={pressedIds.has("J")}
@@ -745,17 +753,21 @@ export function InteractiveControlsSection() {
                         onPress={pressKey}
                         onRelease={releaseKey}
                       />
-                      <KeycapButton
-                        keyDef={getKey("K")}
-                        pressed={pressedIds.has("K")}
-                        accentBg="bg-[#dc2626]"
-                        onPress={pressKey}
-                        onRelease={releaseKey}
-                      />
+                    </div>
+                    <div className="col-start-3 row-start-2">
                       <KeycapButton
                         keyDef={getKey("L")}
                         pressed={pressedIds.has("L")}
                         accentBg="bg-[#059669]"
+                        onPress={pressKey}
+                        onRelease={releaseKey}
+                      />
+                    </div>
+                    <div className="col-start-2 row-start-3">
+                      <KeycapButton
+                        keyDef={getKey("K")}
+                        pressed={pressedIds.has("K")}
+                        accentBg="bg-[#dc2626]"
                         onPress={pressKey}
                         onRelease={releaseKey}
                       />
@@ -997,86 +1009,38 @@ export function InteractiveControlsSection() {
               <p className="mt-2.5 text-xs text-ink-muted sm:text-sm">
                 {content.controls.timelineSubtitle}
               </p>
+
+              {/* Condensed 2-tip strip integrated inside main card */}
+              <div className="mt-4 grid grid-cols-1 gap-2.5 border-t border-ink/10 pt-3.5 sm:grid-cols-2">
+                {content.controls.handyTips.map((tip, index) => (
+                  <div
+                    key={tip.title}
+                    className={`flex items-start gap-2.5 rounded-xl border border-ink/10 px-3.5 py-2.5 ${
+                      index === 0 ? "bg-ghost-sky-pale/45" : "bg-paper-warm/70"
+                    }`}
+                  >
+                    <span className="mt-0.5 shrink-0 text-ink">
+                      {index === 0 ? (
+                        <PauseCircle
+                          className="h-4 w-4 text-ghost-sky-deep"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <Gamepad2
+                          className="h-4 w-4 text-ink"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </span>
+                    <div className="min-w-0 text-xs leading-relaxed">
+                      <span className="font-bold text-ink">{tip.title}：</span>
+                      <span className="text-ink-soft">{tip.note}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </SketchCard>
-        </div>
-
-        {/* Bottom reference area: Cheat sheet + 2 handy tips */}
-        <div className="mt-8 grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8">
-          {/* Clean keyboard cheat sheet */}
-          <div className="lg:col-span-7">
-            <h3 className="font-[family-name:var(--font-display)] text-xl font-bold text-ink">
-              {content.controls.cheatSheetTitle}
-            </h3>
-
-            <div className="mt-3.5 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-              {content.controls.keyGroups.map((group) => (
-                <div
-                  key={group.title}
-                  className="border-t-2 border-ink/12 pt-2.5"
-                >
-                  <h4 className="font-[family-name:var(--font-display)] text-sm font-bold text-ink">
-                    {group.title}
-                  </h4>
-                  <dl className="mt-2 space-y-1.5">
-                    {group.keys.map((item) => (
-                      <div
-                        key={item.label}
-                        className="flex items-baseline justify-between gap-3 text-sm"
-                      >
-                        <dt className="shrink-0 rounded-md border border-ink/15 bg-paper-card px-2 py-0.5 font-[family-name:var(--font-mono)] text-xs font-semibold text-ink">
-                          {item.label}
-                        </dt>
-                        <dd className="text-right text-ink-soft">
-                          {item.desc}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* 2 plain-language handy tips */}
-          <div className="space-y-4 lg:col-span-5">
-            {content.controls.handyTips.map((tip, index) => (
-              <SketchCard
-                key={tip.title}
-                tone={index === 0 ? "sky" : "warm"}
-                tape={index === 0 ? "top" : "none"}
-                roughBorder
-                className="p-5"
-              >
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-paper-card text-ink">
-                    {index === 0 ? (
-                      <PauseCircle
-                        className="h-5 w-5 text-ghost-sky-deep"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <Gamepad2
-                        className="h-5 w-5 text-ink"
-                        aria-hidden="true"
-                      />
-                    )}
-                  </span>
-                  <div>
-                    <h4 className="font-[family-name:var(--font-display)] text-base font-bold text-ink">
-                      {tip.title}
-                    </h4>
-                    <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
-                      {tip.body}
-                    </p>
-                    <p className="mt-2.5 inline-block rounded-full bg-paper-card/85 px-2.5 py-0.5 text-xs font-semibold text-ink">
-                      {tip.note}
-                    </p>
-                  </div>
-                </div>
-              </SketchCard>
-            ))}
-          </div>
         </div>
       </div>
     </section>

@@ -25,7 +25,6 @@ export const jaContent: SiteContent = {
   hero: {
     title: "PC から Nintendo Switch をワイヤレス操作",
     lead: "キーボード、マウス、手元のゲームパッドを使って、小さな ESP32 ボード経由で Switch を 60Hz で安定ワイヤレス操作。周回用のマクロ録画・自動再生も思いのままです。",
-    primaryCta: "おばけと 3 分セットアップ",
     secondaryCta: "macOS 版をダウンロード",
     mascotBubble: "こんにちは！PC の操作を純正 Pro コン信号に変換して Switch へ届けるよ！",
     diagram: {
@@ -196,6 +195,11 @@ export const jaContent: SiteContent = {
         countdownPrefix: "カウントダウン",
         replayButton: "3-2-1 をもう一度見る",
         capturedTitle: "キャプチャ済み入力シーケンス",
+        highlights: [
+          "コード不要・普段どおり 1 周遊ぶだけ",
+          "60Hz ミリ秒長押し＆スティック記録",
+          "コントローラー・キーボード・マウス対応",
+        ],
       },
       edit: {
         previewTitle: "5 トラック・タイムラインプレビュー",
@@ -348,7 +352,40 @@ export const jaContent: SiteContent = {
             x: 56,
             y: 34,
             title: "5 トラック視覚タイムラインエディタ",
-            detail: "音楽編集のように各ボタンの開始時刻とミリ秒長さを確認。右クリックで長さ調整・キー変更・削除、手動での操作や待機 (Wait) 追加ができます。",
+            detail: "音楽編集のように各ボタンの開始時刻とミリ秒長さを確認。ブロックをドラッグして位置移動や端の伸縮（10ms スナップ対応）ができ、クリックで詳細編集モーダルを開けます。",
+          },
+        ],
+      },
+      {
+        id: "macro-edit",
+        label: "ボタン編集・ドラッグ",
+        caption: "タイムライン上のブロックをクリックすると詳細編集モーダルが開き、ドラッグ移動・長さ調整と合わせて直感的に微調整できます。",
+        image: "./screenshots/ja/macro-edit.png",
+        alt: "Ghost-Pad マクロのボタン編集モーダルとタイムラインドラッグ調整画面",
+        pins: [
+          {
+            id: "me1",
+            number: "1",
+            x: 50,
+            y: 33,
+            title: "開始時刻・長押しのミリ秒調整",
+            detail: "開始時刻と押下時間を直接入力したり、60ms〜500ms のプリセットをワンクリックで適用可能。タイムライン上でのドラッグ移動や端の伸縮とも連動します。",
+          },
+          {
+            id: "me2",
+            number: "2",
+            x: 50,
+            y: 55,
+            title: "全ボタン＆スティック選択パネル",
+            detail: "十字キー、ABXY、L/ZL/R/ZR、左右スティック方向、システムキーまで全入力を切り替えられ、待機 (Wait) への変換もワンクリックです。",
+          },
+          {
+            id: "me3",
+            number: "3",
+            x: 69,
+            y: 24,
+            title: "ステップ順の入れ替え＆挿入",
+            detail: "右上の ↑ ↓ でステップの順番を入れ替えたり、下部ボタンから直後に待機 (Wait) や新しい操作を挿入したりできます。",
           },
         ],
       },

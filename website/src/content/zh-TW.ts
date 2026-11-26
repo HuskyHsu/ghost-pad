@@ -8,7 +8,7 @@ export interface TourPin {
 }
 
 export interface TourTab {
-  id: "dashboard" | "macro" | "hardware";
+  id: "dashboard" | "macro" | "macro-edit" | "hardware";
   label: string;
   caption: string;
   image: string;
@@ -55,7 +55,6 @@ export interface SiteContent {
   hero: {
     title: string;
     lead: string;
-    primaryCta: string;
     secondaryCta: string;
     mascotBubble: string;
     diagram: {
@@ -148,6 +147,7 @@ export interface SiteContent {
         countdownPrefix: string;
         replayButton: string;
         capturedTitle: string;
+        highlights: string[];
       };
       edit: {
         previewTitle: string;
@@ -263,7 +263,6 @@ export const zhTWContent: SiteContent = {
   hero: {
     title: "用電腦直接控制 Nintendo Switch",
     lead: "用鍵盤、滑鼠或手邊的實體手把，透過一塊小小的 ESP32 開發板，就能以 60Hz 穩定無線操控 Switch，還能錄製巨集幫你重複刷關。",
-    primaryCta: "跟著小幽靈 3 分鐘上手",
     secondaryCta: "前往下載 macOS 版",
     mascotBubble: "哈囉！我會把你的電腦操作翻譯成原廠 Pro 手把訊號送給 Switch 喔！",
     diagram: {
@@ -434,6 +433,11 @@ export const zhTWContent: SiteContent = {
         countdownPrefix: "倒數準備",
         replayButton: "重播 3-2-1 倒數",
         capturedTitle: "已擷取操作序列",
+        highlights: [
+          "免寫腳本，正常玩一遍就錄好",
+          "60Hz 同步擷取按壓毫秒與搖桿",
+          "實體手把／鍵盤／滑鼠皆可錄製",
+        ],
       },
       edit: {
         previewTitle: "5 軌時間軸預覽",
@@ -587,7 +591,40 @@ export const zhTWContent: SiteContent = {
             x: 56,
             y: 34,
             title: "5 軌時間軸視覺編輯器",
-            detail: "像剪輯音樂一樣檢視每個按鍵的起始時間與毫秒長度，支援右鍵修改時長／換鍵／刪除，以及手動新增動作與空白等待 (Wait)。",
+            detail: "像剪輯音樂一樣檢視每個按鍵的起始時間與毫秒長度，支援直接拖拉移動位置或拉曳邊緣調整時長（含 10ms 智慧吸附），也能點擊開啟詳細動作編輯視窗。",
+          },
+        ],
+      },
+      {
+        id: "macro-edit",
+        label: "按鍵編輯與拖拉",
+        caption: "點擊時間軸上的任意方塊即可開啟動作編輯視窗，搭配拖拉移動與邊緣縮放，毫秒微調超直覺。",
+        image: "./screenshots/zh-TW/macro-edit.png",
+        alt: "Ghost-Pad 巨集按鍵編輯與時間軸拖拉微調畫面",
+        pins: [
+          {
+            id: "me1",
+            number: "1",
+            x: 50,
+            y: 33,
+            title: "起點時間與按壓時長微調",
+            detail: "可直接輸入起點毫秒與按壓持續時間，或一鍵套用 60ms–500ms 常用預設時長；回到時間軸也能直接拖拉方塊移動起點、拉曳左右邊緣縮放長度。",
+          },
+          {
+            id: "me2",
+            number: "2",
+            x: 50,
+            y: 55,
+            title: "全手把按鍵與搖桿選擇器",
+            detail: "涵蓋十字鍵、ABXY、L/ZL/R/ZR 肩鍵、左右類比搖桿方向與系統功能鍵，也能一鍵轉換成空白等待 (Wait)。",
+          },
+          {
+            id: "me3",
+            number: "3",
+            x: 69,
+            y: 24,
+            title: "步驟排序與快速插入動作",
+            detail: "右上角 ↑ ↓ 可直接調整步驟前後順序，底部還能在此步驟後插入空白等待或新的手把動作。",
           },
         ],
       },

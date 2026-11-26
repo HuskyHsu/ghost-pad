@@ -25,7 +25,6 @@ export const enContent: SiteContent = {
   hero: {
     title: "Control Your Nintendo Switch from Your Computer",
     lead: "Use your keyboard, mouse, or any controller you already own—bridged through a tiny ESP32 board—to play Nintendo Switch wirelessly at a rock-solid 60Hz, and record macros for repetitive grinds.",
-    primaryCta: "3-Minute Setup with Ghost",
     secondaryCta: "Download for macOS",
     mascotBubble: "Hi! I translate your computer inputs into official Pro Controller signals for your Switch!",
     diagram: {
@@ -196,6 +195,11 @@ export const enContent: SiteContent = {
         countdownPrefix: "Get ready",
         replayButton: "Replay 3-2-1",
         capturedTitle: "Captured Input Sequence",
+        highlights: [
+          "Zero coding—just play once to record",
+          "60Hz millisecond hold & stick capture",
+          "Record from gamepad, keyboard, or mouse",
+        ],
       },
       edit: {
         previewTitle: "5-Track Timeline Preview",
@@ -348,7 +352,40 @@ export const enContent: SiteContent = {
             x: 56,
             y: 34,
             title: "5-Track Visual Timeline Editor",
-            detail: "Inspect start times and millisecond holds like an audio track—right-click to adjust duration, swap buttons, delete, or add manual actions and waits.",
+            detail: "Inspect start times and millisecond holds like an audio track—drag blocks horizontally to reposition or drag edges to resize duration with 10ms smart snap, or click to open the action editor.",
+          },
+        ],
+      },
+      {
+        id: "macro-edit",
+        label: "Button Edit & Drag",
+        caption: "Click any block on the timeline to open the action editor modal, or drag blocks and edges directly for millisecond-level timing.",
+        image: "./screenshots/en/macro-edit.png",
+        alt: "Ghost-Pad macro button editor modal and drag-and-drop timing controls",
+        pins: [
+          {
+            id: "me1",
+            number: "1",
+            x: 50,
+            y: 33,
+            title: "Start Time & Hold Duration",
+            detail: "Enter exact millisecond start times and hold durations or pick quick presets (60ms–500ms)—complemented by direct timeline dragging and edge resizing.",
+          },
+          {
+            id: "me2",
+            number: "2",
+            x: 50,
+            y: 55,
+            title: "Full Controller Button & Stick Picker",
+            detail: "Swap any step between D-Pad, ABXY, L/ZL/R/ZR triggers, L/R analog stick directions, and system keys, or convert it into a Wait pause.",
+          },
+          {
+            id: "me3",
+            number: "3",
+            x: 69,
+            y: 24,
+            title: "Step Reordering & Quick Insert",
+            detail: "Use the ↑ ↓ arrows to reorder steps on the fly, or insert a Wait pause or new controller action right after the current step.",
           },
         ],
       },

@@ -66,7 +66,7 @@ describe("Ghost-Pad Guide Website", () => {
       screen.getByText(enContent.controls.timelineDurationLabel),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(enContent.controls.cheatSheetTitle),
+      screen.getByText(new RegExp(escapeRegExp(enContent.controls.handyTips[0].title))),
     ).toBeInTheDocument();
 
     // MacroStudio + reserved Pokemon FireRed/LeafGreen Nugget Bridge showcase
@@ -213,6 +213,18 @@ describe("Ghost-Pad Guide Website", () => {
       await tour.findByRole("heading", { level: 3, name: targetMacroPin.title }),
     ).toBeInTheDocument();
     expect(await tour.findByText(targetMacroPin.detail)).toBeInTheDocument();
+
+    // Switch to the third tab (Button Edit & Drag)
+    const macroEditTab = enContent.tour.tabs[2];
+    const macroEditTabTrigger = tour.getByRole("tab", {
+      name: new RegExp(escapeRegExp(macroEditTab.label)),
+    });
+    fireEvent.click(macroEditTabTrigger);
+    expect(macroEditTabTrigger).toHaveAttribute("aria-selected", "true");
+    expect(tour.getByText(macroEditTab.caption)).toBeInTheDocument();
+    expect(tour.getByRole("img").getAttribute("src")).toBe(
+      "./screenshots/en/macro-edit.png",
+    );
   });
 
   it("expands and collapses FAQ items in FaqAndFooterSection", async () => {

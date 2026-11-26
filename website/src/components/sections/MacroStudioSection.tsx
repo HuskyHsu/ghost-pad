@@ -266,7 +266,7 @@ export function MacroStudioSection() {
       <div className="max-w-2xl">
         <h2
           id="macro-heading"
-          className="font-[var(--font-display)] text-3xl font-bold tracking-[-0.02em] text-ink sm:text-4xl"
+          className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-[-0.02em] text-ink sm:text-4xl"
         >
           {macro.heading}
         </h2>
@@ -303,7 +303,7 @@ export function MacroStudioSection() {
               >
                 <div className="flex items-start gap-3.5">
                   <span
-                    className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 font-[var(--font-display)] text-sm font-bold tabular-nums transition-[background-color,color,border-color] duration-150 ease-out ${
+                    className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 font-[family-name:var(--font-display)] text-sm font-bold tabular-nums transition-[background-color,color,border-color] duration-150 ease-out ${
                       isSelected
                         ? "border-ink bg-marker-yellow text-ink"
                         : "border-ink/25 bg-paper text-ink-soft group-hover:border-ink/50"
@@ -312,7 +312,7 @@ export function MacroStudioSection() {
                     {step.step}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="font-[var(--font-display)] text-base font-bold text-ink sm:text-lg">
+                    <div className="font-[family-name:var(--font-display)] text-base font-bold text-ink sm:text-lg">
                       {step.title}
                     </div>
                     <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
@@ -325,9 +325,9 @@ export function MacroStudioSection() {
           })}
         </div>
 
-        {/* Right: Interactive Animated Stage */}
+        {/* Right: Interactive Animated Stage (min-height prevents layout jitter across steps) */}
         <div className="lg:col-span-7">
-          <SketchCard tone="paper" roughBorder className="p-5 sm:p-7">
+          <SketchCard tone="paper" roughBorder className="p-5 sm:min-h-[388px] sm:p-7">
             <AnimatePresence mode="wait" initial={false}>
               {activeStep === "record" && (
                 <motion.div
@@ -355,7 +355,7 @@ export function MacroStudioSection() {
                           ? macro.workbench.record.recordingBadge
                           : `${macro.workbench.record.countdownPrefix} ${countdownPhase}`}
                       </span>
-                      <span className="font-[var(--font-mono)] text-xs font-medium text-ink-muted tabular-nums">
+                      <span className="font-[family-name:var(--font-mono)] text-xs font-medium text-ink-muted tabular-nums">
                         {(elapsedMs / 1000).toFixed(2)}s
                       </span>
                     </div>
@@ -395,7 +395,7 @@ export function MacroStudioSection() {
                           return (
                             <div
                               key={String(phase)}
-                              className={`flex h-12 flex-1 items-center justify-center rounded-xl border-2 font-[var(--font-display)] text-lg font-bold tabular-nums transition-[transform,background-color,border-color,color] duration-150 ease-out ${
+                              className={`flex h-12 flex-1 items-center justify-center rounded-xl border-2 font-[family-name:var(--font-display)] text-lg font-bold tabular-nums transition-[transform,background-color,border-color,color] duration-150 ease-out ${
                                 isCurrent
                                   ? phase === "rec"
                                     ? "scale-105 border-marker-coral-deep bg-marker-coral text-marker-coral-deep"
@@ -413,7 +413,7 @@ export function MacroStudioSection() {
                       <div className="rounded-xl border border-ink/12 bg-paper-card p-3.5">
                         <div className="flex items-center justify-between text-xs text-ink-muted">
                           <span>{macro.workbench.record.capturedTitle}</span>
-                          <span className="font-[var(--font-mono)] tabular-nums">60Hz / 16ms</span>
+                          <span className="font-[family-name:var(--font-mono)] tabular-nums">60Hz / 16ms</span>
                         </div>
                         <div className="mt-2.5 flex items-center gap-2">
                           {capturedSignals.map((sig, idx) => {
@@ -421,7 +421,7 @@ export function MacroStudioSection() {
                             return (
                               <div
                                 key={`${sig}-${idx}`}
-                                className={`flex h-9 flex-1 items-center justify-center rounded-lg border font-[var(--font-mono)] text-sm font-bold transition-[background-color,border-color,color,transform] duration-150 ease-out ${
+                                className={`flex h-9 flex-1 items-center justify-center rounded-lg border font-[family-name:var(--font-mono)] text-sm font-bold transition-[background-color,border-color,color,transform] duration-150 ease-out ${
                                   lit
                                     ? "border-ghost-sky-deep bg-ghost-sky-pale text-ink"
                                     : "border-dashed border-ink/20 bg-paper-warm/50 text-ink-muted/60"
@@ -434,6 +434,19 @@ export function MacroStudioSection() {
                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Highlighted recording capabilities */}
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    {macro.workbench.record.highlights.map((item) => (
+                      <div
+                        key={item}
+                        className="flex items-center gap-2 rounded-xl border border-ink/12 bg-paper-card px-3 py-2 text-xs font-semibold text-ink-soft"
+                      >
+                        <span className="h-2 w-2 shrink-0 rounded-full bg-marker-coral-deep" aria-hidden="true" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -455,7 +468,7 @@ export function MacroStudioSection() {
                       <span className="text-sm font-semibold text-ink">
                         {macro.workbench.edit.previewTitle}
                       </span>
-                      <span className="rounded-lg bg-paper-warm px-2.5 py-1 font-[var(--font-mono)] text-xs font-semibold text-ink-soft tabular-nums">
+                      <span className="rounded-lg bg-paper-warm px-2.5 py-1 font-[family-name:var(--font-mono)] text-xs font-semibold text-ink-soft tabular-nums">
                         {macro.workbench.edit.totalLengthLabel}：{(totalTimelineMs / 1000).toFixed(2)}s
                       </span>
                       <div
@@ -473,7 +486,7 @@ export function MacroStudioSection() {
                               disabled={isScaleDisabled}
                               aria-pressed={isCurrent}
                               onClick={() => setRowScaleMs(scaleOpt)}
-                              className={`rounded-lg px-2 py-1 font-[var(--font-mono)] text-[11px] font-bold tabular-nums transition-[background-color,color,transform] duration-150 ease-out enabled:cursor-pointer enabled:active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45 ${
+                              className={`rounded-lg px-2 py-1 font-[family-name:var(--font-mono)] text-[11px] font-bold tabular-nums transition-[background-color,color,transform] duration-150 ease-out enabled:cursor-pointer enabled:active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45 ${
                                 isCurrent
                                   ? "bg-paper-card text-ink paper-shadow-sm"
                                   : "text-ink-muted enabled:hover:text-ink"
@@ -532,7 +545,7 @@ export function MacroStudioSection() {
                                 <span
                                   key={sec}
                                   style={{ left: `${leftPct}%` }}
-                                  className={`absolute top-0 font-[var(--font-mono)] text-[10px] font-semibold text-ink-muted tabular-nums ${alignClass}`}
+                                  className={`absolute top-0 font-[family-name:var(--font-mono)] text-[10px] font-semibold text-ink-muted tabular-nums ${alignClass}`}
                                 >
                                   +{sec}s
                                 </span>
@@ -598,7 +611,7 @@ export function MacroStudioSection() {
                                         style={{
                                           backgroundColor: block.isWait ? "#64748B" : track.color,
                                         }}
-                                        className={`absolute top-1 bottom-1 flex cursor-pointer items-center justify-center overflow-hidden rounded-md px-1 font-[var(--font-mono)] text-[11px] font-bold whitespace-nowrap text-white transition-[box-shadow,transform] duration-150 ease-out active:scale-[0.96] ${
+                                        className={`absolute top-1 bottom-1 flex cursor-pointer items-center justify-center overflow-hidden rounded-md px-1 font-[family-name:var(--font-mono)] text-[11px] font-bold whitespace-nowrap text-white transition-[box-shadow,transform] duration-150 ease-out active:scale-[0.96] ${
                                           isSelected
                                             ? "z-10 ring-2 ring-ink ring-offset-1 ring-offset-paper-card"
                                             : "opacity-90 hover:opacity-100"
@@ -623,10 +636,10 @@ export function MacroStudioSection() {
                       <>
                         <span className="font-semibold text-ink">
                           {macro.workbench.edit.selectedBlockLabel}：
-                          <span className="ml-1 font-[var(--font-mono)] text-ghost-sky-deep">
+                          <span className="ml-1 font-[family-name:var(--font-mono)] text-ghost-sky-deep">
                             {selectedBlock.label}
                           </span>
-                          <span className="ml-1.5 font-[var(--font-mono)] text-ink-muted tabular-nums">
+                          <span className="ml-1.5 font-[family-name:var(--font-mono)] text-ink-muted tabular-nums">
                             ({selectedBlock.durationMs}ms)
                           </span>
                         </span>
@@ -635,7 +648,7 @@ export function MacroStudioSection() {
                             type="button"
                             disabled={!canDecreaseSelected}
                             onClick={() => handleAdjustSelectedDuration(-100)}
-                            className="rounded-lg border border-ink/20 bg-paper-warm px-2 py-1 font-[var(--font-mono)] font-bold text-ink transition-[background-color,transform] duration-150 ease-out enabled:cursor-pointer enabled:hover:bg-marker-yellow/60 enabled:active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45"
+                            className="rounded-lg border border-ink/20 bg-paper-warm px-2 py-1 font-[family-name:var(--font-mono)] font-bold text-ink transition-[background-color,transform] duration-150 ease-out enabled:cursor-pointer enabled:hover:bg-marker-yellow/60 enabled:active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45"
                           >
                             -100ms
                           </button>
@@ -643,7 +656,7 @@ export function MacroStudioSection() {
                             type="button"
                             disabled={!canIncreaseSelected}
                             onClick={() => handleAdjustSelectedDuration(100)}
-                            className="rounded-lg border border-ink/20 bg-paper-warm px-2 py-1 font-[var(--font-mono)] font-bold text-ink transition-[background-color,transform] duration-150 ease-out enabled:cursor-pointer enabled:hover:bg-marker-yellow/60 enabled:active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45"
+                            className="rounded-lg border border-ink/20 bg-paper-warm px-2 py-1 font-[family-name:var(--font-mono)] font-bold text-ink transition-[background-color,transform] duration-150 ease-out enabled:cursor-pointer enabled:hover:bg-marker-yellow/60 enabled:active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45"
                           >
                             +100ms
                           </button>
@@ -717,7 +730,7 @@ export function MacroStudioSection() {
                         <Repeat className="h-4 w-4 text-ghost-sky-deep" aria-hidden="true" />
                         <span>{macro.workbench.loop.panelTitle}</span>
                       </div>
-                      <span className="font-[var(--font-mono)] text-xs text-ink-muted">
+                      <span className="font-[family-name:var(--font-mono)] text-xs text-ink-muted">
                         {macro.workbench.loop.jsonBadge}
                       </span>
                     </div>
@@ -775,7 +788,7 @@ export function MacroStudioSection() {
                             >
                               -
                             </button>
-                            <span className="min-w-[3.5ch] text-center font-[var(--font-mono)] text-sm font-bold text-ink tabular-nums">
+                            <span className="min-w-[3.5ch] text-center font-[family-name:var(--font-mono)] text-sm font-bold text-ink tabular-nums">
                               {loopCount}
                             </span>
                             <button
@@ -809,7 +822,7 @@ export function MacroStudioSection() {
                           <Play className="h-3.5 w-3.5 text-ghost-sky-deep" aria-hidden="true" />
                           {macro.workbench.loop.runningLabel}
                         </span>
-                        <span className="font-[var(--font-mono)] text-ink-muted tabular-nums">
+                        <span className="font-[family-name:var(--font-mono)] text-ink-muted tabular-nums">
                           {loopMode === "once"
                             ? macro.workbench.loop.counterOnce
                             : loopMode === "count"
@@ -845,7 +858,7 @@ export function MacroStudioSection() {
 
       {/* Quiet Esc shortcut footnote below the 3-step workbench */}
       <p className="mt-4 flex flex-wrap items-center gap-2 text-xs leading-relaxed text-ink-muted">
-        <kbd className="inline-flex items-center justify-center rounded-md border border-ink/25 bg-paper-card px-1.5 py-0.5 font-[var(--font-mono)] text-[11px] font-semibold text-ink">
+        <kbd className="inline-flex items-center justify-center rounded-md border border-ink/25 bg-paper-card px-1.5 py-0.5 font-[family-name:var(--font-mono)] text-[11px] font-semibold text-ink">
           Esc
         </kbd>
         <span>{macro.emergencyNote}</span>
@@ -855,7 +868,7 @@ export function MacroStudioSection() {
       <div className="mt-10">
         <SketchCard tone="warm" tape="corners" roughBorder className="p-6 sm:p-8">
           <div className="max-w-3xl space-y-3">
-            <h3 className="font-[var(--font-display)] text-xl font-bold leading-snug text-ink sm:text-2xl">
+            <h3 className="font-[family-name:var(--font-display)] text-xl font-bold leading-snug text-ink sm:text-2xl">
               <SketchHighlight variant="marker" color="yellow">
                 {macro.showcase.title}
               </SketchHighlight>
@@ -875,12 +888,12 @@ export function MacroStudioSection() {
                   <Link2 className="h-3.5 w-3.5 text-ghost-sky-deep" aria-hidden="true" />
                   {macro.showcase.syncBadge}
                 </span>
-                <span className="inline-flex items-center gap-1.5 font-[var(--font-mono)] text-xs font-bold text-ink-soft">
+                <span className="inline-flex items-center gap-1.5 font-[family-name:var(--font-mono)] text-xs font-bold text-ink-soft">
                   {macro.showcase.syncLinkLabel}
                 </span>
               </div>
 
-              <span className="inline-flex items-center gap-1.5 font-[var(--font-mono)] text-xs font-medium text-ink-muted tabular-nums">
+              <span className="inline-flex items-center gap-1.5 font-[family-name:var(--font-mono)] text-xs font-medium text-ink-muted tabular-nums">
                 <span
                   className={`h-2 w-2 rounded-full ${
                     bothVideosReady ? "bg-marker-mint-deep" : "bg-ink-muted/45"
@@ -900,7 +913,7 @@ export function MacroStudioSection() {
                 <div className="flex items-center justify-between gap-2 border-b border-ink/10 bg-ghost-sky-pale/45 px-4 py-2">
                   <div className="flex min-w-0 items-center gap-2">
                     <MonitorPlay className="h-4 w-4 shrink-0 text-ghost-sky-deep" aria-hidden="true" />
-                    <span className="truncate font-[var(--font-display)] text-xs font-bold text-ink sm:text-sm">
+                    <span className="truncate font-[family-name:var(--font-display)] text-xs font-bold text-ink sm:text-sm">
                       {macro.showcase.appScreenLabel}
                     </span>
                   </div>
@@ -928,10 +941,10 @@ export function MacroStudioSection() {
                   ) : (
                     <div className="flex h-full flex-col items-center justify-center px-5 py-5 text-center">
                       <GhostMascot className="h-16 w-16 sm:h-20 sm:w-20" mood="happy" showSignals />
-                      <p className="mt-3 font-[var(--font-display)] text-base font-bold text-ink">
+                      <p className="mt-3 font-[family-name:var(--font-display)] text-base font-bold text-ink">
                         {macro.showcase.appVideoPlaceholderTitle}
                       </p>
-                      <p className="mt-2 max-w-md rounded-lg bg-paper-warm px-3 py-1.5 font-[var(--font-mono)] text-[11px] leading-relaxed text-ink-soft">
+                      <p className="mt-2 max-w-md rounded-lg bg-paper-warm px-3 py-1.5 font-[family-name:var(--font-mono)] text-[11px] leading-relaxed text-ink-soft">
                         {macro.showcase.appVideoPlaceholderHint}
                       </p>
                     </div>
@@ -944,7 +957,7 @@ export function MacroStudioSection() {
                 <div className="flex items-center justify-between gap-2 border-b border-ink/10 bg-paper-warm/70 px-4 py-2">
                   <div className="flex min-w-0 items-center gap-2">
                     <Gamepad2 className="h-4 w-4 shrink-0 text-ghost-sky-deep" aria-hidden="true" />
-                    <span className="truncate font-[var(--font-display)] text-xs font-bold text-ink sm:text-sm">
+                    <span className="truncate font-[family-name:var(--font-display)] text-xs font-bold text-ink sm:text-sm">
                       {macro.showcase.switchScreenLabel}
                     </span>
                   </div>
@@ -971,10 +984,10 @@ export function MacroStudioSection() {
                   ) : (
                     <div className="flex h-full flex-col items-center justify-center px-5 py-5 text-center">
                       <GhostMascot className="h-16 w-16 sm:h-20 sm:w-20" mood="focused" />
-                      <p className="mt-3 font-[var(--font-display)] text-base font-bold text-ink">
+                      <p className="mt-3 font-[family-name:var(--font-display)] text-base font-bold text-ink">
                         {macro.showcase.switchVideoPlaceholderTitle}
                       </p>
-                      <p className="mt-2 max-w-md rounded-lg bg-paper-warm px-3 py-1.5 font-[var(--font-mono)] text-[11px] leading-relaxed text-ink-soft">
+                      <p className="mt-2 max-w-md rounded-lg bg-paper-warm px-3 py-1.5 font-[family-name:var(--font-mono)] text-[11px] leading-relaxed text-ink-soft">
                         {macro.showcase.switchVideoPlaceholderHint}
                       </p>
                     </div>
@@ -1038,7 +1051,7 @@ export function MacroStudioSection() {
                     aria-label={macro.showcase.scrubberAriaLabel}
                     className="h-2 w-full accent-ghost-sky-deep disabled:cursor-not-allowed disabled:opacity-45"
                   />
-                  <span className="shrink-0 font-[var(--font-mono)] text-xs font-semibold text-ink-soft tabular-nums">
+                  <span className="shrink-0 font-[family-name:var(--font-mono)] text-xs font-semibold text-ink-soft tabular-nums">
                     {formatClock(dualCurrentTime)} / {formatClock(dualDuration)}
                   </span>
                 </div>
@@ -1059,7 +1072,7 @@ export function MacroStudioSection() {
                         disabled={!bothVideosReady}
                         aria-pressed={selected}
                         onClick={() => handleDualSpeedChange(opt)}
-                        className={`rounded-lg px-2 py-1 font-[var(--font-mono)] text-xs font-bold tabular-nums transition-[background-color,color,transform] duration-150 ease-out ${
+                        className={`rounded-lg px-2 py-1 font-[family-name:var(--font-mono)] text-xs font-bold tabular-nums transition-[background-color,color,transform] duration-150 ease-out ${
                           bothVideosReady
                             ? selected
                               ? "cursor-pointer bg-ghost-sky-pale text-ink active:scale-[0.96]"

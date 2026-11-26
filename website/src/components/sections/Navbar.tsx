@@ -90,8 +90,8 @@ export function Navbar() {
           </ul>
         </div>
 
-        {/* Right cluster: uniform h-9 controls (Language Dropdown + GitHub + Download CTA) */}
-        <div className="hidden shrink-0 items-center justify-end gap-2 lg:flex">
+        {/* Right cluster: Language Dropdown (visible on mobile & desktop) + desktop GitHub/Download + mobile Menu */}
+        <div className="flex shrink-0 items-center justify-end gap-2">
           <div ref={langMenuRef} className="relative shrink-0">
             <button
               type="button"
@@ -99,7 +99,7 @@ export function Navbar() {
               aria-label={content.nav.languageLabel}
               aria-haspopup="menu"
               aria-expanded={langMenuOpen}
-              className="inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-ink/15 bg-paper-card px-3 text-xs font-semibold text-ink transition-[transform,background-color,border-color] duration-150 ease-out hover:border-ink/30 hover:bg-paper-warm active:scale-[0.96]"
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-ink/15 bg-paper-card px-2.5 text-xs font-semibold text-ink transition-[transform,background-color,border-color] duration-150 ease-out hover:border-ink/30 hover:bg-paper-warm active:scale-[0.96] sm:px-3"
             >
               <Globe
                 className="h-3.5 w-3.5 shrink-0 text-ink-muted"
@@ -175,85 +175,87 @@ export function Navbar() {
             </AnimatePresence>
           </div>
 
-          <a
-            href={content.meta.githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub"
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-ink/15 bg-paper-card text-ink-soft transition-[transform,background-color,color,border-color] duration-150 ease-out hover:border-ink/30 hover:bg-paper-warm hover:text-ink active:scale-[0.96]"
-          >
-            <Github className="h-4 w-4" aria-hidden="true" />
-          </a>
+          <div className="hidden shrink-0 items-center gap-2 lg:flex">
+            <a
+              href={content.meta.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-ink/15 bg-paper-card text-ink-soft transition-[transform,background-color,color,border-color] duration-150 ease-out hover:border-ink/30 hover:bg-paper-warm hover:text-ink active:scale-[0.96]"
+            >
+              <Github className="h-4 w-4" aria-hidden="true" />
+            </a>
 
-          <a
-            href={content.meta.releasesUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex h-9 min-w-[144px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3.5 text-sm font-semibold text-paper transition-[transform,background-color] duration-150 ease-out hover:bg-ink-soft active:scale-[0.96]"
+            <a
+              href={content.meta.releasesUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-9 min-w-[144px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3.5 text-sm font-semibold text-paper transition-[transform,background-color] duration-150 ease-out hover:bg-ink-soft active:scale-[0.96]"
+            >
+              <Download className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{content.nav.downloadCta}</span>
+            </a>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav-drawer"
+            aria-label={menuOpen ? content.nav.closeMenu : content.nav.openMenu}
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-ink/15 bg-paper-card text-ink transition-[transform,background-color] duration-150 ease-out hover:bg-paper-warm active:scale-[0.96] lg:hidden"
           >
-            <Download className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span>{content.nav.downloadCta}</span>
-          </a>
+            <AnimatePresence mode="popLayout" initial={false}>
+              {menuOpen ? (
+                <motion.span
+                  key="close"
+                  initial={
+                    prefersReducedMotion
+                      ? { opacity: 0 }
+                      : { opacity: 0, scale: 0.25, filter: "blur(4px)" }
+                  }
+                  animate={
+                    prefersReducedMotion
+                      ? { opacity: 1 }
+                      : { opacity: 1, scale: 1, filter: "blur(0px)" }
+                  }
+                  exit={
+                    prefersReducedMotion
+                      ? { opacity: 0 }
+                      : { opacity: 0, scale: 0.25, filter: "blur(4px)" }
+                  }
+                  transition={{ type: "spring", duration: 0.3, bounce: 0 }}
+                  className="flex items-center justify-center"
+                >
+                  <X className="h-5 w-5" aria-hidden="true" />
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="open"
+                  initial={
+                    prefersReducedMotion
+                      ? { opacity: 0 }
+                      : { opacity: 0, scale: 0.25, filter: "blur(4px)" }
+                  }
+                  animate={
+                    prefersReducedMotion
+                      ? { opacity: 1 }
+                      : { opacity: 1, scale: 1, filter: "blur(0px)" }
+                  }
+                  exit={
+                    prefersReducedMotion
+                      ? { opacity: 0 }
+                      : { opacity: 0, scale: 0.25, filter: "blur(4px)" }
+                  }
+                  transition={{ type: "spring", duration: 0.3, bounce: 0 }}
+                  className="flex items-center justify-center"
+                >
+                  <Menu className="h-5 w-5" aria-hidden="true" />
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setMenuOpen((prev) => !prev)}
-          aria-expanded={menuOpen}
-          aria-controls="mobile-nav-drawer"
-          aria-label={menuOpen ? content.nav.closeMenu : content.nav.openMenu}
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-ink/15 bg-paper-card text-ink transition-[transform,background-color] duration-150 ease-out hover:bg-paper-warm active:scale-[0.96] lg:hidden"
-        >
-          <AnimatePresence mode="popLayout" initial={false}>
-            {menuOpen ? (
-              <motion.span
-                key="close"
-                initial={
-                  prefersReducedMotion
-                    ? { opacity: 0 }
-                    : { opacity: 0, scale: 0.25, filter: "blur(4px)" }
-                }
-                animate={
-                  prefersReducedMotion
-                    ? { opacity: 1 }
-                    : { opacity: 1, scale: 1, filter: "blur(0px)" }
-                }
-                exit={
-                  prefersReducedMotion
-                    ? { opacity: 0 }
-                    : { opacity: 0, scale: 0.25, filter: "blur(4px)" }
-                }
-                transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-                className="flex items-center justify-center"
-              >
-                <X className="h-5 w-5" aria-hidden="true" />
-              </motion.span>
-            ) : (
-              <motion.span
-                key="open"
-                initial={
-                  prefersReducedMotion
-                    ? { opacity: 0 }
-                    : { opacity: 0, scale: 0.25, filter: "blur(4px)" }
-                }
-                animate={
-                  prefersReducedMotion
-                    ? { opacity: 1 }
-                    : { opacity: 1, scale: 1, filter: "blur(0px)" }
-                }
-                exit={
-                  prefersReducedMotion
-                    ? { opacity: 0 }
-                    : { opacity: 0, scale: 0.25, filter: "blur(4px)" }
-                }
-                transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-                className="flex items-center justify-center"
-              >
-                <Menu className="h-5 w-5" aria-hidden="true" />
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </button>
       </nav>
 
       <AnimatePresence>
@@ -312,32 +314,6 @@ export function Navbar() {
               </ul>
 
               <div className="mt-3 flex flex-col gap-2.5 border-t border-ink/10 pt-3">
-                <div
-                  role="group"
-                  aria-label={content.nav.languageLabel}
-                  className="grid grid-cols-3 gap-1 rounded-xl border border-ink/15 bg-paper-warm/70 p-1"
-                >
-                  {LOCALE_OPTIONS.map((opt) => {
-                    const active = locale === opt.code;
-                    return (
-                      <button
-                        key={opt.code}
-                        type="button"
-                        onClick={() => setLocale(opt.code)}
-                        aria-pressed={active}
-                        title={opt.label}
-                        className={`whitespace-nowrap rounded-lg py-1.5 text-xs font-semibold transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.96] ${
-                          active
-                            ? "bg-ink text-paper"
-                            : "text-ink-soft hover:bg-paper-card hover:text-ink"
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
                 <a
                   href={content.meta.releasesUrl}
                   target="_blank"

@@ -27,7 +27,7 @@ export function FaqAndFooterSection() {
           <div className="lg:col-span-4">
             <h2
               id="faq-heading"
-              className="font-[var(--font-display)] text-3xl font-bold tracking-[-0.02em] text-ink sm:text-4xl"
+              className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-[-0.02em] text-ink sm:text-4xl"
             >
               {faq.heading}
             </h2>
@@ -66,7 +66,7 @@ export function FaqAndFooterSection() {
                       aria-expanded={isOpen}
                       aria-controls={panelId}
                       onClick={() => toggleItem(item.id)}
-                      className="flex w-full cursor-pointer items-center justify-between gap-4 px-5 py-4 text-left font-[var(--font-display)] text-base font-bold text-ink sm:px-6 sm:text-lg"
+                      className="flex w-full cursor-pointer items-center justify-between gap-4 px-5 py-4 text-left font-[family-name:var(--font-display)] text-base font-bold text-ink sm:px-6 sm:text-lg"
                     >
                       <span>{item.question}</span>
                       <ChevronDown
@@ -113,7 +113,7 @@ export function FaqAndFooterSection() {
           <SketchCard tone="warm" tape="corners" roughBorder className="p-7 sm:p-10">
             <div className="grid items-center gap-8 lg:grid-cols-12">
               <div className="space-y-4 lg:col-span-8">
-                <h2 className="font-[var(--font-display)] text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">
+                <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">
                   {footer.ctaTitle}
                 </h2>
                 <p className="max-w-2xl text-base leading-relaxed text-ink-soft">
@@ -152,7 +152,7 @@ export function FaqAndFooterSection() {
       {/* Simple Footer */}
       <footer className="border-t border-ink/12 bg-paper-warm/50">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-6 text-sm text-ink-muted sm:flex-row sm:px-8">
-          <div className="flex items-center gap-2.5 font-[var(--font-display)] font-bold text-ink">
+          <div className="flex items-center gap-2.5 font-[family-name:var(--font-display)] font-bold text-ink">
             <GhostMascot className="h-7 w-7" mood="happy" />
             <span>{footer.copyright}</span>
           </div>
