@@ -243,7 +243,7 @@ export const zhTWContent: SiteContent = {
   meta: {
     locale: "zh-TW",
     brand: "Ghost-Pad",
-    pageTitle: "Ghost-Pad｜把電腦變成 Nintendo Switch 的可愛遙控中心",
+    pageTitle: "Ghost-Pad｜用電腦操作 Nintendo Switch 的小工具",
     skipToContent: "跳至主要內容",
     githubUrl: "https://github.com/HuskyHsu/ghost-pad",
     releasesUrl: "https://github.com/HuskyHsu/ghost-pad/releases",
@@ -265,9 +265,9 @@ export const zhTWContent: SiteContent = {
     title: "用電腦直接控制 Nintendo Switch",
     lead: "用鍵盤、滑鼠或手邊的實體手把，透過一塊小小的 ESP32 開發板，就能以 60Hz 穩定無線操控 Switch，還能錄製巨集幫你重複刷關。",
     secondaryCta: "前往下載 macOS 版",
-    mascotBubble: "哈囉！我會把你的電腦操作翻譯成原廠 Pro 手把訊號送給 Switch 喔！",
+    mascotBubble: "把電腦上的鍵盤、滑鼠或手把輸入，轉成 Switch 原廠 Pro 手把訊號送過去。",
     diagram: {
-      title: "10 秒看懂 Ghost-Pad 怎麼運作",
+      title: "運作架構",
       note: "不需要改機，Switch 會把它認作一支普通的原廠 Pro 手把",
       nodes: [
         { id: "pc", title: "電腦端 Ghost-Pad", sub: "鍵盤 / 手把 / 巨集" },
@@ -287,20 +287,20 @@ export const zhTWContent: SiteContent = {
       {
         step: 1,
         title: "下載 Ghost-Pad 並打開 App",
-        summary: "從 GitHub Releases 下載最新的 universal.dmg（同時支援 Apple Silicon 與 Intel Mac），把 Ghost-Pad 拖進「應用程式」資料夾。",
-        tip: "首次打開時 macOS 可能會跳出安全性提醒，看下方手繪小紙條就能 10 秒解除！",
+        summary: "從 GitHub Releases 下載最新的 .dmg 檔案，把 Ghost-Pad 拖進「應用程式」資料夾。",
+        tip: "第一次打開如果遇到 macOS 安全性阻擋，照著下方步驟就能正常開啟。",
       },
       {
         step: 2,
         title: "插上 ESP32，點一下燒錄韌體",
         summary: "用 USB 傳輸線把 ESP32 接到電腦，打開 Ghost-Pad 的「ESP32 與韌體」分頁，軟體會自動找到序列埠，點「一鍵燒錄」就完成。",
-        tip: "記得選購支援 Bluetooth Classic (BR/EDR) 的標準 ESP32 開發板喔！",
+        tip: "請選購支援 Bluetooth Classic (BR/EDR) 的標準 ESP32 開發板。",
       },
       {
         step: 3,
         title: "Switch 藍牙配對，立刻開玩",
         summary: "在 Switch 主畫面進入「控制器 → 更改握法／順序」，回到 Ghost-Pad 點擊「首次配對（送出 L+R）」，等畫面跳出 1P 圖示就成功了。",
-        tip: "配對成功後，下次只要點「手動喚醒重連」就能秒速接回來。",
+        tip: "配對過之後，下次只要點「手動喚醒重連」就會自動接回來。",
       },
     ],
     hardwarePhoto: {
@@ -344,7 +344,7 @@ export const zhTWContent: SiteContent = {
     statusMuted: "已靜音 (MUTED)",
     statusIdle: "待機中 · 60Hz",
     timelineTitle: "即時操作時序流",
-    timelineSubtitle: "每個按鍵按多久都會化成一條長按光帶，從左側 NOW 往右流動（30 秒視窗），方便看清連招節奏。",
+    timelineSubtitle: "按住按鍵多久就會畫出對應長度的色條，顯示最近 30 秒的輸入紀錄，方便對節奏。",
     timelineTracksHeader: "軌道",
     timelineNowLabel: "NOW",
     timelineOpCountLabel: "操作次數",
@@ -398,8 +398,8 @@ export const zhTWContent: SiteContent = {
         note: "再點一下立刻恢復操作",
       },
       {
-        title: "手把、鍵盤、滑鼠三路無縫並存",
-        body: "不用切換輸入模式！你可以平常拿實體手把玩，臨時用鍵盤補按快捷鍵，或直接用滑鼠點畫面按鈕，所有輸入會即時自動合併送給 Switch。",
+        title: "手把、鍵盤、滑鼠同時混用",
+        body: "不用切換輸入模式。平常可以拿實體手把玩，需要時直接用鍵盤補按快捷鍵，或用滑鼠點畫面按鈕，所有輸入會即時合併送給 Switch。",
         note: "支援 8BitDo、Pro 手把與 Joy-Con",
       },
     ],
@@ -411,7 +411,7 @@ export const zhTWContent: SiteContent = {
       {
         id: "record",
         step: "1",
-        title: "3-2-1 倒數，毫秒級精準錄製",
+        title: "倒數 3 秒開始錄製",
         desc: "按下錄製會倒數 3 秒讓你準備，接著用實體手把或鍵盤正常玩一遍，每個按鍵的按住時間與搖桿方向都會完整記下來。",
       },
       {
@@ -472,12 +472,12 @@ export const zhTWContent: SiteContent = {
         counterInfinite: "∞ 持續循環",
       },
     },
-    emergencyNote: "安全煞車提醒：巨集執行中隨時按鍵盤 Esc 鍵，就會立刻強制中止並放開所有按鍵！",
+    emergencyNote: "緊急停止：巨集執行中隨時按鍵盤 Esc 鍵，就會立刻中止並放開所有按鍵。",
     showcase: {
-      title: "實戰範例：《寶可夢 火紅／葉綠》金珠橋自動刷金珠",
-      subtitle: "第二道館（華藍市北方）重複自爆打火箭隊刷金珠自動化腳本",
+      title: "實戰範例：《寶可夢 火紅／葉綠》華藍市北邊無限刷金珠",
+      subtitle: "24 號道路火箭隊員・領完金珠用小拳石自爆重置",
       description:
-        "透過 Ghost-Pad 錄製完整的對話、推進與自爆循環流程，設定無限循環即可在 Switch 上穩定自動刷取金珠。",
+        "把跑過去對話、領金珠、再讓小拳石自爆回寶可夢中心的流程錄下來，丟著跑無限循環就能自動刷滿金珠。",
       // Flip switchVideoReady / appVideoReady / scriptReady to true once files are added under website/public/demos/
       syncBadge: "雙畫面同步播放",
       syncLinkLabel: "App ⇄ Switch",
@@ -552,7 +552,7 @@ export const zhTWContent: SiteContent = {
             x: 56,
             y: 78,
             title: "5 軌即時輸入時序流",
-            detail: "把按鍵記錄成 5 軌光帶，可切換 10s～60s 捲動速度，練習節奏或除錯超清楚。",
+            detail: "把按鍵記錄成 5 軌時間條，可切換 10s～60s 顯示範圍，對節奏或抓問題都很方便。",
           },
           {
             id: "d5",
@@ -593,14 +593,14 @@ export const zhTWContent: SiteContent = {
             x: 56,
             y: 34,
             title: "5 軌時間軸視覺編輯器",
-            detail: "像剪輯音樂一樣檢視每個按鍵的起始時間與毫秒長度，支援直接拖拉移動位置或拉曳邊緣調整時長（含 10ms 智慧吸附），也能點擊開啟詳細動作編輯視窗。",
+            detail: "直接檢視每個按鍵的起點與持續時間，拖拉方塊就能移動位置或拉曳邊緣調整長度（以 10ms 為單位對齊），也可以點開詳細編輯視窗。",
           },
         ],
       },
       {
         id: "macro-edit",
         label: "按鍵編輯與拖拉",
-        caption: "點擊時間軸上的任意方塊即可開啟動作編輯視窗，搭配拖拉移動與邊緣縮放，毫秒微調超直覺。",
+        caption: "點擊時間軸上的任意方塊就能開啟編輯視窗，也可以直接拖拉移動或調整按壓長度。",
         image: "./screenshots/zh-TW/macro-edit.png",
         alt: "Ghost-Pad 巨集按鍵編輯與時間軸拖拉微調畫面",
         pins: [
@@ -668,7 +668,7 @@ export const zhTWContent: SiteContent = {
   faq: {
     heading: "新手常見問題",
     subheading: "開始前常遇到的幾個問題，整理在這裡。",
-    mascotBubble: "找不到答案的話，也可以直接到 GitHub Issues 問我喔！",
+    mascotBubble: "有遇到問題的話，歡迎到 GitHub Issues 留言回報。",
     items: [
       {
         id: "esp32-type",
@@ -680,31 +680,31 @@ export const zhTWContent: SiteContent = {
         id: "no-gamepad",
         question: "一定要有實體手把才能用 Ghost-Pad 嗎？",
         answer:
-          "完全不用！Ghost-Pad 支援純鍵盤（WASD + IJKL）以及直接用滑鼠點擊畫面上的 2D 手把操作，沒有外接手把也能完整控制 Switch 與錄製巨集。",
+          "不用，Ghost-Pad 支援純鍵盤（WASD + IJKL）以及滑鼠點擊畫面上的 2D 手把，沒有實體手把一樣能操作 Switch 和錄製巨集。",
       },
       {
         id: "supported-gamepads",
         question: "如果我有實體手把，支援哪些型號？",
         answer:
-          "支援常見的藍牙或 USB 手把，包含 8BitDo Micro、Nintendo Switch Pro Controller、Joy-Con 等。接上電腦後 Ghost-Pad 會以低於 1ms 的輪詢速度同步轉發，而且還能跟鍵盤操作無縫並存。",
+          "支援常見的藍牙或 USB 手把，包含 8BitDo Micro、Nintendo Switch Pro Controller、Joy-Con 等。接上電腦後會以低於 1ms 的輪詢速度轉發，也能直接跟鍵盤混用。",
       },
       {
         id: "macro-stop",
         question: "巨集無限循環跑起來停不下來怎麼辦？",
         answer:
-          "隨時按下鍵盤的 Esc 鍵就能全域緊急煞車！除此之外，硬體底層還有 200ms 斷線防卡鍵保護（Watchdog），就算 USB 意外拔掉，Switch 上的角色也會自動鬆開按鍵不會一直往前衝。",
+          "隨時按下鍵盤的 Esc 鍵就能強制中止。除此之外，ESP32 韌體內建 200ms 斷線保護（Watchdog），就算 USB 意外拔掉，Switch 端也會自動鬆開所有按鍵。",
       },
       {
         id: "share-macro",
         question: "我錄好的巨集可以傳給朋友用嗎？",
         answer:
-          "可以！在巨集工作坊中點選匯出就能存成輕巧的 .json 檔案；朋友拿到檔案後只要直接把 .json 拖進 Ghost-Pad 視窗裡就匯入完成。",
+          "可以，在巨集工作坊點選匯出就能存成 .json 檔案；拿到檔案的人只要把 .json 直接拖進 Ghost-Pad 視窗就能匯入。",
       },
     ],
   },
   footer: {
-    ctaTitle: "立即下載試用",
-    ctaBody: "下載最新 macOS 通用版（支援 Apple Silicon 與 Intel），免費開源、無需設定開發環境。",
+    ctaTitle: "下載 Ghost-Pad",
+    ctaBody: "提供 macOS 版免費下載（開源軟體，不需要另外安裝開發環境）。",
     downloadButton: "前往 GitHub Releases 下載",
     docsButton: "查看完整專案與技術文件",
     releasesLinkLabel: "Releases",

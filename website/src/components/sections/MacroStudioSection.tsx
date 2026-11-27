@@ -12,7 +12,7 @@ import { useRef, useState } from 'react';
 import { useContent } from '../../i18n/useContent';
 import { SketchCard, SketchHighlight } from '../sketch';
 
-const SPEED_OPTIONS = [0.5, 1, 1.5, 2] as const;
+const SPEED_OPTIONS = [0.5, 1, 2] as const;
 const APP_START_OFFSET_SEC = 0;
 const SWITCH_START_OFFSET_SEC = 1.5;
 const HAVE_FUTURE_DATA = 3;
@@ -42,7 +42,7 @@ export function MacroStudioSection() {
   const [isDualBuffering, setIsDualBuffering] = useState(false);
   const [dualCurrentTime, setDualCurrentTime] = useState(0);
   const [dualDuration, setDualDuration] = useState(0);
-  const [dualSpeed, setDualSpeed] = useState<(typeof SPEED_OPTIONS)[number]>(1);
+  const [dualSpeed, setDualSpeed] = useState<(typeof SPEED_OPTIONS)[number]>(2);
   const wantsToPlayRef = useRef(false);
   const bufferingRef = useRef<{ app: boolean; switch: boolean }>({ app: false, switch: false });
 
@@ -491,7 +491,7 @@ export function MacroStudioSection() {
                   </span>
                 </div>
 
-                {/* Shared Speed Selector (0.5x / 1x / 1.5x / 2x) */}
+                {/* Shared Speed Selector (0.5x / 1x / 2x) */}
                 <div
                   role='group'
                   aria-label={macro.showcase.speedGroupAriaLabel}

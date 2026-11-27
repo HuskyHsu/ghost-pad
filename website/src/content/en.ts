@@ -4,7 +4,7 @@ export const enContent: SiteContent = {
   meta: {
     locale: 'en',
     brand: 'Ghost-Pad',
-    pageTitle: 'Ghost-Pad | Turn Your Computer into a Cute Nintendo Switch Control Hub',
+    pageTitle: 'Ghost-Pad | Control Nintendo Switch from Your Computer',
     skipToContent: 'Skip to main content',
     githubUrl: 'https://github.com/HuskyHsu/ghost-pad',
     releasesUrl: 'https://github.com/HuskyHsu/ghost-pad/releases',
@@ -27,9 +27,9 @@ export const enContent: SiteContent = {
     lead: 'Use your keyboard, mouse, or any controller you already own—bridged through a tiny ESP32 board—to play Nintendo Switch wirelessly at a rock-solid 60Hz, and record macros for repetitive grinds.',
     secondaryCta: 'Download for macOS',
     mascotBubble:
-      'Hi! I translate your computer inputs into official Pro Controller signals for your Switch!',
+      'Turns your computer inputs into official Pro Controller signals for your Switch.',
     diagram: {
-      title: 'How Ghost-Pad Works in 10 Seconds',
+      title: 'How It Works',
       note: 'No console mods needed—your Switch simply sees a standard Pro Controller',
       nodes: [
         { id: 'pc', title: 'Ghost-Pad on Computer', sub: 'Keyboard / Gamepad / Macros' },
@@ -51,15 +51,15 @@ export const enContent: SiteContent = {
         step: 1,
         title: 'Download and Open Ghost-Pad',
         summary:
-          'Grab the latest universal.dmg from GitHub Releases (supports both Apple Silicon and Intel Macs) and drag Ghost-Pad into your Applications folder.',
-        tip: 'macOS may show a security prompt on first launch—check the sticky note below to clear it in 10 seconds!',
+          'Grab the latest .dmg from GitHub Releases and drag Ghost-Pad into your Applications folder.',
+        tip: 'If macOS blocks the first launch, follow the Gatekeeper steps below to open it.',
       },
       {
         step: 2,
         title: 'Plug in ESP32 and Flash in One Click',
         summary:
           'Connect your ESP32 over USB, open the "ESP32 & Firmware" tab in Ghost-Pad, let it auto-detect the serial port, and click "One-Click Flash".',
-        tip: 'Make sure you pick a standard ESP32 board that supports Bluetooth Classic (BR/EDR)!',
+        tip: 'Make sure you pick a standard ESP32 board that supports Bluetooth Classic (BR/EDR).',
       },
       {
         step: 3,
@@ -113,7 +113,7 @@ export const enContent: SiteContent = {
     statusIdle: 'IDLE · 60Hz',
     timelineTitle: 'Live Input Timeline',
     timelineSubtitle:
-      'Every press becomes a hold-duration ribbon flowing left-to-right from NOW across a 30-second window so you can read combo timing at a glance.',
+      'Each press draws a bar matching how long you held it across a 30-second window so you can read input timing.',
     timelineTracksHeader: 'Track',
     timelineNowLabel: 'NOW',
     timelineOpCountLabel: 'Inputs',
@@ -168,7 +168,7 @@ export const enContent: SiteContent = {
       },
       {
         title: 'Gamepad, Keyboard & Mouse Together',
-        body: 'No mode switching needed. Play with a physical gamepad, tap a keyboard key, or click on-screen buttons anytime—all inputs merge smoothly in real time.',
+        body: 'No mode switching needed. Play with a physical gamepad, tap a keyboard key, or click on-screen buttons anytime—all inputs are merged in real time.',
         note: 'Works with 8BitDo, Pro Controller & Joy-Con',
       },
     ],
@@ -181,7 +181,7 @@ export const enContent: SiteContent = {
       {
         id: 'record',
         step: '1',
-        title: '3-2-1 Countdown, Millisecond Capture',
+        title: '3-Second Countdown Recording',
         desc: 'Hit record for a 3-second countdown, then play through once with your gamepad or keyboard. Every button hold duration and stick tilt is captured faithfully.',
       },
       {
@@ -246,12 +246,12 @@ export const enContent: SiteContent = {
       },
     },
     emergencyNote:
-      'Emergency Brake: Press Esc on your keyboard anytime during playback to stop immediately and release all buttons!',
+      'Emergency Stop: Press Esc on your keyboard anytime during playback to stop immediately and release all buttons.',
     showcase: {
       title: 'Example: Pokémon FireRed / LeafGreen Nugget Bridge Farm',
-      subtitle: 'Automated Team Rocket Grunt Nugget farming loop north of Cerulean City',
+      subtitle: 'Route 24 north of Cerulean City: grab the Nugget, Self-Destruct to reset, repeat',
       description:
-        'Record the full dialogue, movement, and faint-reset loop once in Ghost-Pad, then run it on infinite loop for hands-free Nugget farming on Switch.',
+        'Record one loop of walking up, talking to the Rocket Grunt for the Nugget, and having Geodude Self-Destruct back to the Pokémon Center—then set it to infinite loop.',
       syncBadge: 'Dual-Screen Synced Playback',
       syncLinkLabel: 'App ⇄ Switch',
       syncStatusReady: '16:9 × 2 Sync Ready',
@@ -335,7 +335,7 @@ export const enContent: SiteContent = {
             y: 78,
             title: '5-Track Live Input Timeline',
             detail:
-              'Turns every press into a hold-duration ribbon with 10s–60s scroll speeds—super clear for combo practice and debugging.',
+              'Logs every press as a bar across 5 tracks with 10s–60s scroll speeds for checking timing or debugging.',
           },
           {
             id: 'd5',
@@ -381,7 +381,7 @@ export const enContent: SiteContent = {
             y: 34,
             title: '5-Track Visual Timeline Editor',
             detail:
-              'Inspect start times and millisecond holds like an audio track—drag blocks horizontally to reposition or drag edges to resize duration with 10ms smart snap, or click to open the action editor.',
+              'Inspect start times and hold durations—drag blocks horizontally to move or drag edges to resize (snaps in 10ms steps), or click to open the action editor.',
           },
         ],
       },
@@ -464,7 +464,7 @@ export const enContent: SiteContent = {
   faq: {
     heading: 'Frequently Asked Questions',
     subheading: 'Common questions and quick answers before you get started.',
-    mascotBubble: 'Still stuck? Drop by GitHub Issues anytime and say hi!',
+    mascotBubble: 'Run into an issue? Open a thread on GitHub Issues anytime.',
     items: [
       {
         id: 'esp32-type',
@@ -476,32 +476,32 @@ export const enContent: SiteContent = {
         id: 'no-gamepad',
         question: 'Do I need a physical controller to use Ghost-Pad?',
         answer:
-          'Not at all! Ghost-Pad supports pure keyboard play (WASD + IJKL) and clicking the on-screen 2D controller with your mouse—you can play Switch and record macros with zero extra controllers.',
+          'No. Ghost-Pad supports pure keyboard play (WASD + IJKL) and clicking the on-screen 2D controller with your mouse—you can play Switch and record macros without a physical controller.',
       },
       {
         id: 'supported-gamepads',
         question: 'Which physical controllers are supported?',
         answer:
-          'Most standard Bluetooth and USB controllers work out of the box, including 8BitDo Micro, Nintendo Switch Pro Controller, and Joy-Con. Ghost-Pad polls at sub-1ms speed and merges seamlessly with keyboard input.',
+          'Most standard Bluetooth and USB controllers work out of the box, including 8BitDo Micro, Nintendo Switch Pro Controller, and Joy-Con. Ghost-Pad polls at sub-1ms speed and works alongside keyboard input.',
       },
       {
         id: 'macro-stop',
         question: "What if an infinite macro loop won't stop?",
         answer:
-          'Press Esc on your keyboard anytime for an instant global emergency stop! Plus, the ESP32 firmware has a built-in 200ms Watchdog—even if the USB cable is pulled, all buttons automatically release so your character never gets stuck running.',
+          'Press Esc on your keyboard anytime to force-stop playback. The ESP32 firmware also has a built-in 200ms Watchdog—even if the USB cable is pulled, all buttons automatically release.',
       },
       {
         id: 'share-macro',
         question: 'Can I share my recorded macros with friends?',
         answer:
-          "Yes! Export any macro as a tiny .json file from Macro Studio. Your friend just drags that .json file into Ghost-Pad and it's ready to run.",
+          'Yes. Export any macro as a .json file from Macro Studio, and your friend can drag that .json file straight into Ghost-Pad to import it.',
       },
     ],
   },
   footer: {
     ctaTitle: 'Download Ghost-Pad',
     ctaBody:
-      'Download the latest universal macOS build (Apple Silicon & Intel). Free, open-source, and zero dev setup required.',
+      'Free and open-source macOS app. Download and open it directly—no dev environment setup required.',
     downloadButton: 'Download on GitHub Releases',
     docsButton: 'View Repository & Tech Docs',
     releasesLinkLabel: 'Releases',

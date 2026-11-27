@@ -4,7 +4,7 @@ export const jaContent: SiteContent = {
   meta: {
     locale: 'ja',
     brand: 'Ghost-Pad',
-    pageTitle: 'Ghost-Pad｜PCを Nintendo Switch のかわいい操作ハブに',
+    pageTitle: 'Ghost-Pad｜PCから Nintendo Switch を操作するツール',
     skipToContent: 'メインコンテンツへスキップ',
     githubUrl: 'https://github.com/HuskyHsu/ghost-pad',
     releasesUrl: 'https://github.com/HuskyHsu/ghost-pad/releases',
@@ -26,9 +26,9 @@ export const jaContent: SiteContent = {
     title: 'PC から Nintendo Switch をワイヤレス操作',
     lead: 'キーボード、マウス、手元のゲームパッドを使って、小さな ESP32 ボード経由で Switch を 60Hz で安定ワイヤレス操作。周回用のマクロ録画・自動再生も思いのままです。',
     secondaryCta: 'macOS 版をダウンロード',
-    mascotBubble: 'こんにちは！PC の操作を純正 Pro コン信号に変換して Switch へ届けるよ！',
+    mascotBubble: 'PC の入力を純正 Pro コン信号に変換して Switch へ送ります。',
     diagram: {
-      title: '10 秒でわかる Ghost-Pad のしくみ',
+      title: '動作のしくみ',
       note: '本体の改造は不要。Switch からは普通の純正 Pro コントローラーとして認識されます',
       nodes: [
         { id: 'pc', title: 'PC 側 Ghost-Pad', sub: 'キーボード / コントローラー / マクロ' },
@@ -50,22 +50,22 @@ export const jaContent: SiteContent = {
         step: 1,
         title: 'Ghost-Pad をダウンロードして起動',
         summary:
-          'GitHub Releases から最新の universal.dmg（Apple Silicon / Intel Mac 両対応）を入手し、Ghost-Pad を「アプリケーション」フォルダへドラッグします。',
-        tip: '初回起動時に macOS のセキュリティ警告が出ても、下のメモを見れば 10 秒で解除できます！',
+          'GitHub Releases から最新の .dmg を入手し、Ghost-Pad を「アプリケーション」フォルダへドラッグします。',
+        tip: '初回起動時に macOS のセキュリティ警告が出た場合は、下の手順に沿って開いてください。',
       },
       {
         step: 2,
         title: 'ESP32 をつないでワンクリック書き込み',
         summary:
           'USB ケーブルで ESP32 を PC に接続し、Ghost-Pad の「ESP32 とファームウェア」タブを開くとシリアルポートを自動検出。「ワンクリック書き込み」を押すだけで完了です。',
-        tip: 'Bluetooth Classic (BR/EDR) 対応の標準 ESP32 ボードを選んでね！',
+        tip: 'Bluetooth Classic (BR/EDR) 対応の標準 ESP32 ボードを選んでください。',
       },
       {
         step: 3,
         title: 'Switch とペアリングしてすぐプレイ',
         summary:
           'Switch のホーム画面から「コントローラー → 持ちかた／順番を変える」を開き、Ghost-Pad で「初回ペアリング（L+R 送信）」をクリック。1P アイコンが出たら成功です。',
-        tip: '一度ペアリングすれば、次回からは「手動ウェイク再接続」で一瞬でつながります。',
+        tip: '一度ペアリングすれば、次回からは「手動ウェイク再接続」で再接続できます。',
       },
     ],
     hardwarePhoto: {
@@ -112,7 +112,7 @@ export const jaContent: SiteContent = {
     statusIdle: '待機中 · 60Hz',
     timelineTitle: 'リアルタイム入力タイムライン',
     timelineSubtitle:
-      'ボタンを押した長さがリボンになり、左端の NOW から右へ流れます（30 秒ウィンドウ）。コンボのタイミング確認に便利です。',
+      'ボタンを押した長さに応じたバーを直近 30 秒分表示し、入力タイミングを確認できます。',
     timelineTracksHeader: 'トラック',
     timelineNowLabel: 'NOW',
     timelineOpCountLabel: '入力回数',
@@ -180,7 +180,7 @@ export const jaContent: SiteContent = {
       {
         id: 'record',
         step: '1',
-        title: '3-2-1 カウントダウンでミリ秒録画',
+        title: '3 秒カウントダウンで録画',
         desc: '録画を押すと 3 秒カウントダウン。コントローラーやキーボードで普段どおり 1 周プレイするだけで、長押し時間やスティックの傾きを正確に記録します。',
       },
       {
@@ -244,12 +244,12 @@ export const jaContent: SiteContent = {
       },
     },
     emergencyNote:
-      '緊急ブレーキ：マクロ実行中でもキーボードの Esc キーを押せば即座に強制停止し、すべてのボタンを離します！',
+      '緊急停止：マクロ実行中でもキーボードの Esc キーを押せば即座に強制停止し、すべてのボタンを離します。',
     showcase: {
       title: '実例：『ポケモン ファイアレッド／リーフグリーン』ゴールデンボールブリッジ周回',
-      subtitle: 'ハナダシティ北のロケット団員で「きんのたま」を無限回収する自動化スクリプト',
+      subtitle: 'ハナダシティ北のロケット団員：きんのたまを受け取り、だいばくはつで戻って無限回収',
       description:
-        '会話・移動・リセットの一連の操作を Ghost-Pad で録画して無限ループに設定すれば、Switch 上で安定してきんのたまを自動回収できます。',
+        '話しかけて「きんのたま」をもらい、イシツブテの「じばく」でポケモンセンターへ戻る流れを 1 周録画して無限ループさせるだけで、自動で稼げます。',
       syncBadge: '2 画面同期再生',
       syncLinkLabel: 'App ⇄ Switch',
       syncStatusReady: '16:9 × 2 同期準備完了',
@@ -333,7 +333,7 @@ export const jaContent: SiteContent = {
             y: 78,
             title: '5 トラックリアルタイム入力タイムライン',
             detail:
-              'ボタン入力を 5 トラックの光帯で可視化。10s〜60s のスクロール速度切替に対応し、リズム練習や検証に最適です。',
+              'ボタン入力を 5 トラックで可視化。10s〜60s の表示幅切替に対応し、タイミング確認やデバッグに便利です。',
           },
           {
             id: 'd5',
@@ -379,7 +379,7 @@ export const jaContent: SiteContent = {
             y: 34,
             title: '5 トラック視覚タイムラインエディタ',
             detail:
-              '音楽編集のように各ボタンの開始時刻とミリ秒長さを確認。ブロックをドラッグして位置移動や端の伸縮（10ms スナップ対応）ができ、クリックで詳細編集モーダルを開けます。',
+              '各ボタンの開始時刻と長押し時間を確認。ブロックをドラッグして位置移動や端の伸縮（10ms 単位でスナップ）ができ、クリックで詳細編集モーダルを開けます。',
           },
         ],
       },
@@ -387,7 +387,7 @@ export const jaContent: SiteContent = {
         id: 'macro-edit',
         label: 'ボタン編集・ドラッグ',
         caption:
-          'タイムライン上のブロックをクリックすると詳細編集モーダルが開き、ドラッグ移動・長さ調整と合わせて直感的に微調整できます。',
+          'タイムライン上のブロックをクリックすると詳細編集モーダルが開き、ドラッグ移動・長さ調整でそのまま微調整できます。',
         image: './screenshots/ja/macro-edit.png',
         alt: 'Ghost-Pad マクロのボタン編集モーダルとタイムラインドラッグ調整画面',
         pins: [
@@ -462,7 +462,7 @@ export const jaContent: SiteContent = {
   faq: {
     heading: 'よくある質問',
     subheading: 'はじめる前によくある質問をまとめました。',
-    mascotBubble: '解決しないときは GitHub Issues で気軽に聞いてね！',
+    mascotBubble: '分からないことがあれば GitHub Issues から気軽に連絡してください。',
     items: [
       {
         id: 'esp32-type',
@@ -474,32 +474,32 @@ export const jaContent: SiteContent = {
         id: 'no-gamepad',
         question: '物理コントローラーがなくても Ghost-Pad は使えますか？',
         answer:
-          'はい、不要です！キーボード（WASD + IJKL）や画面上の 2D コントローラーのマウスクリックだけでも、Switch の操作からマクロ録画までフル活用できます。',
+          'はい、不要です。キーボード（WASD + IJKL）や画面上の 2D コントローラーのマウスクリックだけでも、Switch の操作からマクロ録画まで行えます。',
       },
       {
         id: 'supported-gamepads',
         question: '手持ちのコントローラーはどの機種に対応していますか？',
         answer:
-          '8BitDo Micro、Nintendo Switch Pro コントローラー、Joy-Con など一般的な Bluetooth / USB コントローラーに対応しています。1ms 未満のポーリングで転送され、キーボード操作ともシームレスに併用できます。',
+          '8BitDo Micro、Nintendo Switch Pro コントローラー、Joy-Con など一般的な Bluetooth / USB コントローラーに対応しています。1ms 未満のポーリングで転送され、キーボード操作ともそのまま併用できます。',
       },
       {
         id: 'macro-stop',
         question: '無限ループ中のマクロが止まらなくなったらどうすればいい？',
         answer:
-          'キーボードの Esc キーを押せばいつでもグローバル緊急停止できます！さらに ESP32 側にも 200ms の切断保護（Watchdog）があるため、万が一 USB が抜けても全ボタンが自動解除されて暴走しません。',
+          'キーボードの Esc キーを押せばいつでも強制停止できます。さらに ESP32 側にも 200ms の切断保護（Watchdog）があるため、万が一 USB が抜けても全ボタンが自動解除されます。',
       },
       {
         id: 'share-macro',
         question: '録画したマクロを友だちに共有できますか？',
         answer:
-          'できます！マクロスタジオから軽量な .json ファイルとして書き出せます。受け取った側は .json を Ghost-Pad のウィンドウにドラッグするだけで取り込み完了です。',
+          'できます。マクロスタジオから .json ファイルとして書き出せるので、受け取った側は .json を Ghost-Pad のウィンドウにドラッグするだけで取り込めます。',
       },
     ],
   },
   footer: {
     ctaTitle: 'Ghost-Pad をダウンロード',
     ctaBody:
-      '最新の macOS ユニバーサル版（Apple Silicon / Intel 両対応）をダウンロード。無料・オープンソースで開発環境の構築は不要です。',
+      '無料・オープンソースの macOS 版をダウンロードできます。開発環境の構築は不要です。',
     downloadButton: 'GitHub Releases からダウンロード',
     docsButton: 'リポジトリと技術ドキュメントを見る',
     releasesLinkLabel: 'Releases',
