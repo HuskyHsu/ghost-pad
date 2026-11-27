@@ -253,6 +253,7 @@ export const jaContent: SiteContent = {
       syncBadge: '2 画面同期再生',
       syncLinkLabel: 'App ⇄ Switch',
       syncStatusReady: '16:9 × 2 同期準備完了',
+      syncStatusBuffering: 'バッファリング同期中…',
       syncStatusWaiting: '16:9 × 2 動画準備中',
       syncStandbyHint:
         '録画ファイルと JSON スクリプトが揃うと、この場で同期再生やダウンロード取り込みができるようになります。',

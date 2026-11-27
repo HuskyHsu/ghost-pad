@@ -15,6 +15,13 @@ import { SketchCard, SketchHighlight } from '../sketch';
 const SPEED_OPTIONS = [0.5, 1, 1.5, 2] as const;
 const APP_START_OFFSET_SEC = 0;
 const SWITCH_START_OFFSET_SEC = 1.5;
+const HAVE_FUTURE_DATA = 3;
+
+function getTargetSwitchTime(appCurrentTime: number, switchDuration: number): number {
+  const timelineTime = Math.max(0, appCurrentTime - APP_START_OFFSET_SEC);
+  const rawSwitchTime = timelineTime + SWITCH_START_OFFSET_SEC;
+  return Number.isFinite(switchDuration) ? Math.min(rawSwitchTime, switchDuration) : rawSwitchTime;
+}
 
 function formatClock(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return '00:00';
@@ -32,9 +39,30 @@ export function MacroStudioSection() {
   const switchVideoRef = useRef<HTMLVideoElement | null>(null);
   const bothVideosReady = macro.showcase.appVideoReady && macro.showcase.switchVideoReady;
   const [isDualPlaying, setIsDualPlaying] = useState(false);
+  const [isDualBuffering, setIsDualBuffering] = useState(false);
   const [dualCurrentTime, setDualCurrentTime] = useState(0);
   const [dualDuration, setDualDuration] = useState(0);
   const [dualSpeed, setDualSpeed] = useState<(typeof SPEED_OPTIONS)[number]>(1);
+  const wantsToPlayRef = useRef(false);
+  const bufferingRef = useRef<{ app: boolean; switch: boolean }>({ app: false, switch: false });
+
+  const syncSwitchToApp = (
+    vApp: HTMLVideoElement,
+    vSwitch: HTMLVideoElement,
+    thresholdSec: number,
+  ) => {
+    const targetSwitchTime = getTargetSwitchTime(vApp.currentTime, vSwitch.duration);
+    if (Math.abs(targetSwitchTime - vSwitch.currentTime) > thresholdSec) {
+      vSwitch.currentTime = targetSwitchTime;
+    }
+  };
+
+  const resetPlaybackState = () => {
+    wantsToPlayRef.current = false;
+    bufferingRef.current = { app: false, switch: false };
+    setIsDualBuffering(false);
+    setIsDualPlaying(false);
+  };
 
   const handleToggleDualPlay = async () => {
     if (!bothVideosReady) return;
@@ -42,33 +70,91 @@ export function MacroStudioSection() {
     const vSwitch = switchVideoRef.current;
     if (!vApp || !vSwitch) return;
 
-    if (isDualPlaying) {
+    if (wantsToPlayRef.current) {
       vApp.pause();
       vSwitch.pause();
-      setIsDualPlaying(false);
+      resetPlaybackState();
       return;
     }
 
+    wantsToPlayRef.current = true;
+    setIsDualPlaying(true);
     vApp.playbackRate = dualSpeed;
     vSwitch.playbackRate = dualSpeed;
     if (vApp.currentTime < APP_START_OFFSET_SEC) {
       vApp.currentTime = APP_START_OFFSET_SEC;
     }
-    const timelineTime = Math.max(0, vApp.currentTime - APP_START_OFFSET_SEC);
-    const rawSwitchTime = timelineTime + SWITCH_START_OFFSET_SEC;
-    const targetSwitchTime = Number.isFinite(vSwitch.duration)
-      ? Math.min(rawSwitchTime, vSwitch.duration)
-      : rawSwitchTime;
-    if (Math.abs(targetSwitchTime - vSwitch.currentTime) > 0.05) {
-      vSwitch.currentTime = targetSwitchTime;
-    }
+    syncSwitchToApp(vApp, vSwitch, 0.05);
+
+    const appNeedsData = vApp.readyState < HAVE_FUTURE_DATA;
+    const switchNeedsData = vSwitch.readyState < HAVE_FUTURE_DATA;
+    bufferingRef.current = { app: appNeedsData, switch: switchNeedsData };
+    setIsDualBuffering(appNeedsData || switchNeedsData);
+
     try {
       await Promise.all([vApp.play(), vSwitch.play()]);
-      setIsDualPlaying(true);
+      // If either stream stalled immediately after play() started, hold the healthy one.
+      if (wantsToPlayRef.current && (vApp.readyState < HAVE_FUTURE_DATA || vSwitch.readyState < HAVE_FUTURE_DATA)) {
+        const appWaiting = vApp.readyState < HAVE_FUTURE_DATA;
+        const switchWaiting = vSwitch.readyState < HAVE_FUTURE_DATA;
+        bufferingRef.current = { app: appWaiting, switch: switchWaiting };
+        setIsDualBuffering(true);
+        if (appWaiting) vSwitch.pause();
+        if (switchWaiting) vApp.pause();
+      }
     } catch {
       vApp.pause();
       vSwitch.pause();
-      setIsDualPlaying(false);
+      resetPlaybackState();
+    }
+  };
+
+  const handleVideoWaiting = (which: 'app' | 'switch') => {
+    if (!wantsToPlayRef.current) return;
+    bufferingRef.current[which] = true;
+    setIsDualBuffering(true);
+    // Pause only the healthy video so the stalled video keeps buffering priority.
+    const other = which === 'app' ? switchVideoRef.current : appVideoRef.current;
+    other?.pause();
+  };
+
+  const handleVideoStalled = (which: 'app' | 'switch') => {
+    const target = which === 'app' ? appVideoRef.current : switchVideoRef.current;
+    if (target && target.readyState < HAVE_FUTURE_DATA) {
+      handleVideoWaiting(which);
+    }
+  };
+
+  const handleVideoReady = async (which: 'app' | 'switch') => {
+    bufferingRef.current[which] = false;
+    if (!wantsToPlayRef.current) return;
+
+    const vApp = appVideoRef.current;
+    const vSwitch = switchVideoRef.current;
+    if (!vApp || !vSwitch) return;
+
+    if (
+      bufferingRef.current.app ||
+      bufferingRef.current.switch ||
+      vApp.readyState < HAVE_FUTURE_DATA ||
+      vSwitch.readyState < HAVE_FUTURE_DATA
+    ) {
+      return;
+    }
+
+    setIsDualBuffering(false);
+    syncSwitchToApp(vApp, vSwitch, 0.05);
+
+    if (vApp.paused || vSwitch.paused) {
+      vApp.playbackRate = dualSpeed;
+      vSwitch.playbackRate = dualSpeed;
+      try {
+        await Promise.all([vApp.play(), vSwitch.play()]);
+      } catch {
+        vApp.pause();
+        vSwitch.pause();
+        resetPlaybackState();
+      }
     }
   };
 
@@ -131,21 +217,20 @@ export function MacroStudioSection() {
     if (!vApp) return;
     const timelineTime = Math.max(0, vApp.currentTime - APP_START_OFFSET_SEC);
     setDualCurrentTime(timelineTime);
-    if (vSwitch) {
-      const rawSwitchTime = timelineTime + SWITCH_START_OFFSET_SEC;
-      const targetSwitchTime = Number.isFinite(vSwitch.duration)
-        ? Math.min(rawSwitchTime, vSwitch.duration)
-        : rawSwitchTime;
-      if (Math.abs(targetSwitchTime - vSwitch.currentTime) > 0.15) {
-        vSwitch.currentTime = targetSwitchTime;
-      }
+    if (
+      vSwitch &&
+      !bufferingRef.current.app &&
+      !bufferingRef.current.switch &&
+      !vSwitch.seeking
+    ) {
+      syncSwitchToApp(vApp, vSwitch, 0.15);
     }
   };
 
   const handleDualEnded = () => {
     appVideoRef.current?.pause();
     switchVideoRef.current?.pause();
-    setIsDualPlaying(false);
+    resetPlaybackState();
   };
 
   return (
@@ -231,13 +316,19 @@ export function MacroStudioSection() {
               <span className='inline-flex items-center gap-1.5 font-[family-name:var(--font-mono)] text-xs font-medium text-ink-muted tabular-nums'>
                 <span
                   className={`h-2 w-2 rounded-full ${
-                    bothVideosReady ? 'bg-marker-mint-deep' : 'bg-ink-muted/45'
+                    !bothVideosReady
+                      ? 'bg-ink-muted/45'
+                      : isDualBuffering
+                        ? 'animate-pulse bg-marker-yellow'
+                        : 'bg-marker-mint-deep'
                   }`}
                   aria-hidden='true'
                 />
-                {bothVideosReady
-                  ? macro.showcase.syncStatusReady
-                  : macro.showcase.syncStatusWaiting}
+                {!bothVideosReady
+                  ? macro.showcase.syncStatusWaiting
+                  : isDualBuffering
+                    ? macro.showcase.syncStatusBuffering
+                    : macro.showcase.syncStatusReady}
               </span>
             </div>
 
@@ -273,6 +364,10 @@ export function MacroStudioSection() {
                       preload='metadata'
                       onLoadedMetadata={handleDualMetadata}
                       onTimeUpdate={handleAppTimeUpdate}
+                      onWaiting={() => handleVideoWaiting('app')}
+                      onStalled={() => handleVideoStalled('app')}
+                      onCanPlay={() => handleVideoReady('app')}
+                      onPlaying={() => handleVideoReady('app')}
                       onEnded={handleDualEnded}
                       className='absolute inset-0 h-full w-full bg-[#EFF1F4] object-contain'
                     />
@@ -316,6 +411,10 @@ export function MacroStudioSection() {
                       muted
                       preload='metadata'
                       onLoadedMetadata={handleDualMetadata}
+                      onWaiting={() => handleVideoWaiting('switch')}
+                      onStalled={() => handleVideoStalled('switch')}
+                      onCanPlay={() => handleVideoReady('switch')}
+                      onPlaying={() => handleVideoReady('switch')}
                       className='absolute inset-0 h-full w-full bg-black object-contain'
                     />
                   ) : (

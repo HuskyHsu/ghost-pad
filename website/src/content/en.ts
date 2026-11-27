@@ -255,6 +255,7 @@ export const enContent: SiteContent = {
       syncBadge: 'Dual-Screen Synced Playback',
       syncLinkLabel: 'App ⇄ Switch',
       syncStatusReady: '16:9 × 2 Sync Ready',
+      syncStatusBuffering: 'Buffering sync…',
       syncStatusWaiting: '16:9 × 2 Videos Pending',
       syncStandbyHint:
         'Once the recordings and JSON macro are added, you can watch them side-by-side and import the script here.',

@@ -189,6 +189,7 @@ export interface SiteContent {
       syncBadge: string;
       syncLinkLabel: string;
       syncStatusReady: string;
+      syncStatusBuffering: string;
       syncStatusWaiting: string;
       syncStandbyHint: string;
       pauseSyncAriaLabel: string;
@@ -481,6 +482,7 @@ export const zhTWContent: SiteContent = {
       syncBadge: "雙畫面同步播放",
       syncLinkLabel: "App ⇄ Switch",
       syncStatusReady: "16:9 × 2 同步就緒",
+      syncStatusBuffering: "緩衝同步中…",
       syncStatusWaiting: "16:9 × 2 待放入影片",
       syncStandbyHint: "待錄影檔與 JSON 腳本補齊後，即可於此同步對照觀看、拖曳進度並下載匯入使用。",
       pauseSyncAriaLabel: "暫停同步播放",
